@@ -32,16 +32,28 @@ End-to-end flows that prove the system works as intended:
 
 ## Testing Implementation
 
-### Immediate Feedback
-- `--verify` startup mode: Run all checks, report results, exit
-- `--smoke-test` mode: Quick functional verification 
-- Development dashboards showing real-time system health
-- Error messages with specific fix instructions
+### Immediate Feedback Tools
+- `--verify`: Pre-flight checks only, report status, exit
+- `--smoke-test`: Full functional verification in 30 seconds
+- `--health-deep`: Comprehensive system check with timing data
+- Real-time dashboard showing component status and last-known-good timestamps
 
-### Continuous Monitoring
-- Health endpoints that test real functionality
-- Automatic degradation detection
-- Performance baselines with alerts
-- Resource usage monitoring
+### Error Strategy
+- **Specific fix instructions**: "Directory /data missing. Run: mkdir /data"
+- **Context in errors**: "Screenshot failed: screencapture not found. Install Xcode command line tools."
+- **Progressive detail**: Summary first, full diagnostics on request
+- **Machine-readable status**: JSON health reports for automation
 
-The goal: Anyone should be able to run one command and know if the system is working or exactly what's broken.
+### Development Integration
+- Pre-commit hooks that run verification
+- CI smoke tests on every change
+- Local dev scripts that show system status
+- Integration with existing monitoring tools
+
+### Continuous Validation
+- Health endpoints exercise actual functionality (not just "server alive")
+- Scheduled self-tests detect degradation
+- Resource monitoring with configurable thresholds
+- Automatic alerts when components become unhealthy
+
+**Success metric**: Zero-debug deployment. If verification passes, deployment works.
