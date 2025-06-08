@@ -6,41 +6,42 @@ The system has many moving parts - collectors, APIs, databases, file systems, Do
 
 ## Three-Layer Testing Strategy
 
-### 1. Startup Health Checks
-Every component verifies its dependencies on startup:
-- Required directories exist and are writable
-- Environment variables are set and valid
-- Database connections work
-- External services respond
-- File permissions allow expected operations
+### 1. Startup Validation (Required)
+Every component must validate its world before starting:
+- **Paths exist and are writable**: Don't assume, verify
+- **Environment variables present and sane**: Check ranges, formats, required values
+- **Database connections work**: Actually query, don't just connect
+- **External dependencies respond**: APIs, file systems, hardware
+- **Permissions allow expected operations**: Test write, read, execute as needed
 
-**Rule**: If a component can't do its job, it should refuse to start, not limp along.
+**Non-negotiable rule**: If any dependency is broken, exit with clear error message and fix instructions.
 
-### 2. Runtime Smoke Tests
-Built-in endpoints/commands that verify the system is actually working:
-- `/health` endpoints that test the full stack, not just "server running"
-- Quick functional tests: "can I actually collect a file? take a screenshot? write to database?"
-- Periodic self-checks that detect degraded performance
+### 2. Runtime Health Monitoring
+Continuous verification that the system is actually functioning:
+- **Deep health checks**: `/health` endpoints that exercise real functionality
+- **Functional smoke tests**: Actually collect a file, take a screenshot, write to database
+- **Performance monitoring**: Detect when things get slow or stuck
+- **Resource checks**: Disk space, memory, connection pools
 
-### 3. Integration Verification
-Simple end-to-end flows that prove components work together:
-- Create test file → verify collector sees it → check database entry
-- Request screenshot → verify image captured → validate API response
-- Trigger event → verify it flows through the pipeline
+### 3. Integration Proof Points
+End-to-end flows that prove the system works as intended:
+- **File lifecycle**: Create → Detect → Store → Query → Retrieve
+- **API workflows**: Request → Process → Respond → Verify
+- **Event flows**: Generate → Collect → Process → Store
+- **Cross-service communication**: Verify actual data exchange
 
-## Testing Priorities
+## Testing Implementation
 
-1. **Dependency verification** - paths, permissions, services
-2. **Core functionality** - can we do the basic job?
-3. **Error handling** - do failures surface clearly?
-4. **Integration points** - do components actually talk to each other?
+### Immediate Feedback
+- `--verify` startup mode: Run all checks, report results, exit
+- `--smoke-test` mode: Quick functional verification 
+- Development dashboards showing real-time system health
+- Error messages with specific fix instructions
 
-## Implementation Approach
+### Continuous Monitoring
+- Health endpoints that test real functionality
+- Automatic degradation detection
+- Performance baselines with alerts
+- Resource usage monitoring
 
-- `--test` modes for quick verification
-- Health endpoints that actually test functionality
-- Clear error messages with actionable fixes
-- Automated tests that mirror real usage patterns
-- Development tools that show system status at a glance
-
-The goal is confidence: "I can see this is working" or "I can see exactly what's broken."
+The goal: Anyone should be able to run one command and know if the system is working or exactly what's broken.
