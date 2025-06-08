@@ -1,0 +1,18 @@
+{
+  "daemons": [
+    {
+      "name": "logitech-ptz-collector",
+      "type": "executable", 
+      "path": "/Users/j/Code/logi-ptz/daemons/logitech_ptz_daemon.py",
+      "supports": ["pan", "tilt", "zoom", "screenshot"],
+      "description": "Logitech PTZ camera collector daemon"
+    },
+    {
+      "name": "usb-webcam-collector",
+      "type": "executable",
+      "path": "/Users/j/Code/logi-ptz/daemons/usb_webcam_daemon.py", 
+      "supports": ["screenshot"],
+      "description": "USB webcam collector daemon (screenshot only, no PTZ)"
+    }
+  ]
+}

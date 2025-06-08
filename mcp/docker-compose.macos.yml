@@ -1,0 +1,181 @@
+version: '3.8'
+
+# Docker Compose for local macOS M4 testing with PTZ Pro Camera and Athena integration
+# This configuration is optimized for development and testing on macOS M4 systems
+
+services:
+  # Motion Detection with Athena Agent Integration
+  motion-detector:
+    build:
+      context: .
+      dockerfile: Dockerfile.motion
+      platforms:
+        - linux/arm64  # M4 Mac compatible
+    container_name: motion-athena-macos
+    restart: unless-stopped
+    
+    # Enable access to USB cameras (may require privileged mode on macOS)
+    privileged: true
+    
+    # Device access for PTZ Pro Camera
+    # Note: On macOS, USB device paths may differ
+    devices:
+      - /dev/video0:/dev/video0  # Primary camera device
+      # - /dev/video1:/dev/video1  # Uncomment if you have a second camera
+    
+    # Environment variables for athena integration
+    environment:
+      # Camera and Agent Configuration
+      - CAMERA_ID=ptz_pro_cam_macos           # Unique camera identifier
+      - AGENT_ID=motion_agent_macos_ptz       # Unique athena agent identifier
+      - AGENT_LOCATION=office_desk            # Physical location description
+      
+      # MQTT Configuration for Athena System
+      - MQTT_BROKER=localhost                 # Local MQTT broker for testing
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=                        # Optional MQTT username
+      - MQTT_PASSWORD=                        # Optional MQTT password
+      - MQTT_TOPIC_PREFIX=athena              # Use athena prefix for agent integration
+      
+      # Motion Detection Settings
+      - TZ=America/New_York                   # Set your timezone
+      
+      # Debug and Logging
+      - PYTHONUNBUFFERED=1                    # Ensure Python logs are visible
+      - LOG_LEVEL=INFO                        # Set logging level
+    
+    # Port mapping
+    ports:
+      - "8080:8080"  # Motion web interface
+      - "8081:8081"  # Camera live stream
+    
+    # Volume mounts for development
+    volumes:
+      # Persistent data storage
+      - motion_data_macos:/var/lib/motion           # Motion recordings and images
+      - motion_config_macos:/etc/motion             # Configuration files
+      - motion_logs_macos:/var/log/motion           # Log files
+      
+      # Development volume mounts (comment out for production)
+      - ./motion_athena_agent.py:/scripts/motion_athena_agent.py:ro  # Development agent script
+      - ./motion.conf:/etc/motion/motion.conf:ro                    # Development motion config
+      
+      # Temporary files
+      - /tmp:/tmp/motion
+    
+    # Network configuration
+    networks:
+      - athena_network
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "/scripts/healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s  # Allow more time for startup on macOS
+    
+    # Labels for easier management
+    labels:
+      - "athena.agent.type=motion_detector"
+      - "athena.agent.camera_id=ptz_pro_cam_macos"
+      - "athena.agent.location=office_desk"
+      - "athena.deployment=macos_development"
+
+  # Local MQTT Broker for testing (Eclipse Mosquitto)
+  mqtt-broker:
+    image: eclipse-mosquitto:latest
+    container_name: athena-mqtt-macos
+    restart: unless-stopped
+    
+    ports:
+      - "1883:1883"   # MQTT port
+      - "9001:9001"   # WebSocket port
+    
+    volumes:
+      - mqtt_data_macos:/mosquitto/data
+      - mqtt_logs_macos:/mosquitto/log
+      # Create a simple mosquitto.conf if needed
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    
+    networks:
+      - athena_network
+    
+    labels:
+      - "athena.service=mqtt_broker"
+      - "athena.deployment=macos_development"
+
+  # Optional: Simple web interface for monitoring athena agents
+  athena-monitor:
+    image: nginx:alpine
+    container_name: athena-monitor-macos
+    restart: unless-stopped
+    
+    ports:
+      - "8090:80"  # Web interface for monitoring
+    
+    volumes:
+      - ./athena_monitor_web:/usr/share/nginx/html:ro
+    
+    networks:
+      - athena_network
+    
+    labels:
+      - "athena.service=web_monitor"
+      - "athena.deployment=macos_development"
+    
+    # Only start if monitor web files exist
+    profiles:
+      - monitoring
+
+# Named volumes for persistent data
+volumes:
+  motion_data_macos:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/motion  # Local directory for development
+  
+  motion_config_macos:
+    driver: local
+  
+  motion_logs_macos:
+    driver: local
+  
+  mqtt_data_macos:
+    driver: local
+  
+  mqtt_logs_macos:
+    driver: local
+
+# Network for athena services
+networks:
+  athena_network:
+    driver: bridge
+    labels:
+      - "athena.network=development"
+
+# Development and testing specific configurations
+x-development-notes: |
+  This docker-compose.yml is configured for local development and testing on macOS M4 systems.
+  
+  Key features:
+  1. Motion detection container with integrated athena agent
+  2. Local MQTT broker for testing agent communication
+  3. Development volume mounts for easy iteration
+  4. Proper network isolation
+  5. Health checks and monitoring
+  
+  Usage:
+  1. Start all services: docker-compose -f docker-compose.macos.yml up -d
+  2. View motion interface: http://localhost:8080
+  3. View live stream: http://localhost:8081
+  4. Monitor logs: docker-compose -f docker-compose.macos.yml logs -f
+  5. Test MQTT: mosquitto_pub -h localhost -t athena/agents/discovery -m '{"id":"test"}'
+  
+  Troubleshooting:
+  1. Camera access: Ensure USB camera is connected and /dev/video0 exists
+  2. Permissions: May need to run with privileged mode on macOS
+  3. MQTT: Check that port 1883 is available
+  4. Architecture: Ensure Docker is using linux/arm64 platform

@@ -1,0 +1,192 @@
+# Motion Detection Dockerfile for Raspberry Pi
+# Optimized for ARM architecture with USB camera support and MQTT integration
+
+FROM arm64v8/debian:bullseye-slim
+
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV MOTION_HOME=/var/lib/motion
+ENV MOTION_CONFIG=/etc/motion
+
+# Update package lists and install dependencies
+RUN apt-get update && apt-get install -y \
+    motion \
+    python3 \
+    python3-pip \
+    python3-dev \
+    mosquitto-clients \
+    curl \
+    wget \
+    v4l-utils \
+    ffmpeg \
+    libavcodec-dev \
+    libavformat-dev \
+    libavutil-dev \
+    libswscale-dev \
+    libv4l-dev \
+    libjpeg-dev \
+    libpng-dev \
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python MQTT client and athena agent dependencies
+RUN pip3 install paho-mqtt requests asyncio
+
+# Create motion directories
+RUN mkdir -p ${MOTION_HOME} \
+    && mkdir -p ${MOTION_CONFIG} \
+    && mkdir -p /var/log/motion \
+    && mkdir -p /tmp/motion \
+    && mkdir -p /scripts
+
+# Copy motion configuration and athena agent
+COPY motion.conf ${MOTION_CONFIG}/motion.conf
+COPY motion_athena_agent.py /scripts/motion_athena_agent.py
+
+# Create MQTT notification script
+RUN cat > /scripts/motion_notify.py << 'EOF'
+#!/usr/bin/env python3
+import paho.mqtt.client as mqtt
+import json
+import sys
+import os
+import time
+from datetime import datetime
+
+# MQTT Configuration (can be overridden by environment variables)
+MQTT_BROKER = os.environ.get('MQTT_BROKER', 'localhost')
+MQTT_PORT = int(os.environ.get('MQTT_PORT', '1883'))
+MQTT_USERNAME = os.environ.get('MQTT_USERNAME', '')
+MQTT_PASSWORD = os.environ.get('MQTT_PASSWORD', '')
+MQTT_TOPIC_PREFIX = os.environ.get('MQTT_TOPIC_PREFIX', 'motion')
+CAMERA_ID = os.environ.get('CAMERA_ID', 'rpi_cam_01')
+
+def send_mqtt_notification(event_type, filename=None):
+    try:
+        client = mqtt.Client()
+        
+        if MQTT_USERNAME and MQTT_PASSWORD:
+            client.username_pw_set(MQTT_USERNAME, MQTT_PASSWORD)
+        
+        client.connect(MQTT_BROKER, MQTT_PORT, 60)
+        
+        payload = {
+            'camera_id': CAMERA_ID,
+            'event_type': event_type,
+            'timestamp': datetime.now().isoformat(),
+            'filename': filename
+        }
+        
+        topic = f"{MQTT_TOPIC_PREFIX}/{CAMERA_ID}/{event_type}"
+        client.publish(topic, json.dumps(payload))
+        client.disconnect()
+        
+        print(f"MQTT notification sent: {topic} - {payload}")
+        
+    except Exception as e:
+        print(f"Failed to send MQTT notification: {e}")
+
+if __name__ == "__main__":
+    if len(sys.argv) >= 2:
+        event_type = sys.argv[1]
+        filename = sys.argv[2] if len(sys.argv) > 2 else None
+        send_mqtt_notification(event_type, filename)
+    else:
+        print("Usage: motion_notify.py <event_type> [filename]")
+EOF
+
+# Make the scripts executable
+RUN chmod +x /scripts/motion_notify.py
+RUN chmod +x /scripts/motion_athena_agent.py
+
+# Create supervisor configuration for managing services
+RUN cat > /etc/supervisor/conf.d/motion.conf << 'EOF'
+[program:motion]
+command=/usr/bin/motion -n -c /etc/motion/motion.conf
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/motion/motion.err.log
+stdout_logfile=/var/log/motion/motion.out.log
+user=root
+
+[program:athena_agent]
+command=/usr/bin/python3 /scripts/motion_athena_agent.py
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/motion/athena_agent.err.log
+stdout_logfile=/var/log/motion/athena_agent.out.log
+user=root
+environment=MQTT_BROKER="%(ENV_MQTT_BROKER)s",MQTT_PORT="%(ENV_MQTT_PORT)s",MQTT_USERNAME="%(ENV_MQTT_USERNAME)s",MQTT_PASSWORD="%(ENV_MQTT_PASSWORD)s",CAMERA_ID="%(ENV_CAMERA_ID)s",AGENT_ID="%(ENV_AGENT_ID)s"
+EOF
+
+# Create healthcheck script
+RUN cat > /scripts/healthcheck.sh << 'EOF'
+#!/bin/bash
+# Check if motion daemon is running
+if pgrep -x "motion" > /dev/null; then
+    # Check if web interface is responding
+    if curl -s http://localhost:8080 > /dev/null; then
+        exit 0
+    fi
+fi
+exit 1
+EOF
+
+RUN chmod +x /scripts/healthcheck.sh
+
+# Create startup script
+RUN cat > /scripts/startup.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "Starting Motion Detection Container with Athena Integration..."
+echo "Camera ID: ${CAMERA_ID}"
+echo "Agent ID: ${AGENT_ID:-auto-generated}"
+echo "MQTT Broker: ${MQTT_BROKER}:${MQTT_PORT}"
+
+# Wait for USB camera to be available
+echo "Waiting for camera device..."
+timeout=30
+counter=0
+while [ ! -e /dev/video0 ] && [ $counter -lt $timeout ]; do
+    sleep 1
+    counter=$((counter + 1))
+done
+
+if [ ! -e /dev/video0 ]; then
+    echo "Warning: No camera device found at /dev/video0"
+    echo "Available video devices:"
+    ls -la /dev/video* 2>/dev/null || echo "No video devices found"
+fi
+
+# Test camera capabilities
+if [ -e /dev/video0 ]; then
+    echo "Camera device found. Testing capabilities..."
+    v4l2-ctl --device=/dev/video0 --list-formats-ext || true
+fi
+
+# Start supervisor to manage motion daemon
+exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
+EOF
+
+RUN chmod +x /scripts/startup.sh
+
+# Set proper permissions
+RUN chown -R root:root ${MOTION_HOME} \
+    && chown -R root:root ${MOTION_CONFIG} \
+    && chown -R root:root /var/log/motion
+
+# Expose ports
+# 8080: Motion web interface
+# 8081: Motion webcam stream
+EXPOSE 8080 8081
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD /scripts/healthcheck.sh
+
+# Volume for storing motion recordings and configuration
+VOLUME ["${MOTION_HOME}", "/tmp/motion"]
+
+# Start the container
+CMD ["/scripts/startup.sh"]

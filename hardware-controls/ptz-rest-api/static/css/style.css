@@ -1,0 +1,124 @@
+/* PTZ Camera Control - Custom Styles */
+
+body {
+    background-color: #f8f9fa;
+}
+
+.camera-card {
+    transition: transform 0.2s ease-in-out;
+    border: 1px solid #dee2e6;
+}
+
+.camera-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.card-header {
+    background-color: #343a40;
+    color: white;
+    border-bottom: 1px solid #495057;
+}
+
+.card-header h3,
+.card-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.btn-group .btn {
+    margin: 2px;
+}
+
+.form-range {
+    height: 1.5rem;
+}
+
+.alert {
+    margin-bottom: 10px;
+}
+
+.status-messages {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Control panel styling */
+.control-panel {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.control-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.control-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+/* Range slider styling */
+.form-range::-webkit-slider-thumb {
+    background: #0d6efd;
+}
+
+.form-range::-moz-range-thumb {
+    background: #0d6efd;
+    border: none;
+}
+
+/* Preset button styling */
+.preset-buttons .btn {
+    margin: 3px;
+    min-width: 80px;
+}
+
+/* Status badge styling */
+.badge {
+    font-size: 0.8em;
+}
+
+/* Screenshot section */
+.screenshot-section {
+    text-align: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        margin: 2px 0;
+    }
+    
+    .preset-buttons .btn {
+        display: block;
+        width: 100%;
+        margin: 3px 0;
+    }
+}
+
+/* Loading animations */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}

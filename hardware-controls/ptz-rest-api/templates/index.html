@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}PTZ Camera Control - Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="mb-4">PTZ Camera Control System</h1>
+        
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3>Detected Cameras</h3>
+                <button class="btn btn-primary" onclick="refreshCameras()">Refresh</button>
+            </div>
+            <div class="card-body">
+                {% if cameras %}
+                    <div class="row" id="camera-list">
+                        {% for camera in cameras %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card camera-card">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ camera.name }}</h5>
+                                    <p class="card-text">
+                                        <strong>Device ID:</strong> {{ camera.id }}<br>
+                                        <strong>Type:</strong> {{ camera.type }}
+                                    </p>
+                                    <a href="/camera/{{ camera.id }}" class="btn btn-success">Control Camera</a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning" role="alert">
+                        <h4 class="alert-heading">No Cameras Detected</h4>
+                        <p>No Logitech PTZ Pro 2 cameras were found. Please ensure:</p>
+                        <ul>
+                            <li>Your camera is connected via USB</li>
+                            <li>The camera is powered on</li>
+                            <li>The webcam-ptz executable has proper permissions</li>
+                        </ul>
+                        <button class="btn btn-primary" onclick="refreshCameras()">Try Again</button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>API Information</h4>
+                    </div>
+                    <div class="card-body">
+                        <p>This system provides REST API endpoints for PTZ camera control:</p>
+                        <ul>
+                            <li><code>GET /api/cameras</code> - List cameras</li>
+                            <li><code>POST /api/cameras/{id}/pan-tilt</code> - Control pan/tilt</li>
+                            <li><code>POST /api/cameras/{id}/zoom</code> - Control zoom</li>
+                            <li><code>POST /api/cameras/{id}/preset</code> - Set/recall preset</li>
+                            <li><code>POST /api/cameras/{id}/screenshot</code> - Capture screenshot</li>
+                        </ul>
+                        <a href="/api/status" class="btn btn-info">API Status</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>System Information</h4>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Version:</strong> 1.0.0</p>
+                        <p><strong>Supported Cameras:</strong> Logitech PTZ Pro 2</p>
+                        <p><strong>Features:</strong></p>
+                        <ul>
+                            <li>Pan/Tilt Control (-100 to 100)</li>
+                            <li>Zoom Control (0 to 100)</li>
+                            <li>8 Preset Positions</li>
+                            <li>Screenshot Capture</li>
+                            <li>Web Interface</li>
+                            <li>REST API</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function refreshCameras() {
+    try {
+        const response = await fetch('/api/cameras/refresh', { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error refreshing cameras: ' + data.error);
+        }
+    } catch (error) {
+        alert('Error refreshing cameras: ' + error.message);
+    }
+}
+</script>
+{% endblock %}

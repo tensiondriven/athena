@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+
+{% block title %}PTZ Camera Control - {{ camera.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>{{ camera.name }}</h1>
+            <a href="/" class="btn btn-secondary">Back to Home</a>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Camera Controls</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Pan/Tilt Controls -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5>Pan/Tilt Control</h5>
+                                <div class="mb-3">
+                                    <label for="panSlider" class="form-label">Pan: <span id="panValue">0</span></label>
+                                    <input type="range" class="form-range" id="panSlider" min="-100" max="100" value="0">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="tiltSlider" class="form-label">Tilt: <span id="tiltValue">0</span></label>
+                                    <input type="range" class="form-range" id="tiltSlider" min="-100" max="100" value="0">
+                                </div>
+                                <button class="btn btn-primary" onclick="setPanTilt()">Apply Pan/Tilt</button>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Zoom Control</h5>
+                                <div class="mb-3">
+                                    <label for="zoomSlider" class="form-label">Zoom: <span id="zoomValue">0</span></label>
+                                    <input type="range" class="form-range" id="zoomSlider" min="0" max="100" value="0">
+                                </div>
+                                <button class="btn btn-primary" onclick="setZoom()">Apply Zoom</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Preset Controls -->
+                        <div class="row mb-4">
+                            <div class="col-md-12">
+                                <h5>Preset Positions</h5>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setPreset(1)">Preset 1</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setPreset(2)">Preset 2</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setPreset(3)">Preset 3</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setPreset(4)">Preset 4</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setPreset(5)">Preset 5</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setPreset(6)">Preset 6</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setPreset(7)">Preset 7</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setPreset(8)">Preset 8</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Screenshot Control -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h5>Screenshot</h5>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-success" onclick="captureScreenshot()">Capture Screenshot</button>
+                                    <button class="btn btn-info" onclick="viewScreenshots()" disabled id="viewBtn">View Screenshots</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Camera Info</h4>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Device ID:</strong> {{ camera.id }}</p>
+                        <p><strong>Type:</strong> {{ camera.type }}</p>
+                        <p><strong>Status:</strong> <span class="badge bg-success">Connected</span></p>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h4>Quick Actions</h4>
+                    </div>
+                    <div class="card-body d-grid gap-2">
+                        <button class="btn btn-warning" onclick="resetPosition()">Reset Position</button>
+                        <button class="btn btn-info" onclick="centerCamera()">Center Camera</button>
+                        <button class="btn btn-secondary" onclick="zoomToDefault()">Default Zoom</button>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h4>Status</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="statusMessages">
+                            <p class="text-muted">Ready to control camera</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const deviceId = '{{ camera.id }}';
+
+// Update slider value displays
+document.getElementById('panSlider').addEventListener('input', function() {
+    document.getElementById('panValue').textContent = this.value;
+});
+
+document.getElementById('tiltSlider').addEventListener('input', function() {
+    document.getElementById('tiltValue').textContent = this.value;
+});
+
+document.getElementById('zoomSlider').addEventListener('input', function() {
+    document.getElementById('zoomValue').textContent = this.value;
+});
+
+// Pan/Tilt control
+async function setPanTilt() {
+    const pan = parseInt(document.getElementById('panSlider').value);
+    const tilt = parseInt(document.getElementById('tiltSlider').value);
+    
+    try {
+        const response = await fetch(`/api/cameras/${deviceId}/pan-tilt`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ pan, tilt })
+        });
+        
+        const data = await response.json();
+        updateStatus(data.success ? 'success' : 'error', data.message || data.error);
+    } catch (error) {
+        updateStatus('error', 'Error controlling pan/tilt: ' + error.message);
+    }
+}
+
+// Zoom control
+async function setZoom() {
+    const zoom = parseInt(document.getElementById('zoomSlider').value);
+    
+    try {
+        const response = await fetch(`/api/cameras/${deviceId}/zoom`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ zoom })
+        });
+        
+        const data = await response.json();
+        updateStatus(data.success ? 'success' : 'error', data.message || data.error);
+    } catch (error) {
+        updateStatus('error', 'Error controlling zoom: ' + error.message);
+    }
+}
+
+// Preset control
+async function setPreset(presetId) {
+    try {
+        const response = await fetch(`/api/cameras/${deviceId}/preset`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ preset: presetId })
+        });
+        
+        const data = await response.json();
+        updateStatus(data.success ? 'success' : 'error', data.message || data.error);
+    } catch (error) {
+        updateStatus('error', 'Error setting preset: ' + error.message);
+    }
+}
+
+// Screenshot capture
+async function captureScreenshot() {
+    try {
+        const response = await fetch(`/api/cameras/${deviceId}/screenshot`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            updateStatus('success', `Screenshot captured: ${data.filename}`);
+            document.getElementById('viewBtn').disabled = false;
+        } else {
+            updateStatus('error', data.error);
+        }
+    } catch (error) {
+        updateStatus('error', 'Error capturing screenshot: ' + error.message);
+    }
+}
+
+// Quick actions
+function resetPosition() {
+    document.getElementById('panSlider').value = 0;
+    document.getElementById('tiltSlider').value = 0;
+    document.getElementById('panValue').textContent = '0';
+    document.getElementById('tiltValue').textContent = '0';
+    setPanTilt();
+}
+
+function centerCamera() {
+    resetPosition();
+}
+
+function zoomToDefault() {
+    document.getElementById('zoomSlider').value = 0;
+    document.getElementById('zoomValue').textContent = '0';
+    setZoom();
+}
+
+// Status update function
+function updateStatus(type, message) {
+    const statusDiv = document.getElementById('statusMessages');
+    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+    const timestamp = new Date().toLocaleTimeString();
+    
+    statusDiv.innerHTML = `
+        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+            <small class="text-muted">${timestamp}</small><br>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    ` + statusDiv.innerHTML;
+}
+</script>
+{% endblock %}

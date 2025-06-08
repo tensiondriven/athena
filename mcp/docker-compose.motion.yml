@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  motion-detector:
+    build:
+      context: .
+      dockerfile: Dockerfile.motion
+    container_name: motion-rpi-camera
+    restart: unless-stopped
+    
+    # Enable access to USB cameras and other devices
+    privileged: true
+    
+    # Device access for USB cameras
+    devices:
+      - /dev/video0:/dev/video0
+      - /dev/video1:/dev/video1  # Optional second camera
+    
+    # Environment variables for configuration
+    environment:
+      - CAMERA_ID=rpi_cam_01              # Unique identifier for this camera
+      - MQTT_BROKER=192.168.1.100         # Replace with your MQTT broker IP
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=                     # Optional MQTT username
+      - MQTT_PASSWORD=                     # Optional MQTT password
+      - MQTT_TOPIC_PREFIX=motion          # MQTT topic prefix
+      - TZ=America/New_York               # Set your timezone
+    
+    # Port mapping
+    ports:
+      - "8080:8080"  # Web interface
+      - "8081:8081"  # Camera stream
+    
+    # Volume mounts
+    volumes:
+      - motion_data:/var/lib/motion       # Motion recordings and images
+      - motion_config:/etc/motion         # Configuration files
+      - motion_logs:/var/log/motion       # Log files
+      - /tmp:/tmp/motion                  # Temporary files
+    
+    # Network configuration
+    networks:
+      - motion_network
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "/scripts/healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    # Labels for easier management
+    labels:
+      - "motion.camera.id=rpi_cam_01"
+      - "motion.type=security-camera"
+      - "motion.location=front-door"      # Customize based on camera location
+
+# Named volumes for persistent data
+volumes:
+  motion_data:
+    driver: local
+  motion_config:
+    driver: local
+  motion_logs:
+    driver: local
+
+# Network for motion services
+networks:
+  motion_network:
+    driver: bridge

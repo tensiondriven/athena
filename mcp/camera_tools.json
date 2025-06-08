@@ -1,0 +1,64 @@
+{
+  "tools": [
+    {
+      "name": "list_cameras",
+      "description": "Get a list of all connected cameras with their capabilities",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "take_screenshot",
+      "description": "Capture a screenshot from a specified camera and return it as base64 encoded image data",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "camera_name": {
+            "type": "string",
+            "description": "Name of the camera to capture from (default: 'PTZ Pro Camera')",
+            "default": "PTZ Pro Camera"
+          },
+          "output_path": {
+            "type": "string",
+            "description": "Optional path to save the image file. If not provided, saves to /tmp with timestamp"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "ptz_control",
+      "description": "Send PTZ (Pan/Tilt/Zoom) commands to control camera position",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "command": {
+            "type": "string",
+            "description": "PTZ command to execute. Available commands: pan (left/right/middle), tilt (up/down/middle), zoom (in/out/middle), focus (auto/manual), brightness, contrast, etc.",
+            "enum": [
+              "pan", "tilt", "zoom", "focus", "brightness", "contrast", 
+              "saturation", "sharpness", "white_balance", "exposure", "reset"
+            ]
+          },
+          "value": {
+            "type": "string",
+            "description": "Value for the command. For pan: left/right/middle, for tilt: up/down/middle, for zoom: in/out/middle, for others: numeric values or auto/manual"
+          }
+        },
+        "required": ["command"],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_camera_status",
+      "description": "Get current status of camera system including available tools and cached camera information",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      }
+    }
+  ]
+}

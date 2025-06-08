@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}PTZ Camera Control - Error{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="alert alert-danger" role="alert">
+            <h4 class="alert-heading">Error</h4>
+            <p>{{ error }}</p>
+            <hr>
+            <p class="mb-0">
+                <a href="/" class="btn btn-primary">Return to Home</a>
+                <button class="btn btn-secondary" onclick="history.back()">Go Back</button>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

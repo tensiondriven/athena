@@ -1,0 +1,3 @@
+# Requirements for Camera MQTT Connector
+paho-mqtt>=1.6.0
+asyncio
