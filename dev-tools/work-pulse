@@ -31,11 +31,11 @@ COMMIT="✅"
 format_time_ago() {
     local seconds=$1
     if [ $seconds -lt 60 ]; then
-        echo "${seconds}s ago"
+        echo "${seconds}s"
     elif [ $seconds -lt 3600 ]; then
-        echo "$((seconds/60))m ago"
+        echo "$((seconds/60))m"
     else
-        echo "$((seconds/3600))h ago"
+        echo "$((seconds/3600))h"
     fi
 }
 
@@ -71,18 +71,22 @@ get_file_activity() {
             display_path="...${relpath: -37}"
         fi
         
-        # Choose simple, clear indicator based on file type  
+        # Choose indicator based on operation type and recency
         local indicator=""
         local color=""
         
-        case "$relpath" in
-            *.py) indicator="🐍" color="$GREEN" ;;     # Python code
-            *.md) indicator="📝" color="$BLUE" ;;      # Documentation  
-            *test*|*spec*) indicator="🧪" color="$PURPLE" ;;  # Tests
-            *.json|*.yaml|*.yml) indicator="⚙️" color="$YELLOW" ;;  # Config
-            *docker*|*compose*) indicator="🐳" color="$CYAN" ;;     # Docker
-            *) indicator="📄" color="$RED" ;;          # Other files
-        esac
+        if [ $ago -lt 5 ]; then
+            # Very recent = write operation
+            case "$relpath" in
+                *.py) indicator="🐍" color="$GREEN" ;;     # Python write
+                *.md) indicator="✍️" color="$BLUE" ;;      # Markdown write
+                *.json|*.yaml|*.yml) indicator="📋" color="$YELLOW" ;;  # Config write
+                *) indicator="📝" color="$GREEN" ;;        # General write
+            esac
+        else
+            # Older = likely read operation
+            indicator="👁️" color="$RED"
+        fi
         
         echo "$timestamp ${time_str} ${color}${indicator}${NC} $display_path"
     done | sort -nr | head -$MAX_FILES | cut -d' ' -f2-
@@ -189,12 +193,11 @@ main() {
         echo "  --help    Show this help"
         echo ""
         echo "Icons:"
-        echo "  🐍 Python code"
-        echo "  📝 Documentation (markdown)"
-        echo "  🧪 Test files"
-        echo "  ⚙️  Config files (json/yaml)"
-        echo "  🐳 Docker files"
-        echo "  📄 Other files"
+        echo "  📝 Write operation (recent)"
+        echo "  👁️  Read operation (older files)"
+        echo "  ✍️  Markdown write"
+        echo "  🐍 Python write"
+        echo "  📋 Config write"
         echo ""
         echo "Features:"
         echo "  🔄 Auto-restarts when script is modified (watch mode)"
