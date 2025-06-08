@@ -1,9 +1,14 @@
 #!/bin/bash
 
-# Work Pulse - Visual indicator of recent development activity
+# Work Pulse - Visual indicator of recent development activity  
 # Shows files changed in last hour with visual indicators
+# Replaces activity-status with better formatting and features
 
 set -e
+
+PROJECT_ROOT="/Users/j/Code/athena"
+REFRESH_RATE=1
+MAX_FILES=10
 
 # Colors and indicators
 RED='\033[0;31m'
@@ -23,14 +28,25 @@ TEST="🧪"
 DATA="💾"
 COMMIT="✅"
 
-show_recent_activity() {
-    echo -e "${CYAN}━━━ WORK PULSE ━━━${NC}"
-    echo -e "${BLUE}Last hour activity in athena/${NC}"
-    echo ""
+format_time_ago() {
+    local seconds=$1
+    if [ $seconds -lt 60 ]; then
+        echo "${seconds}s ago"
+    elif [ $seconds -lt 3600 ]; then
+        echo "$((seconds/60))m ago"
+    else
+        echo "$((seconds/3600))h ago"
+    fi
+}
+
+get_file_activity() {
+    # Much faster: only check files modified in last 10 minutes 
+    local cutoff=$(($(date +%s) - 600))
+    local now=$(date +%s)
     
-    # Find files modified in last hour, exclude common noise and data directories
-    find /Users/j/Code/athena -type f \
-        -newermt "1 hour ago" \
+    # Use find with -newer for speed, limit to key directories
+    find "$PROJECT_ROOT"/{docs,system,dev-tools} -type f \
+        -newermt "@$cutoff" \
         ! -path "*/.*" \
         ! -path "*/__pycache__/*" \
         ! -path "*/node_modules/*" \
@@ -40,44 +56,45 @@ show_recent_activity() {
         ! -name "*.pyc" \
         ! -name "*.log" \
         ! -name "*.sqlite" \
-        -exec ls -la {} + 2>/dev/null | \
-    while read -r line; do
-        # Parse file info
-        if [[ $line =~ ^total ]]; then continue; fi
-        
-        file_path=$(echo "$line" | awk '{print $NF}')
-        file_time=$(echo "$line" | awk '{print $(NF-2), $(NF-1)}')
-        file_size=$(echo "$line" | awk '{print $5}')
-        
-        # Get relative path from athena root
-        rel_path=${file_path#/Users/j/Code/athena/}
+        2>/dev/null | \
+    head -$MAX_FILES | \
+    while read filepath; do
+        local timestamp=$(stat -f '%m' "$filepath" 2>/dev/null || echo 0)
+        local ago=$((now - timestamp))
+        local basename=$(basename "$filepath")
+        local relpath=$(echo "$filepath" | sed "s|$PROJECT_ROOT/||")
+        local time_str=$(format_time_ago $ago)
         
         # Truncate long paths - show end if over 40 chars
-        display_path="$rel_path"
-        if [ ${#rel_path} -gt 40 ]; then
-            display_path="...${rel_path: -37}"
+        local display_path="$relpath" 
+        if [ ${#relpath} -gt 40 ]; then
+            display_path="...${relpath: -37}"
         fi
         
-        # Choose indicator based on file type/location
-        indicator=""
-        color=""
+        # Choose simple, clear indicator based on file type  
+        local indicator=""
+        local color=""
         
-        case "$rel_path" in
-            *.py) indicator="$ROCKET" color="$GREEN" ;;
-            *.md) indicator="$DOCS" color="$BLUE" ;;
-            *test*|*spec*) indicator="$TEST" color="$PURPLE" ;;
-            *.sql*|*data*) indicator="$DATA" color="$YELLOW" ;;
-            *docker*|*compose*) indicator="$GEAR" color="$CYAN" ;;
-            *) indicator="$FIRE" color="$RED" ;;
+        case "$relpath" in
+            *.py) indicator="🐍" color="$GREEN" ;;     # Python code
+            *.md) indicator="📝" color="$BLUE" ;;      # Documentation  
+            *test*|*spec*) indicator="🧪" color="$PURPLE" ;;  # Tests
+            *.json|*.yaml|*.yml) indicator="⚙️" color="$YELLOW" ;;  # Config
+            *docker*|*compose*) indicator="🐳" color="$CYAN" ;;     # Docker
+            *) indicator="📄" color="$RED" ;;          # Other files
         esac
         
-        # Show with nice formatting - timestamp first, aligned
-        printf "${YELLOW}%8s${NC} ${color}%s${NC} %s\n" \
-            "$file_time" \
-            "$indicator" \
-            "$display_path"
-    done | sort -k1 | tail -10
-    
+        echo "$timestamp ${time_str} ${color}${indicator}${NC} $display_path"
+    done | sort -nr | head -$MAX_FILES | cut -d' ' -f2-
+}
+
+show_recent_activity() {
+    echo -e "${CYAN}━━━ WORK PULSE ━━━${NC}"
+    echo -e "${BLUE}Recent activity in athena/${NC}"
+    echo ""
+    printf "%-8s %-3s %s\n" "AGO" "OP" "FILE"
+    echo "----------------------------------------"
+    get_file_activity
     echo ""
 }
 
@@ -94,6 +111,21 @@ show_git_activity() {
     echo ""
 }
 
+get_git_status() {
+    cd "$PROJECT_ROOT" 2>/dev/null || return
+    local status_output=$(git status --porcelain 2>/dev/null)
+    local branch=$(git branch --show-current 2>/dev/null || echo "unknown")
+    
+    if [ -z "$status_output" ]; then
+        printf "🌿 %s (clean)" "$branch"
+    else
+        local modified=$(echo "$status_output" | grep "^ M" | wc -l | tr -d ' ' || echo 0)
+        local added=$(echo "$status_output" | grep "^A" | wc -l | tr -d ' ' || echo 0)
+        local untracked=$(echo "$status_output" | grep "^??" | wc -l | tr -d ' ' || echo 0)
+        printf "🔥 %s (M:%d A:%d ?:%d)" "$branch" "$modified" "$added" "$untracked"
+    fi
+}
+
 show_system_pulse() {
     echo -e "${CYAN}━━━ SYSTEM PULSE ━━━${NC}"
     
@@ -103,25 +135,105 @@ show_system_pulse() {
         collector_status="✅"
     fi
     
-    git_status=$(cd /Users/j/Code/athena && git status --porcelain | wc -l | tr -d ' ')
-    git_indicator="✅"
-    if [ "$git_status" -gt 0 ]; then
-        git_indicator="⚠️"
-    fi
-    
-    printf "Collector: %s  Git: %s (%s changes)  Time: %s\n" \
+    printf "Collector: %s  Git: %s  Time: %s\n" \
         "$collector_status" \
-        "$git_indicator" \
-        "$git_status" \
+        "$(get_git_status)" \
         "$(date '+%H:%M')"
     
     echo ""
 }
 
-# Main execution
-clear
-show_system_pulse
-show_recent_activity
-show_git_activity
+show_header() {
+    echo "🔄 Athena Work Pulse Monitor"
+    echo "📁 Project: $PROJECT_ROOT"
+    echo "📂 Git: $(get_git_status)"
+    echo "----------------------------------------"
+    printf "%-8s %-3s %s\n" "AGO" "OP" "FILE"
+    echo "----------------------------------------"
+}
 
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+check_self_update() {
+    local script_path="$0"
+    local last_modified=$(stat -f '%m' "$script_path" 2>/dev/null || echo 0)
+    
+    if [ -z "$SCRIPT_LAST_MODIFIED" ]; then
+        export SCRIPT_LAST_MODIFIED=$last_modified
+    elif [ "$last_modified" -gt "$SCRIPT_LAST_MODIFIED" ]; then
+        echo "🔄 Script updated, restarting..."
+        sleep 1  # Brief pause to avoid restart loops
+        export SCRIPT_LAST_MODIFIED=$last_modified
+        exec "$script_path" "$@"
+    fi
+}
+
+main() {
+    # Force watch mode if requested
+    if [ "$1" = "--watch" ]; then
+        run_interactive
+        exit 0
+    fi
+    
+    # Default to interactive mode for terminals (unless --once specified)
+    if [ -t 1 ] && [ "$1" != "--once" ] && [ "$1" != "--help" ] && [ "$1" != "-h" ]; then
+        # Interactive mode (continuous monitoring)
+        run_interactive
+        exit 0
+    fi
+    
+    if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+        echo "Usage: $0 [--once] [--watch]"
+        echo ""
+        echo "Options:"
+        echo "  --once    Show activity once and exit (default for pipes/scripts)"
+        echo "  --watch   Continuous monitoring (default for interactive terminals)"
+        echo "  --help    Show this help"
+        echo ""
+        echo "Icons:"
+        echo "  🐍 Python code"
+        echo "  📝 Documentation (markdown)"
+        echo "  🧪 Test files"
+        echo "  ⚙️  Config files (json/yaml)"
+        echo "  🐳 Docker files"
+        echo "  📄 Other files"
+        echo ""
+        echo "Features:"
+        echo "  🔄 Auto-restarts when script is modified (watch mode)"
+        echo "  📂 Shows git status (M:modified A:added ?:untracked)"
+        echo "  ⌨️  Press any key to quit (watch mode)"
+        echo "  📤 Pipe-friendly output when used in scripts"
+        exit 0
+    fi
+    
+    # One-shot mode (default when piped or --once specified)
+    show_system_pulse
+    show_recent_activity
+    show_git_activity
+    echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+    exit 0
+}
+
+run_interactive() {
+    # Continuous monitoring with self-update detection
+    while true; do
+        check_self_update "$@"
+        clear
+        echo "🔄 Athena Work Pulse Monitor"
+        echo "📁 Project: $PROJECT_ROOT"
+        echo "📂 Git: $(get_git_status)"
+        echo "----------------------------------------"
+        printf "%-8s %-3s %s\n" "AGO" "OP" "FILE"
+        echo "----------------------------------------"
+        get_file_activity
+        echo ""
+        show_git_activity
+        echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+        echo "⌨️  Press any key to quit..."
+        # Quit on any keypress
+        if read -t $REFRESH_RATE -n 1 key 2>/dev/null; then
+            echo "👋 Goodbye!"
+            exit 0
+        fi
+    done
+}
+
+main "$@"
