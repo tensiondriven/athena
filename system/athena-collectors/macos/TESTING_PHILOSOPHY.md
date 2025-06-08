@@ -2,7 +2,13 @@
 
 ## Core Principle: Fail Fast and Loud
 
-The system has many moving parts - collectors, APIs, databases, file systems, Docker containers, network connections. Each component can break in obvious ways (missing files) or subtle ways (wrong permissions, bad configs). Our testing strategy prioritizes early detection over comprehensive coverage.
+This distributed system has collectors, APIs, databases, file watchers, Docker containers, and network services. Components fail in predictable ways (missing directories) and subtle ways (permissions, configs, resource limits). Our testing philosophy: **catch failures at the earliest possible moment with maximum clarity about what's wrong and how to fix it**.
+
+Testing strategy prioritizes:
+1. **Early detection** over comprehensive coverage
+2. **Clear diagnostics** over silent failures  
+3. **Actionable errors** over vague messages
+4. **Real functionality** over mock success
 
 ## Three-Layer Testing Strategy
 
