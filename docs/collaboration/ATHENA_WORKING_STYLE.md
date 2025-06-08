@@ -7,10 +7,36 @@
 **Development Team**: Claude AI  
 **Product Team**: Jonathan
 
+## The Zero-Touch Constraint
+
+**Critical Interface Limitation**: Jonathan does not edit any code or documentation that Claude generates. His only interface to the actual product is through communication with Claude.
+
+**Purpose of This Constraint**:
+- **Forcing Function**: Accelerates Claude's self-improvement through necessity
+- **Communication Focus**: Jonathan optimizes purely for communication effectiveness
+- **Self-Reflective Learning**: Claude must improve through in-context learning and working agreements
+- **Process Research**: Tests pure communication-based technical collaboration
+
+## Working Agreements Foundation
+
+Both parties actively maintain, update, and abide by a set of working agreements that:
+- **Define Success Patterns**: What effective collaboration looks like
+- **Capture Learning**: Document solutions to recurring friction points  
+- **Enable Self-Improvement**: Give Claude systematic feedback for enhancement
+- **Optimize Communication**: Refine patterns within the zero-touch constraint
+
+### The Self-Improvement Loop
+1. **Claude implements** based on communication
+2. **Friction points emerge** in process or output quality
+3. **Working agreements updated** to address systematic patterns
+4. **Communication refined** based on what proves effective
+5. **Claude applies learning** from agreements and feedback
+6. **Cycle repeats** with enhanced collaborative capability
+
 ## Project Context
-- Building distributed AI home automation system
-- Research platform for Physics of Work methodology
-- Dual focus: working system + collaboration research
+- Building distributed AI home automation system through pure communication interface
+- Research platform for Physics of Work methodology under constraint conditions
+- Dual focus: working system + AI self-improvement through communication optimization
 
 ## Claude's Judgment Guidelines
 
