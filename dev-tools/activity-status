@@ -54,6 +54,18 @@ show_header() {
     echo "----------------------------------------"
 }
 
+check_self_update() {
+    local script_path="$0"
+    local last_modified=$(stat -f '%m' "$script_path" 2>/dev/null || echo 0)
+    
+    if [ -z "$SCRIPT_LAST_MODIFIED" ]; then
+        export SCRIPT_LAST_MODIFIED=$last_modified
+    elif [ "$last_modified" -gt "$SCRIPT_LAST_MODIFIED" ]; then
+        echo "🔄 Script updated, restarting..."
+        exec "$script_path" "$@"
+    fi
+}
+
 main() {
     if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
         echo "Usage: $0 [--once]"
@@ -68,6 +80,9 @@ main() {
         echo "  ✍️  Markdown edit"
         echo "  🐍 Python edit"
         echo "  📋 Config edit"
+        echo ""
+        echo "Features:"
+        echo "  🔄 Auto-restarts when script is modified"
         exit 0
     fi
     
@@ -77,8 +92,9 @@ main() {
         exit 0
     fi
     
-    # Continuous monitoring
+    # Continuous monitoring with self-update detection
     while true; do
+        check_self_update "$@"
         clear
         show_header
         get_file_activity
