@@ -12,15 +12,26 @@ Testing strategy prioritizes:
 
 ## Three-Layer Testing Strategy
 
-### 1. Startup Validation (Required)
-Every component must validate its world before starting:
-- **Paths exist and are writable**: Don't assume, verify
-- **Environment variables present and sane**: Check ranges, formats, required values
-- **Database connections work**: Actually query, don't just connect
-- **External dependencies respond**: APIs, file systems, hardware
-- **Permissions allow expected operations**: Test write, read, execute as needed
+### 1. Startup Validation (Non-Negotiable)
+Every component validates its universe before accepting any work:
 
-**Non-negotiable rule**: If any dependency is broken, exit with clear error message and fix instructions.
+**Environment checks**:
+- Paths exist and are writable (create test file, verify, delete)
+- Environment variables present with valid values (not just set)
+- Required external tools available (screencapture, etc.)
+
+**Dependency validation**:
+- Database: Connect AND execute test query
+- APIs: Actually call endpoints, verify responses
+- File systems: Test read/write permissions on target directories
+- Hardware: Verify camera access, screenshot capability
+
+**Configuration sanity**:
+- Port numbers in valid range and available
+- File size limits reasonable (not 0, not 10TB)
+- Timeouts and intervals make sense
+
+**Exit rule**: Any validation failure = immediate exit with specific fix instructions. No "best effort" operation.
 
 ### 2. Runtime Health Monitoring
 Continuous verification that the system is actually functioning:
