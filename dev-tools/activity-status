@@ -56,12 +56,12 @@ get_git_status() {
     local branch=$(git branch --show-current 2>/dev/null || echo "unknown")
     
     if [ -z "$status_output" ]; then
-        echo "🌿 $branch (clean)"
+        printf "🌿 %s (clean)" "$branch"
     else
-        local modified=$(echo "$status_output" | grep -c "^ M" || echo 0)
-        local added=$(echo "$status_output" | grep -c "^A" || echo 0)
-        local untracked=$(echo "$status_output" | grep -c "^??" || echo 0)
-        echo "🔥 $branch (M:$modified A:$added ?:$untracked)"
+        local modified=$(echo "$status_output" | grep -c "^ M" 2>/dev/null || echo 0)
+        local added=$(echo "$status_output" | grep -c "^A" 2>/dev/null || echo 0)
+        local untracked=$(echo "$status_output" | grep -c "^??" 2>/dev/null || echo 0)
+        printf "🔥 %s (M:%d A:%d ?:%d)" "$branch" "$modified" "$added" "$untracked"
     fi
 }
 
