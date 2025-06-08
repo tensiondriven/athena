@@ -89,7 +89,13 @@ check_self_update() {
 }
 
 main() {
-    # Default to once mode for non-interactive use
+    # Force watch mode if requested
+    if [ "$1" = "--watch" ]; then
+        run_interactive
+        exit 0
+    fi
+    
+    # Default to interactive mode for terminals (unless --once specified)
     if [ -t 1 ] && [ "$1" != "--once" ] && [ "$1" != "--help" ] && [ "$1" != "-h" ]; then
         # Interactive mode (continuous monitoring)
         run_interactive
