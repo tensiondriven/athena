@@ -28,7 +28,7 @@ show_recent_activity() {
     echo -e "${BLUE}Last hour activity in athena/${NC}"
     echo ""
     
-    # Find files modified in last hour, exclude common noise
+    # Find files modified in last hour, exclude common noise and data directories
     find /Users/j/Code/athena -type f \
         -newermt "1 hour ago" \
         ! -path "*/.*" \
@@ -36,8 +36,10 @@ show_recent_activity() {
         ! -path "*/node_modules/*" \
         ! -path "*/venv/*" \
         ! -path "*/.git/*" \
+        ! -path "*/data/*" \
         ! -name "*.pyc" \
         ! -name "*.log" \
+        ! -name "*.sqlite" \
         -exec ls -la {} + 2>/dev/null | \
     while read -r line; do
         # Parse file info
@@ -49,6 +51,12 @@ show_recent_activity() {
         
         # Get relative path from athena root
         rel_path=${file_path#/Users/j/Code/athena/}
+        
+        # Truncate long paths - show end if over 40 chars
+        display_path="$rel_path"
+        if [ ${#rel_path} -gt 40 ]; then
+            display_path="...${rel_path: -37}"
+        fi
         
         # Choose indicator based on file type/location
         indicator=""
@@ -63,12 +71,12 @@ show_recent_activity() {
             *) indicator="$FIRE" color="$RED" ;;
         esac
         
-        # Show with nice formatting
-        printf "${color}%s ${NC}%-50s ${YELLOW}%s${NC}\n" \
+        # Show with nice formatting - timestamp first, aligned
+        printf "${YELLOW}%8s${NC} ${color}%s${NC} %s\n" \
+            "$file_time" \
             "$indicator" \
-            "$rel_path" \
-            "$file_time"
-    done | sort -k2
+            "$display_path"
+    done | sort -k1 | tail -10
     
     echo ""
 }
