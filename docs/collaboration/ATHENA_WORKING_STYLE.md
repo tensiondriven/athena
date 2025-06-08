@@ -46,6 +46,9 @@ Both parties actively maintain, update, and abide by a set of working agreements
 - Git commit messages and hygiene
 - Documentation structure and clarity
 - Development tool choices
+- **Documentation cleanup and consistency fixes**
+- **Process improvements that reduce friction**
+- **Quality improvements with clear benefits**
 
 ### When to Ask for Verification
 - Product direction changes
