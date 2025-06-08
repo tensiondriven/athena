@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Activity Status - Real-time file activity monitor for Athena development
+# Shows recent file reads/writes with timing and operation type
+
+PROJECT_ROOT="/Users/j/Code/athena"
+REFRESH_RATE=0.33
+MAX_FILES=15
+
+format_time_ago() {
+    local seconds=$1
+    if [ $seconds -lt 60 ]; then
+        echo "${seconds}s"
+    elif [ $seconds -lt 3600 ]; then
+        echo "$((seconds/60))m"
+    else
+        echo "$((seconds/3600))h"
+    fi
+}
+
+get_file_activity() {
+    # Get recently modified files with their modification times
+    find "$PROJECT_ROOT" -type f -mtime -1h -exec stat -f '%m %N' {} \; 2>/dev/null | \
+    sort -nr | head -$MAX_FILES | \
+    while read timestamp filepath; do
+        local now=$(date +%s)
+        local ago=$((now - timestamp))
+        local basename=$(basename "$filepath")
+        local relpath=$(echo "$filepath" | sed "s|$PROJECT_ROOT/||")
+        local time_str=$(format_time_ago $ago)
+        
+        # Determine operation type based on file extension and recency
+        local op_type="📝"  # default to write
+        if [[ "$basename" == *".md" ]] && [ $ago -lt 5 ]; then
+            op_type="✍️ "  # recent markdown write
+        elif [[ "$basename" == *".py" ]] && [ $ago -lt 5 ]; then
+            op_type="🐍"  # recent python write
+        elif [[ "$basename" == *".json" ]] && [ $ago -lt 5 ]; then
+            op_type="📋"  # recent config write
+        elif [ $ago -gt 30 ]; then
+            op_type="👁️ "  # older, likely read
+        fi
+        
+        printf "%-3s %-6s %s\n" "$op_type" "$time_str" "$relpath"
+    done
+}
+
+show_header() {
+    echo "🔄 Athena Development Activity Monitor"
+    echo "📁 Project: $PROJECT_ROOT"
+    echo "⏱️  Refresh: ${REFRESH_RATE}s"
+    echo "----------------------------------------"
+    printf "%-3s %-6s %s\n" "OP" "AGO" "FILE"
+    echo "----------------------------------------"
+}
+
+main() {
+    if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
+        echo "Usage: $0 [--once]"
+        echo ""
+        echo "Options:"
+        echo "  --once    Show activity once and exit"
+        echo "  --help    Show this help"
+        echo ""
+        echo "Icons:"
+        echo "  📝 Write operation (recent)"
+        echo "  👁️  Read operation (older)"
+        echo "  ✍️  Markdown edit"
+        echo "  🐍 Python edit"
+        echo "  📋 Config edit"
+        exit 0
+    fi
+    
+    if [ "$1" = "--once" ]; then
+        show_header
+        get_file_activity
+        exit 0
+    fi
+    
+    # Continuous monitoring
+    while true; do
+        clear
+        show_header
+        get_file_activity
+        sleep $REFRESH_RATE
+    done
+}
+
+main "$@"
