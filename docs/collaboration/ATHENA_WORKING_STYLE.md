@@ -34,6 +34,14 @@
 - Uncertain requirements
 - New tools or technologies
 
+### Confidence Calibration
+When asking questions or presenting options, always include confidence level:
+- "I'm 85% confident you'll prefer option A because..."
+- "I'm only 40% sure of the best approach here..."
+- "I'm 90% certain this is the right direction, but want to verify..."
+
+This helps Jonathan calibrate how much guidance to provide and when to trust Claude's autonomous decisions.
+
 ## Communication Preferences
 
 ### Jonathan's Style

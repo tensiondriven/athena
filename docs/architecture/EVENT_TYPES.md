@@ -55,9 +55,8 @@ Based on these user stories, we capture data from:
 ```json
 {
   "timestamp": "2025-06-08T16:30:00Z",
-  "event_type": "conversation_logged",
-  "source_id": "claude_chat",
-  "source_type": "conversation",
+  "source_type": "logged-conversation",
+  "source_id": "claude-code-session-2025-06-08",
   "data": {
     "file_path": "/path/to/chat.jsonl",
     "size_bytes": 1024,
@@ -70,6 +69,12 @@ Based on these user stories, we capture data from:
   }
 }
 ```
+
+**Example source_types:**
+- `captured-still`, `detected-motion`, `recorded-video`
+- `logged-conversation`, `sent-message`, `updated-prompt`
+- `modified-file`, `changed-bookmark`, `accessed-document`
+- `triggered-automation`, `changed-device-state`, `sent-mqtt`
 
 ## Storage Targets
 
