@@ -106,7 +106,7 @@ main() {
         echo "Features:"
         echo "  🔄 Auto-restarts when script is modified"
         echo "  📂 Shows git status (M:modified A:added ?:untracked)"
-        echo "  ⌨️  Press 'q' to quit"
+        echo "  ⌨️  Press any key to quit"
         exit 0
     fi
     
@@ -122,15 +122,10 @@ main() {
         clear
         show_header
         get_file_activity
-        echo ""
-        echo "Press 'q' + Enter to quit, or Ctrl+C"
-        
-        # Simple approach: use read with timeout
+        # Quit on any keypress
         if read -t $REFRESH_RATE -n 1 key 2>/dev/null; then
-            if [ "$key" = "q" ]; then
-                echo "👋 Goodbye!"
-                exit 0
-            fi
+            echo "👋 Goodbye!"
+            exit 0
         fi
     done
 }
