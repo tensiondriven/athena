@@ -4,7 +4,7 @@
 # Shows recent file reads/writes with timing and operation type
 
 PROJECT_ROOT="/Users/j/Code/athena"
-REFRESH_RATE=1.0
+REFRESH_RATE=1
 MAX_FILES=15
 
 format_time_ago() {
