@@ -281,6 +281,22 @@ def start_file_monitoring():
     db = CollectorDB(DB_PATH)
     collector = FileCollector(db, FILES_DIR)
     
+    # Log startup event
+    db.insert_event(
+        event_type='collector_startup',
+        source_path='athena-collector-macos',
+        metadata={
+            'version': '1.0.0',
+            'pid': os.getpid(),
+            'config': {
+                'data_dir': str(DATA_DIR),
+                'port': CONFIG['port'],
+                'max_file_size': CONFIG['max_file_size']
+            }
+        }
+    )
+    print("✅ Logged collector startup event")
+    
     observer = Observer()
     
     # Monitor key directories
@@ -297,10 +313,34 @@ def start_file_monitoring():
         observer.schedule(collector, str(bookmarks_path.parent), recursive=False)
     
     observer.start()
+    
+    # Start heartbeat thread
+    heartbeat_thread = Thread(target=heartbeat_worker, args=(db,), daemon=True)
+    heartbeat_thread.start()
+    
     return observer
+
+def heartbeat_worker(db):
+    """Send periodic heartbeat events"""
+    while True:
+        time.sleep(60)  # Heartbeat every minute
+        try:
+            db.insert_event(
+                event_type='heartbeat',
+                source_path='athena-collector-macos',
+                metadata={
+                    'uptime_minutes': int(time.time() - start_time) // 60,
+                    'timestamp': datetime.now(timezone.utc).isoformat()
+                }
+            )
+        except Exception as e:
+            print(f"Heartbeat error: {e}")
 
 if __name__ == '__main__':
     import sys
+    
+    # Record start time for uptime tracking
+    start_time = time.time()
     
     # Test mode: run for 5 seconds then exit
     test_mode = '--test' in sys.argv
