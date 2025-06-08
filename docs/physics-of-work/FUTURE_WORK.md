@@ -65,5 +65,37 @@
 - Requires solid understanding of both API formats
 - Best implemented as optional enhancement to existing workflow
 
+## Multi-Pipeline Knowledge Graph Processing System
+
+**Vision**: Comprehensive log file analysis platform that supports multiple knowledge graph generation approaches with comparative evaluation.
+
+### Core Pipeline Features
+- **Multiple KG Generation Methods**: Run different algorithms/approaches on same log data
+- **Comparative Analysis**: Evaluate which approaches produce better knowledge graphs
+- **Synthetic QA Generation**: Create question-answer pairs from extracted knowledge
+- **Pipeline Evaluation**: Assess quality of generated QA pairs and knowledge extraction
+- **Iterative Improvement**: Use evaluation results to refine extraction methods
+
+### Technical Components
+- **Durable Log Storage**: Reliable storage system for source log files
+- **Pipeline Orchestration**: Framework for running multiple processing approaches
+- **Knowledge Graph Storage**: Structured storage for different KG representations
+- **QA Pair Generation**: Automated creation of training/evaluation datasets
+- **Evaluation Framework**: Metrics and comparison tools for pipeline assessment
+- **Result Visualization**: Dashboards for comparing pipeline effectiveness
+
+### Implementation Priorities
+1. **Foundation**: Reliable log collection and durable storage
+2. **Basic KG Pipeline**: Single knowledge graph generation approach
+3. **Multi-Pipeline Support**: Framework for running competing approaches
+4. **Evaluation System**: Metrics and comparison capabilities
+5. **Synthetic Data Generation**: QA pair creation and validation
+
+### Benefits
+- **Research Platform**: Test different knowledge extraction approaches
+- **Quality Optimization**: Systematic improvement through comparison
+- **Dataset Creation**: Generate high-quality training data from logs
+- **Knowledge Discovery**: Extract insights from operational data patterns
+
 ---
-*Captured from collaboration sessions on 2025-06-07*
+*Captured from collaboration sessions on 2025-06-07 and 2025-06-08*
