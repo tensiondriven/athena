@@ -116,9 +116,6 @@ main() {
         exit 0
     fi
     
-    # Set up non-blocking input
-    stty -echo -icanon
-    
     # Continuous monitoring with self-update detection
     while true; do
         check_self_update "$@"
@@ -126,21 +123,15 @@ main() {
         show_header
         get_file_activity
         echo ""
-        echo "Press 'q' to quit"
+        echo "Press 'q' + Enter to quit, or Ctrl+C"
         
-        # Sleep in small chunks to check for quit key
-        local elapsed=0
-        while [ $elapsed -lt $REFRESH_RATE ]; do
-            # Check for keypress (non-blocking)
-            local key=$(dd bs=1 count=1 2>/dev/null || echo "")
+        # Simple approach: use read with timeout
+        if read -t $REFRESH_RATE -n 1 key 2>/dev/null; then
             if [ "$key" = "q" ]; then
-                stty echo icanon  # Restore terminal settings
                 echo "👋 Goodbye!"
                 exit 0
             fi
-            sleep 0.1
-            elapsed=$((elapsed + 1))
-        done
+        fi
     done
 }
 
