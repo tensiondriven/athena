@@ -1,0 +1,11 @@
+#!/bin/bash
+# Commands to run as root for PTZ camera access
+
+# Kill cameracaptured process to free camera
+sudo pkill cameracaptured
+
+# Create sudoers rule for camera control (run once)
+echo "$(whoami) ALL=(ALL) NOPASSWD: /usr/bin/pkill cameracaptured, /usr/bin/pkill -f camera, /usr/bin/killall cameracaptured" | sudo tee /etc/sudoers.d/camera-control
+
+# Test PTZ camera
+./webcam-ptz pan middle

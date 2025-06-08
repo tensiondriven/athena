@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "claude_exec_mcp": {
+      "command": "python3",
+      "args": ["/Users/j/Code/mcp/cash_server.py"],
+      "description": "Claude Executive Command Server - Preferred autonomous shell execution for camera control and system operations"
+    },
+    "camera_mcp": {
+      "command": "python3",
+      "args": ["/Users/j/Code/mcp/camera_mcp_server.py"],
+      "description": "Camera Management Server - PTZ controls, screenshot capture, and camera discovery"
+    }
+  }
+}
