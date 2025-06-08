@@ -71,6 +71,10 @@ logs/
 *.sqlite
 *.sqlite3
 
+# Data directory (except .gitkeep)
+data/*
+!data/.gitkeep
+
 # Temporary files
 *.tmp
 *.temp
