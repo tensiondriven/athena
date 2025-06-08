@@ -50,10 +50,25 @@ get_file_activity() {
     done | sort -nr | head -$MAX_FILES | cut -d' ' -f2-
 }
 
+get_git_status() {
+    cd "$PROJECT_ROOT" 2>/dev/null || return
+    local status_output=$(git status --porcelain 2>/dev/null)
+    local branch=$(git branch --show-current 2>/dev/null || echo "unknown")
+    
+    if [ -z "$status_output" ]; then
+        echo "🌿 $branch (clean)"
+    else
+        local modified=$(echo "$status_output" | grep -c "^ M" || echo 0)
+        local added=$(echo "$status_output" | grep -c "^A" || echo 0)
+        local untracked=$(echo "$status_output" | grep -c "^??" || echo 0)
+        echo "🔥 $branch (M:$modified A:$added ?:$untracked)"
+    fi
+}
+
 show_header() {
     echo "🔄 Athena Development Activity Monitor"
     echo "📁 Project: $PROJECT_ROOT"
-    echo "⏱️  Refresh: ${REFRESH_RATE}s"
+    echo "⏱️  Refresh: ${REFRESH_RATE}s | 📂 Git: $(get_git_status)"
     echo "----------------------------------------"
     printf "%-3s %-6s %s\n" "OP" "AGO" "FILE"
     echo "----------------------------------------"
@@ -90,6 +105,8 @@ main() {
         echo ""
         echo "Features:"
         echo "  🔄 Auto-restarts when script is modified"
+        echo "  📂 Shows git status (M:modified A:added ?:untracked)"
+        echo "  ⌨️  Press 'q' to quit"
         exit 0
     fi
     
@@ -99,13 +116,26 @@ main() {
         exit 0
     fi
     
+    # Set up non-blocking input
+    stty -echo -icanon time 0 min 0
+    
     # Continuous monitoring with self-update detection
     while true; do
         check_self_update "$@"
         clear
         show_header
         get_file_activity
-        sleep $REFRESH_RATE
+        echo ""
+        echo "Press 'q' to quit"
+        
+        # Check for 'q' keypress (non-blocking)
+        local key=""
+        read -t $REFRESH_RATE key
+        if [ "$key" = "q" ]; then
+            stty echo icanon  # Restore terminal settings
+            echo "👋 Goodbye!"
+            exit 0
+        fi
     done
 }
 
