@@ -117,7 +117,7 @@ main() {
     fi
     
     # Set up non-blocking input
-    stty -echo -icanon time 0 min 0
+    stty -echo -icanon
     
     # Continuous monitoring with self-update detection
     while true; do
@@ -128,14 +128,19 @@ main() {
         echo ""
         echo "Press 'q' to quit"
         
-        # Check for 'q' keypress (non-blocking)
-        local key=""
-        read -t $REFRESH_RATE key
-        if [ "$key" = "q" ]; then
-            stty echo icanon  # Restore terminal settings
-            echo "👋 Goodbye!"
-            exit 0
-        fi
+        # Sleep in small chunks to check for quit key
+        local elapsed=0
+        while [ $elapsed -lt $REFRESH_RATE ]; do
+            # Check for keypress (non-blocking)
+            local key=$(dd bs=1 count=1 2>/dev/null || echo "")
+            if [ "$key" = "q" ]; then
+                stty echo icanon  # Restore terminal settings
+                echo "👋 Goodbye!"
+                exit 0
+            fi
+            sleep 0.1
+            elapsed=$((elapsed + 1))
+        done
     done
 }
 
