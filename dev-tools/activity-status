@@ -89,11 +89,19 @@ check_self_update() {
 }
 
 main() {
+    # Default to once mode for non-interactive use
+    if [ -t 1 ] && [ "$1" != "--once" ] && [ "$1" != "--help" ] && [ "$1" != "-h" ]; then
+        # Interactive mode (continuous monitoring)
+        run_interactive
+        exit 0
+    fi
+    
     if [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
-        echo "Usage: $0 [--once]"
+        echo "Usage: $0 [--once] [--watch]"
         echo ""
         echo "Options:"
-        echo "  --once    Show activity once and exit"
+        echo "  --once    Show activity once and exit (default for pipes/scripts)"
+        echo "  --watch   Continuous monitoring (default for interactive terminals)"
         echo "  --help    Show this help"
         echo ""
         echo "Icons:"
@@ -104,17 +112,20 @@ main() {
         echo "  📋 Config edit"
         echo ""
         echo "Features:"
-        echo "  🔄 Auto-restarts when script is modified"
+        echo "  🔄 Auto-restarts when script is modified (watch mode)"
         echo "  📂 Shows git status (M:modified A:added ?:untracked)"
-        echo "  ⌨️  Press any key to quit"
+        echo "  ⌨️  Press any key to quit (watch mode)"
+        echo "  📤 Pipe-friendly output when used in scripts"
         exit 0
     fi
     
-    if [ "$1" = "--once" ]; then
-        show_header
-        get_file_activity
-        exit 0
-    fi
+    # One-shot mode (default when piped or --once specified)
+    show_header
+    get_file_activity
+    exit 0
+}
+
+run_interactive() {
     
     # Continuous monitoring with self-update detection
     while true; do
