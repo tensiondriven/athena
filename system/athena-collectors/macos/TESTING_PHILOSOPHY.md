@@ -33,19 +33,35 @@ Every component validates its universe before accepting any work:
 
 **Exit rule**: Any validation failure = immediate exit with specific fix instructions. No "best effort" operation.
 
-### 2. Runtime Health Monitoring
-Continuous verification that the system is actually functioning:
-- **Deep health checks**: `/health` endpoints that exercise real functionality
-- **Functional smoke tests**: Actually collect a file, take a screenshot, write to database
-- **Performance monitoring**: Detect when things get slow or stuck
-- **Resource checks**: Disk space, memory, connection pools
+### 2. Runtime Health Monitoring  
+Ongoing verification that everything still works:
 
-### 3. Integration Proof Points
-End-to-end flows that prove the system works as intended:
-- **File lifecycle**: Create → Detect → Store → Query → Retrieve
-- **API workflows**: Request → Process → Respond → Verify
-- **Event flows**: Generate → Collect → Process → Store
-- **Cross-service communication**: Verify actual data exchange
+**Functional health checks**:
+- `/health` endpoints test the full stack (not just "HTTP 200")
+- Periodic smoke tests: collect file, take screenshot, query database
+- Resource monitoring: disk space, memory, open files
+- Performance baselines: detect when operations get slow
+
+**Auto-recovery attempts**:
+- Restart file watchers if they stop responding
+- Reconnect to databases after network blips
+- Clear temp files if disk space low
+- Graceful degradation when resources constrained
+
+### 3. Integration Verification
+End-to-end flows proving components work together:
+
+**Critical paths**:
+- File lifecycle: Create test file → Watcher detects → Store in DB → Query via API
+- Screenshot flow: API request → Capture → Encode → Return data
+- Event propagation: Generate event → Process → Store → Query
+- Cross-service: Collector → Database → API → Client
+
+**Integration alerts**:
+- Data flow interruptions
+- API response time degradation  
+- Database replication lag
+- Service communication failures
 
 ## Testing Implementation
 
