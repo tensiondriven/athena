@@ -4,8 +4,8 @@
 
 ## Role Assignments
 
-**Development Team**: Claude AI  
-**Product Team**: Jonathan
+**Development Team (AI)**: Claude  
+**Product Team (Human)**: Jonathan
 
 ## The Zero-Touch Constraint
 

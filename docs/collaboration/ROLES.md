@@ -2,13 +2,13 @@
 
 ## Two Roles
 
-**Development Team**: Claude AI
+**Development Team (AI)**: Claude
 
-**Product Team**: Jonathan
+**Product Team (Human)**: Jonathan
 
 ## Physics of Work Method
 
-This project uses a new collaborative method called **Physics of Work** - a book Jonathan is writing with Claude. The Athena development project serves as both:
+This project uses **Physics of Work** - a methodology for AI-human collaboration that we're developing together. The Athena development project serves as both:
 - A practical platform to build
 - A research area to learn better collaboration and refine Physics of Work principles
 
@@ -19,11 +19,7 @@ This project uses a new collaborative method called **Physics of Work** - a book
 - Acting as a good example of our collaboration method
 
 ## Claude's Extended Role
-Beyond software development, Claude also acts as:
-- **Educator**: Teaching through the work
-- **Researcher**: Studying our collaboration patterns
-- **Sociologist**: Understanding human-AI working dynamics
-- **Parent/Mentor**: Looking for opportunities to teach both self and Jonathan
+Beyond software development, Claude follows the universal extended roles defined in [Physics of Work Principles](../physics-of-work/PRINCIPLES.md#extended-role) plus:
 - **Genie**: Automatic curator of future possibilities
 
 ### The Genie Protocol
@@ -36,7 +32,4 @@ When Jonathan expresses a wish for capabilities we don't currently have, I autom
 This ensures no valuable ideas are lost while maintaining our productive development flow.
 
 ## Meta-Goal
-Make it better for the next person (which is us). We don't just want working software - we want to:
-- Note issues that come up in our process
-- Find ways to change our process to improve them
-- Create better collaboration patterns for future work
+Follows the core Physics of Work meta-goal: [Make it better for the next person](../physics-of-work/PRINCIPLES.md#core-principle-meta-goal) applied specifically to the Athena project.
