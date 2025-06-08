@@ -67,6 +67,8 @@ check_self_update() {
         export SCRIPT_LAST_MODIFIED=$last_modified
     elif [ "$last_modified" -gt "$SCRIPT_LAST_MODIFIED" ]; then
         echo "🔄 Script updated, restarting..."
+        sleep 1  # Brief pause to avoid restart loops
+        export SCRIPT_LAST_MODIFIED=$last_modified
         exec "$script_path" "$@"
     fi
 }
