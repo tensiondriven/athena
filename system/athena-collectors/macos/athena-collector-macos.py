@@ -300,11 +300,16 @@ def start_file_monitoring():
     return observer
 
 if __name__ == '__main__':
+    import sys
+    
+    # Test mode: run for 5 seconds then exit
+    test_mode = '--test' in sys.argv
+    
     # Ensure data directories exist
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     FILES_DIR.mkdir(parents=True, exist_ok=True)
     
-    print(f"Starting Athena macOS Collector")
+    print(f"Starting Athena macOS Collector {'(TEST MODE)' if test_mode else ''}")
     print(f"Data directory: {DATA_DIR}")
     print(f"Files directory: {FILES_DIR}")
     print(f"Database: {DB_PATH}")
@@ -314,8 +319,30 @@ if __name__ == '__main__':
     observer = start_file_monitoring()
     
     try:
-        # Start Flask API
-        app.run(host='0.0.0.0', port=CONFIG['port'], debug=False)
+        if test_mode:
+            print("Test mode: Running for 5 seconds...")
+            time.sleep(5)
+            print("Test complete! Checking for collected events...")
+            
+            # Show what we collected
+            db = CollectorDB(DB_PATH)
+            with sqlite3.connect(DB_PATH) as conn:
+                conn.row_factory = sqlite3.Row
+                events = conn.execute('SELECT * FROM file_events ORDER BY timestamp DESC LIMIT 10').fetchall()
+                
+                if events:
+                    print(f"\n✅ Collected {len(events)} events:")
+                    for event in events:
+                        print(f"  {event['event_type']}: {event['source_path']} ({event['file_size']} bytes)")
+                        if event['metadata']:
+                            metadata = json.loads(event['metadata'])
+                            if 'source_type' in metadata:
+                                print(f"    -> {metadata['source_type']}")
+                else:
+                    print("\n⚠️  No events collected during test")
+        else:
+            # Start Flask API
+            app.run(host='0.0.0.0', port=CONFIG['port'], debug=False)
     finally:
         observer.stop()
         observer.join()
