@@ -68,7 +68,7 @@ get_git_status() {
 show_header() {
     echo "🔄 Athena Development Activity Monitor"
     echo "📁 Project: $PROJECT_ROOT"
-    echo "⏱️  Refresh: ${REFRESH_RATE}s | 📂 Git: $(get_git_status)"
+    echo "📂 Git: $(get_git_status)"
     echo "----------------------------------------"
     printf "%-3s %-6s %s\n" "OP" "AGO" "FILE"
     echo "----------------------------------------"
