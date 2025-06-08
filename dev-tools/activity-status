@@ -19,11 +19,16 @@ format_time_ago() {
 }
 
 get_file_activity() {
-    # Get recently modified files with their modification times
-    find "$PROJECT_ROOT" -type f -mtime -1h -exec stat -f '%m %N' {} \; 2>/dev/null | \
-    sort -nr | head -$MAX_FILES | \
-    while read timestamp filepath; do
-        local now=$(date +%s)
+    # Much faster: only check files modified in last 10 minutes
+    local cutoff=$(($(date +%s) - 600))
+    local now=$(date +%s)
+    
+    # Use find with -newer for speed, limit to key directories
+    find "$PROJECT_ROOT"/{docs,system,dev-tools} -type f \
+        -newermt "@$cutoff" 2>/dev/null | \
+    head -$MAX_FILES | \
+    while read filepath; do
+        local timestamp=$(stat -f '%m' "$filepath" 2>/dev/null || echo 0)
         local ago=$((now - timestamp))
         local basename=$(basename "$filepath")
         local relpath=$(echo "$filepath" | sed "s|$PROJECT_ROOT/||")
@@ -41,8 +46,8 @@ get_file_activity() {
             op_type="👁️ "  # older, likely read
         fi
         
-        printf "%-3s %-6s %s\n" "$op_type" "$time_str" "$relpath"
-    done
+        echo "$timestamp $op_type $time_str $relpath"
+    done | sort -nr | head -$MAX_FILES | cut -d' ' -f2-
 }
 
 show_header() {
