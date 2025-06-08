@@ -8,7 +8,7 @@ set -e
 
 PROJECT_ROOT="/Users/j/Code/athena"
 REFRESH_RATE=1
-MAX_FILES=10
+MAX_FILES=12
 
 # Colors and indicators
 RED='\033[0;31m'
@@ -71,18 +71,13 @@ get_file_activity() {
             display_path="...${relpath: -37}"
         fi
         
-        # Choose indicator based on operation type and recency
+        # Simple read/write based on recency
         local indicator=""
         local color=""
         
-        if [ $ago -lt 5 ]; then
-            # Very recent = write operation
-            case "$relpath" in
-                *.py) indicator="🐍" color="$GREEN" ;;     # Python write
-                *.md) indicator="✍️" color="$BLUE" ;;      # Markdown write
-                *.json|*.yaml|*.yml) indicator="📋" color="$YELLOW" ;;  # Config write
-                *) indicator="📝" color="$GREEN" ;;        # General write
-            esac
+        if [ $ago -lt 30 ]; then
+            # Recent = write operation
+            indicator="📝" color="$GREEN"
         else
             # Older = likely read operation
             indicator="👁️" color="$RED"
@@ -193,11 +188,8 @@ main() {
         echo "  --help    Show this help"
         echo ""
         echo "Icons:"
-        echo "  📝 Write operation (recent)"
+        echo "  📝 Write operation (recent <30s)"
         echo "  👁️  Read operation (older files)"
-        echo "  ✍️  Markdown write"
-        echo "  🐍 Python write"
-        echo "  📋 Config write"
         echo ""
         echo "Features:"
         echo "  🔄 Auto-restarts when script is modified (watch mode)"
