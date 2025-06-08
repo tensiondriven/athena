@@ -57,8 +57,9 @@ athena/
 - Research and document collaboration patterns
 
 ### Key Files
-- **docs/physics-of-work/ROLES.md** - Team roles and responsibilities  
-- **docs/physics-of-work/VISION_AND_REALITY.md** - Product vision
+- **docs/physics-of-work/PRINCIPLES.md** - Universal AI-human collaboration principles
+- **docs/collaboration/ATHENA_WORKING_STYLE.md** - How we work together on this project
+- **docs/collaboration/VISION_AND_REALITY.md** - Athena product vision
 - **docs/journal/GIT_HISTORY_ARCHIVE.md** - Pre-consolidation git history
 - **system/athena-mcp/** - Runtime MCP servers for AI control
 
