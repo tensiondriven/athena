@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "question-display-server": {
+      "command": "node",
+      "args": ["/Users/j/Documents/Cline/MCP/question-display-server/build/index.js"],
+      "env": {
+        "DISPLAY": ":0"
+      }
+    }
+  }
+}
