@@ -106,7 +106,7 @@ defmodule AshChatWeb.LiveEventsLive do
                           <%= String.slice(event.content, 0, 300) %><%= if String.length(event.content) > 300, do: "..." %>
                         </div>
                         <div class="text-xs text-gray-500 mt-1">
-                          <%= String.length(event.content) %> characters
+                          <%= String.length(event.content) %> characters • <%= Float.round(byte_size(event.content) / 1024, 1) %> KB
                         </div>
                       </div>
                     <% end %>
