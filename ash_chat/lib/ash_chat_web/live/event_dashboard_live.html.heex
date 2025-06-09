@@ -142,6 +142,19 @@
                   </p>
                 <% end %>
 
+                <!-- Claude Conversation Preview -->
+                <%= if event.event_type == "claude_code.conversation.updated" && event.content do %>
+                  <% last_line = String.split(String.trim(event.content), "\n") |> List.last() %>
+                  <%= if last_line && last_line != "" do %>
+                    <div class="bg-gray-700 p-2 rounded mb-2">
+                      <p class="text-xs text-gray-400 mb-1">💬 Latest:</p>
+                      <p class="text-sm text-gray-200 truncate font-mono">
+                        <%= String.slice(last_line, 0, 100) %><%= if String.length(last_line) > 100, do: "..." %>
+                      </p>
+                    </div>
+                  <% end %>
+                <% end %>
+
                 <!-- Payload Size Preview -->
                 <%= if event.content do %>
                   <div class="flex items-center space-x-2 text-xs text-gray-400">
