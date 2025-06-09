@@ -60,7 +60,7 @@ class EventSender:
             }
             
             response = self.session.post(self.endpoint_url, json=event)
-            if response.status_code == 202:
+            if response.status_code in [200, 201, 202]:  # Accept success status codes
                 print(f"✅ Sent event: {event_type} ({source_path})")
                 return True
             else:
