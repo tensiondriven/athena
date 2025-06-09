@@ -5,7 +5,7 @@ defmodule AshChat.AI.InferenceConfig do
 
   @default_config %{
     provider: "ollama",
-    model: "llama3.2",
+    model: "qwen2.5:latest",
     temperature: 0.7,
     top_p: 0.9,
     max_tokens: 2048,
@@ -105,7 +105,7 @@ defmodule AshChat.AI.InferenceConfig do
         # Default to Ollama
         alias LangChain.ChatModels.ChatOllamaAI
         ChatOllamaAI.new!(%{
-          model: "llama3.2",
+          model: "qwen2.5:latest",
           base_url: "http://10.1.2.200:11434",
           temperature: 0.7
         })

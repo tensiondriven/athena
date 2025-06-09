@@ -56,7 +56,7 @@ defmodule AshChatWeb.ChatLive do
       # Simple Ollama config with system prompt
       config = %{
         provider: "ollama",
-        model: "llama3.2",
+        model: "qwen2.5:latest",
         temperature: 0.7,
         system_prompt: socket.assigns.system_prompt
       }
