@@ -132,6 +132,13 @@ mix phx.server
 - ✅ Commit and push frequently (manic principle)
 - ✅ Ask: "Am I making this better for future users?"
 
+### When Learning From Mistakes
+- ✅ **Proactive reflection**: When user points out a mistake, immediately write a journal entry
+- ✅ **Multiple revisions**: Feel free to re-read and revise written content 2-10 times for clarity
+- ✅ **Quality over speed**: Take time to ensure writing is concise, impactful, and well-structured
+- ✅ **Pattern analysis**: Document not just what went wrong, but the thinking patterns that led to the error
+- ✅ **Prevention protocols**: Create tactical strategies to avoid similar mistakes in the future
+
 ## 📚 Reference Materials
 
 ### Key Resources Created

@@ -1,8 +1,8 @@
-# Cargo Cult Programming: When I Hardcoded `confidence: 1.0` Instead of Thinking
+# The `confidence: 1.0` Mistake: A Case Study in Cargo Cult Programming
 
 **Date**: 2025-06-09  
 **Context**: Event inspector debugging - claude_conversation events not displaying  
-**Root Cause**: Automatic pattern-matching without questioning purpose  
+**Root Cause**: Treating symptoms instead of questioning requirements  
 
 ## The Specific Mistake
 
@@ -23,7 +23,7 @@ This wasn't just a coding mistake - it revealed problematic thinking patterns:
 3. **Path of least resistance** - Adding a hardcoded value felt easier than understanding the system architecture
 4. **Debugging tunnel vision** - Got fixated on making the immediate error go away rather than understanding why it existed
 
-The deeper issue: **I was optimizing for "making the code run" instead of "making the code make sense."**
+The deeper issue: **I optimized for "making it work" over "making it right."** This is the essence of technical debt creation.
 
 ## What the Correct Approach Looked Like
 
@@ -75,4 +75,4 @@ The confidence field taught me that **making code work and making code correct a
 
 **Result tracking**: This protocol would have saved 30+ minutes of debugging and prevented meaningless data from entering the system. The real fix was a 5-minute template change, not a complex data structure modification.
 
-This wasn't just a coding mistake - it was a thinking mistake. The code quality reflects the thought quality that created it.
+**Key Insight**: This wasn't a coding mistake - it was a thinking mistake. Code quality is a direct reflection of the thought quality that created it. When I choose convenience over understanding, I create debt that someone (usually me) will pay later.
