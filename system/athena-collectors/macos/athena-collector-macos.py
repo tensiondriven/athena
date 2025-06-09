@@ -28,6 +28,7 @@ DB_PATH = DATA_DIR / 'collector.sqlite'
 FILES_DIR = DATA_DIR / 'files'
 CONFIG = {
     'claude_code_logs': Path.home() / '.claude-code' / 'logs',
+    'claude_projects_logs': Path.home() / '.claude' / 'projects',  # Main Claude conversation logs
     'chrome_bookmarks': Path.home() / 'Library' / 'Application Support' / 'Google' / 'Chrome' / 'Default' / 'Bookmarks',
     'ingest_folder': Path.home() / 'Downloads' / 'ingest',
     'desktop': Path.home() / 'Desktop',
