@@ -151,14 +151,14 @@ defmodule AshChatWeb.EventDashboardLive do
     
     try do
       Logger.info("Loading events from Ash resource...")
-      all_events = AshChat.Resources.Event.recent!(%{limit: 100})
+      all_events = AshChat.Resources.Event.recent!(%{limit: 200})
       Logger.info("Loaded #{length(all_events)} events successfully")
       
       # Apply filters
       filtered_events = all_events
       |> filter_by_search(socket.assigns[:search_query] || "")
       |> filter_by_event_type(socket.assigns[:selected_event_type] || "")
-      |> Enum.take(20)
+      |> Enum.take(50)
       
       total_count = AshChat.Resources.Event.read!() |> length()
       Logger.info("Total event count: #{total_count}")
