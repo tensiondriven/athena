@@ -193,6 +193,7 @@ defmodule AshChatWeb.ChatLive do
             <.form 
               for={%{}}
               as={:message}
+              id="message-form"
               phx-submit="send_message"
               phx-change="validate_message"
               class="flex space-x-2"

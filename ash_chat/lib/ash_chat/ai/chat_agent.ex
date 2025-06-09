@@ -33,7 +33,7 @@ defmodule AshChat.AI.ChatAgent do
   end
 
   def get_chat_messages(chat_id) do
-    Message.for_chat!(chat_id: chat_id)
+    Message.for_chat!(%{chat_id: chat_id})
   end
 
   def create_ai_agent(inference_config \\ %{}) do

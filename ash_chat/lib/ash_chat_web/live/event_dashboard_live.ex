@@ -21,12 +21,12 @@ defmodule AshChatWeb.EventDashboardLive do
     total_count = socket.assigns.total_count + 1
     
     # Update event type counts
-    event_types = update_event_type_counts(socket.assigns.event_types, event.event_type)
+    all_event_types = update_event_type_counts(socket.assigns.all_event_types, event.event_type)
     
     {:noreply, assign(socket, 
       events: events, 
       total_count: total_count,
-      event_types: event_types,
+      all_event_types: all_event_types,
       last_updated: DateTime.utc_now()
     )}
   end
