@@ -89,8 +89,13 @@ defmodule AshChat.AI.ChatAgent do
           {:error, "AI processing failed: #{error_msg}"}
       end
     rescue
-      %CaseClauseError{term: {:error, _chain, %{message: msg}}} ->
-        {:error, "Chat processing error: #{msg}"}
+      error in CaseClauseError ->
+        case error.term do
+          {:error, _chain, %{message: msg}} ->
+            {:error, "Chat processing error: #{msg}"}
+          _ ->
+            {:error, "Chat processing error: #{inspect(error)}"}
+        end
         
       error ->
         error_msg = Exception.message(error)
@@ -163,8 +168,13 @@ defmodule AshChat.AI.ChatAgent do
           {:error, "AI processing failed: #{error_msg}"}
       end
     rescue
-      %CaseClauseError{term: {:error, _chain, %{message: msg}}} ->
-        {:error, "Chat processing error: #{msg}"}
+      error in CaseClauseError ->
+        case error.term do
+          {:error, _chain, %{message: msg}} ->
+            {:error, "Chat processing error: #{msg}"}
+          _ ->
+            {:error, "Chat processing error: #{inspect(error)}"}
+        end
         
       error ->
         error_msg = Exception.message(error)
