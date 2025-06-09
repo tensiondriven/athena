@@ -14,13 +14,13 @@ defmodule AshChat.Tools do
     {:ok, "Search functionality coming soon when vectorization is enabled"}
   end
 
-  def create_chat(title \\ "New Chat") do
-    case AshChat.Resources.Chat.create(%{title: title}) do
-      {:ok, chat} ->
-        {:ok, "Created new chat '#{chat.title}' with ID: #{chat.id}"}
+  def create_room(title \\ "New Room") do
+    case AshChat.Resources.Room.create(%{title: title}) do
+      {:ok, room} ->
+        {:ok, "Created new room '#{room.title}' with ID: #{room.id}"}
       
       {:error, error} ->
-        {:error, "Failed to create chat: #{inspect(error)}"}
+        {:error, "Failed to create room: #{inspect(error)}"}
     end
   end
 

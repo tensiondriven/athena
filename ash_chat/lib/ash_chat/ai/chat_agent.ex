@@ -5,34 +5,34 @@ defmodule AshChat.AI.ChatAgent do
 
   alias LangChain.Chains.LLMChain
   alias LangChain.Message, as: LangChainMessage
-  alias AshChat.Resources.{Chat, Message}
+  alias AshChat.Resources.{Room, Message}
   alias AshChat.Tools
   alias AshChat.AI.InferenceConfig
 
-  def create_chat() do
-    Chat.create!(%{title: "New Multimodal Chat"})
+  def create_room() do
+    Room.create!(%{title: "New Multimodal Room"})
   end
 
-  def send_text_message(chat_id, content, role \\ :user) do
+  def send_text_message(room_id, content, role \\ :user) do
     Message.create_text_message!(%{
-      chat_id: chat_id,
+      room_id: room_id,
       content: content,
       role: role
     })
   end
 
-  def send_image_message(chat_id, content, image_url, role \\ :user) do
+  def send_image_message(room_id, content, image_url, role \\ :user) do
     # For now, we'll store the image URL. Later we can add image processing
     Message.create_image_message!(%{
-      chat_id: chat_id,
+      room_id: room_id,
       content: content,
       image_url: image_url,
       role: role
     })
   end
 
-  def get_chat_messages(chat_id) do
-    Message.for_chat!(%{chat_id: chat_id})
+  def get_room_messages(room_id) do
+    Message.for_room!(%{room_id: room_id})
   end
 
   def create_ai_agent(inference_config \\ %{}) do
@@ -47,16 +47,16 @@ defmodule AshChat.AI.ChatAgent do
     |> LLMChain.new!()
   end
 
-  def process_message_with_system_prompt(chat_id, message_content, config \\ %{}) do
+  def process_message_with_system_prompt(room_id, message_content, config \\ %{}) do
     require Logger
     
     try do
       # Create user message
-      _user_message = send_text_message(chat_id, message_content, :user)
+      _user_message = send_text_message(room_id, message_content, :user)
       
       # Get conversation history
-      messages = get_chat_messages(chat_id)
-      Logger.info("Retrieved #{length(messages)} messages for chat #{chat_id}")
+      messages = get_room_messages(room_id)
+      Logger.info("Retrieved #{length(messages)} messages for chat #{room_id}")
       
       # Add system prompt as first message if provided
       langchain_messages = if config[:system_prompt] do
@@ -106,7 +106,7 @@ defmodule AshChat.AI.ChatAgent do
         {:ok, %LLMChain{last_message: %{content: content}}} when is_binary(content) ->
           Logger.info("Successfully extracted content from Ollama: #{content}")
           # Create AI response message
-          ai_message = send_text_message(chat_id, content, :assistant)
+          ai_message = send_text_message(room_id, content, :assistant)
           Logger.info("Created AI message: #{inspect(ai_message)}")
           {:ok, ai_message}
           
@@ -160,16 +160,16 @@ defmodule AshChat.AI.ChatAgent do
     end
   end
 
-  def process_multimodal_message(chat_id, message_content, image_url \\ nil, inference_config \\ %{}) do
+  def process_multimodal_message(room_id, message_content, image_url \\ nil, inference_config \\ %{}) do
     # Create user message
     _user_message = if image_url do
-      send_image_message(chat_id, message_content, image_url, :user)
+      send_image_message(room_id, message_content, image_url, :user)
     else
-      send_text_message(chat_id, message_content, :user)
+      send_text_message(room_id, message_content, :user)
     end
 
     # Get conversation history
-    messages = get_chat_messages(chat_id)
+    messages = get_room_messages(room_id)
     
     # TODO: Get relevant context using semantic search when vectorization is enabled
     # context_messages = if length(messages) > 5 do
@@ -210,7 +210,7 @@ defmodule AshChat.AI.ChatAgent do
           end
           
           # Create AI response message
-          ai_message = send_text_message(chat_id, content, :assistant)
+          ai_message = send_text_message(room_id, content, :assistant)
           
           {:ok, ai_message}
         

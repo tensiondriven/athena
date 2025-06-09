@@ -27,15 +27,15 @@ defmodule AshChat.Resources.Message do
   end
 
   relationships do
-    belongs_to :chat, AshChat.Resources.Chat
+    belongs_to :room, AshChat.Resources.Room
   end
 
   actions do
     defaults [:create, :read, :update, :destroy]
 
-    read :for_chat do
-      argument :chat_id, :uuid, allow_nil?: false
-      filter expr(chat_id == ^arg(:chat_id))
+    read :for_room do
+      argument :room_id, :uuid, allow_nil?: false
+      filter expr(room_id == ^arg(:room_id))
     end
 
     read :semantic_search do
@@ -50,24 +50,24 @@ defmodule AshChat.Resources.Message do
     end
 
     create :create_text_message do
-      argument :chat_id, :uuid, allow_nil?: false
+      argument :room_id, :uuid, allow_nil?: false
       argument :content, :string, allow_nil?: false
       argument :role, :atom, default: :user
 
-      change set_attribute(:chat_id, arg(:chat_id))
+      change set_attribute(:room_id, arg(:room_id))
       change set_attribute(:content, arg(:content))
       change set_attribute(:role, arg(:role))
       change set_attribute(:message_type, :text)
     end
 
     create :create_image_message do
-      argument :chat_id, :uuid, allow_nil?: false
+      argument :room_id, :uuid, allow_nil?: false
       argument :content, :string, default: ""
       argument :image_url, :string
       argument :image_data, :binary
       argument :role, :atom, default: :user
 
-      change set_attribute(:chat_id, arg(:chat_id))
+      change set_attribute(:room_id, arg(:room_id))
       change set_attribute(:content, arg(:content))
       change set_attribute(:role, arg(:role))
       change set_attribute(:message_type, :image)
@@ -82,7 +82,7 @@ defmodule AshChat.Resources.Message do
     define :read
     define :create_text_message
     define :create_image_message
-    define :for_chat
+    define :for_room
     define :semantic_search
   end
 end

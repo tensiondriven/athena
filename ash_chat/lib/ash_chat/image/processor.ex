@@ -13,7 +13,7 @@ defmodule AshChat.Image.Processor do
   defstruct [
     :interval,
     :sources,
-    :chat_id,
+    :room_id,
     :enabled
   ]
 
@@ -24,13 +24,13 @@ defmodule AshChat.Image.Processor do
   def init(opts) do
     interval = Keyword.get(opts, :interval, @default_interval)
     sources = Keyword.get(opts, :sources, [])
-    chat_id = Keyword.get(opts, :chat_id)
+    room_id = Keyword.get(opts, :room_id)
     enabled = Keyword.get(opts, :enabled, true)
 
     state = %__MODULE__{
       interval: interval,
       sources: sources,
-      chat_id: chat_id,
+      room_id: room_id,
       enabled: enabled
     }
 
@@ -43,7 +43,7 @@ defmodule AshChat.Image.Processor do
 
   def handle_info(:check_images, state) do
     if state.enabled do
-      process_image_sources(state.sources, state.chat_id)
+      process_image_sources(state.sources, state.room_id)
       schedule_next_check(state.interval)
     end
 
@@ -54,8 +54,8 @@ defmodule AshChat.Image.Processor do
     GenServer.cast(__MODULE__, {:configure_sources, sources})
   end
 
-  def set_chat_id(chat_id) do
-    GenServer.cast(__MODULE__, {:set_chat_id, chat_id})
+  def set_room_id(room_id) do
+    GenServer.cast(__MODULE__, {:set_room_id, room_id})
   end
 
   def enable() do
@@ -70,8 +70,8 @@ defmodule AshChat.Image.Processor do
     {:noreply, %{state | sources: sources}}
   end
 
-  def handle_cast({:set_chat_id, chat_id}, state) do
-    {:noreply, %{state | chat_id: chat_id}}
+  def handle_cast({:set_room_id, room_id}, state) do
+    {:noreply, %{state | room_id: room_id}}
   end
 
   def handle_cast(:enable, state) do
@@ -89,10 +89,10 @@ defmodule AshChat.Image.Processor do
     Process.send_after(self(), :check_images, interval)
   end
 
-  defp process_image_sources(sources, chat_id) when is_binary(chat_id) do
+  defp process_image_sources(sources, room_id) when is_binary(room_id) do
     Enum.each(sources, fn source ->
       try do
-        process_image_source(source, chat_id)
+        process_image_source(source, room_id)
       rescue
         error ->
           Logger.error("Failed to process image source #{inspect(source)}: #{inspect(error)}")
@@ -100,9 +100,9 @@ defmodule AshChat.Image.Processor do
     end)
   end
 
-  defp process_image_sources(_sources, _chat_id), do: :ok
+  defp process_image_sources(_sources, _room_id), do: :ok
 
-  defp process_image_source(%{type: :file_system, path: path, pattern: pattern}, chat_id) do
+  defp process_image_source(%{type: :file_system, path: path, pattern: pattern}, room_id) do
     case File.ls(path) do
       {:ok, files} ->
         image_files = 
@@ -113,7 +113,7 @@ defmodule AshChat.Image.Processor do
 
         Enum.each(image_files, fn file ->
           file_path = Path.join(path, file)
-          process_file_image(file_path, chat_id)
+          process_file_image(file_path, room_id)
         end)
 
       {:error, reason} ->
@@ -121,11 +121,11 @@ defmodule AshChat.Image.Processor do
     end
   end
 
-  defp process_image_source(%{type: :url, urls: urls}, chat_id) when is_list(urls) do
+  defp process_image_source(%{type: :url, urls: urls}, room_id) when is_list(urls) do
     Enum.each(urls, fn url ->
       case HTTPoison.get(url) do
         {:ok, %{status_code: 200, body: _body}} ->
-          send_image_to_chat(chat_id, "Image from #{url}", url)
+          send_image_to_chat(room_id, "Image from #{url}", url)
 
         {:error, reason} ->
           Logger.warning("Failed to fetch image from #{url}: #{reason}")
@@ -133,44 +133,44 @@ defmodule AshChat.Image.Processor do
     end)
   end
 
-  defp process_image_source(%{type: :s3, bucket: bucket, prefix: prefix}, _chat_id) do
+  defp process_image_source(%{type: :s3, bucket: bucket, prefix: prefix}, _room_id) do
     # Placeholder for S3 integration
     Logger.info("S3 image processing not yet implemented for bucket: #{bucket}, prefix: #{prefix}")
     # TODO: Implement S3 image fetching using ExAws or similar
   end
 
-  defp process_image_source(%{type: :database, query: query}, _chat_id) do
+  defp process_image_source(%{type: :database, query: query}, _room_id) do
     # Placeholder for database image processing
     Logger.info("Database image processing not yet implemented for query: #{query}")
     # TODO: Implement database image fetching
   end
 
-  defp process_image_source(source, _chat_id) do
+  defp process_image_source(source, _room_id) do
     Logger.warning("Unknown image source type: #{inspect(source)}")
   end
 
-  defp process_file_image(file_path, chat_id) do
+  defp process_file_image(file_path, room_id) do
     case File.read(file_path) do
       {:ok, image_data} ->
         # For now, we'll create a data URL. In production, you might want to upload to a CDN
         mime_type = get_mime_type(file_path)
         data_url = "data:#{mime_type};base64,#{Base.encode64(image_data)}"
         
-        send_image_to_chat(chat_id, "New image from #{Path.basename(file_path)}", data_url)
+        send_image_to_chat(room_id, "New image from #{Path.basename(file_path)}", data_url)
 
       {:error, reason} ->
         Logger.warning("Could not read image file #{file_path}: #{reason}")
     end
   end
 
-  defp send_image_to_chat(chat_id, content, image_url) do
+  defp send_image_to_chat(room_id, content, image_url) do
     Task.start(fn ->
-      case ChatAgent.process_multimodal_message(chat_id, content, image_url) do
+      case ChatAgent.process_multimodal_message(room_id, content, image_url) do
         {:ok, _message} ->
           # Broadcast to LiveView
           Phoenix.PubSub.broadcast(
             AshChat.PubSub,
-            "chat:#{chat_id}",
+            "chat:#{room_id}",
             {:message_processed}
           )
 

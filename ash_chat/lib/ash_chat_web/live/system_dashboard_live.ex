@@ -38,13 +38,13 @@ defmodule AshChatWeb.SystemDashboardLive do
         events: "HTTP requests, LiveView connections"
       },
       %{
-        name: "Ash Resources (Chat, Message)",
+        name: "Ash Resources (Room, Message)",
         status: :active,
         details: "ETS data layer, no persistence",
         events: "CRUD operations, no events consumed yet"
       },
       %{
-        name: "Chat Agent (AI)",
+        name: "Room Agent (AI)",
         status: :configured,
         details: "LangChain + OpenAI GPT-4o integration",
         events: "Message processing, tool calls"
@@ -148,7 +148,7 @@ defmodule AshChatWeb.SystemDashboardLive do
 
   defp get_event_statistics() do
     %{
-      total_chats: count_chats(),
+      total_rooms: count_rooms(),
       total_messages: count_messages(),
       active_connections: 0, # TODO: Track active WebSocket connections properly
       image_processor_sources: 0,
@@ -165,10 +165,10 @@ defmodule AshChatWeb.SystemDashboardLive do
     end
   end
 
-  defp count_chats() do
+  defp count_rooms() do
     try do
-      case AshChat.Resources.Chat.read() do
-        {:ok, chats} -> length(chats)
+      case AshChat.Resources.Room.read() do
+        {:ok, rooms} -> length(rooms)
         _ -> 0
       end
     rescue
@@ -220,8 +220,8 @@ defmodule AshChatWeb.SystemDashboardLive do
         <h2 class="text-lg font-medium text-gray-900 mb-4">Event Statistics</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div class="text-center">
-            <div class="text-2xl font-bold text-blue-600"><%= @event_stats.total_chats %></div>
-            <div class="text-sm text-gray-500">Total Chats</div>
+            <div class="text-2xl font-bold text-blue-600"><%= @event_stats.total_rooms %></div>
+            <div class="text-sm text-gray-500">Total Rooms</div>
           </div>
           <div class="text-center">
             <div class="text-2xl font-bold text-green-600"><%= @event_stats.total_messages %></div>
