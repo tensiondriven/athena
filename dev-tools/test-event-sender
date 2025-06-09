@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+"""
+Test Event Sender - Send a single test event to verify the collection pipeline
+
+Usage: ./test-event-sender
+"""
+
+import json
+import sqlite3
+import time
+from datetime import datetime, timezone
+import sys
+import os
+
+def send_test_event():
+    """Send a test event directly to the bigplan database"""
+    
+    # Database path (same as the dashboard)
+    db_path = "/Users/j/Code/athena/system/bigplan/data/events.db"
+    
+    if not os.path.exists(db_path):
+        print(f"❌ Database not found at {db_path}")
+        return False
+    
+    # Create test event
+    test_event = {
+        "event_type": "test_event_from_cli",
+        "source_id": "test-event-sender",
+        "confidence": 1.0,
+        "description": f"Test event sent at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        "metadata": {
+            "test": True,
+            "sender": "dev-tools/test-event-sender",
+            "timestamp_iso": datetime.now(timezone.utc).isoformat()
+        }
+    }
+    
+    try:
+        # Connect to database
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        # Insert test event
+        timestamp = datetime.now(timezone.utc).isoformat()
+        cursor.execute("""
+            INSERT INTO events 
+            (timestamp, event_type, source_id, confidence, description, metadata, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            timestamp,
+            test_event["event_type"],
+            test_event["source_id"], 
+            test_event["confidence"],
+            test_event["description"],
+            json.dumps(test_event["metadata"]),
+            time.time()
+        ))
+        
+        # Get the event ID
+        event_id = cursor.lastrowid
+        
+        conn.commit()
+        conn.close()
+        
+        print(f"✅ Test event sent successfully!")
+        print(f"   Event ID: {event_id}")
+        print(f"   Type: {test_event['event_type']}")
+        print(f"   Description: {test_event['description']}")
+        print(f"   Database: {db_path}")
+        print()
+        print(f"🔍 Check the dashboard at: http://localhost:8080")
+        print(f"📊 Or check database directly:")
+        print(f"   sqlite3 {db_path} \"SELECT * FROM events WHERE id = {event_id};\"")
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ Failed to send test event: {e}")
+        return False
+
+def check_database_schema():
+    """Check if the database has the expected schema"""
+    db_path = "/Users/j/Code/athena/system/bigplan/data/events.db"
+    
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        
+        # Get table schema
+        cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='events';")
+        schema = cursor.fetchone()
+        
+        if schema:
+            print("📋 Database schema:")
+            print(schema[0])
+            print()
+        else:
+            print("❌ No 'events' table found!")
+            return False
+            
+        # Get row count
+        cursor.execute("SELECT COUNT(*) FROM events;")
+        count = cursor.fetchone()[0]
+        print(f"📊 Current event count: {count}")
+        
+        # Get last event
+        cursor.execute("SELECT timestamp, event_type, description FROM events ORDER BY created_at DESC LIMIT 1;")
+        last_event = cursor.fetchone()
+        if last_event:
+            print(f"🕐 Last event: {last_event[1]} at {last_event[0]}")
+            print(f"   Description: {last_event[2]}")
+        
+        conn.close()
+        return True
+        
+    except Exception as e:
+        print(f"❌ Database check failed: {e}")
+        return False
+
+if __name__ == "__main__":
+    print("🧪 Test Event Sender")
+    print("=" * 40)
+    
+    # First check database
+    if not check_database_schema():
+        sys.exit(1)
+    
+    print()
+    print("Sending test event...")
+    
+    # Send test event
+    if send_test_event():
+        sys.exit(0)
+    else:
+        sys.exit(1)
