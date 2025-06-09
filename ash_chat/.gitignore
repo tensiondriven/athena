@@ -35,3 +35,9 @@ ash_chat-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# Error watchdog state files
+.error_watchdog_*
+
+# Development tools and temporary scripts
+send_to_claude.applescript
+
