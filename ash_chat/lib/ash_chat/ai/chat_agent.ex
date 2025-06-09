@@ -5,7 +5,7 @@ defmodule AshChat.AI.ChatAgent do
 
   alias LangChain.Chains.LLMChain
   alias LangChain.ChatModels.ChatOpenAI
-  alias LangChain.Messages.Message
+  alias LangChain.Messages.Message, as: LangChainMessage
   alias AshChat.Resources.{Chat, Message}
   alias AshChat.Tools
   alias AshChat.AI.InferenceConfig
@@ -57,7 +57,7 @@ defmodule AshChat.AI.ChatAgent do
     
     # Add system prompt as first message if provided
     langchain_messages = if config[:system_prompt] do
-      [%Message{role: :system, content: config.system_prompt} | convert_to_langchain_messages(messages)]
+      [%LangChainMessage{role: :system, content: config.system_prompt} | convert_to_langchain_messages(messages)]
     else
       convert_to_langchain_messages(messages)
     end
@@ -176,7 +176,7 @@ defmodule AshChat.AI.ChatAgent do
     Enum.map(ash_messages, fn msg ->
       case msg.message_type do
         :text ->
-          %Message{
+          %LangChainMessage{
             role: msg.role,
             content: msg.content
           }
@@ -192,13 +192,13 @@ defmodule AshChat.AI.ChatAgent do
             msg.content
           end
           
-          %Message{
+          %LangChainMessage{
             role: msg.role,
             content: content
           }
         
         _ ->
-          %Message{
+          %LangChainMessage{
             role: msg.role,
             content: msg.content
           }
