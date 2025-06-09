@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Athena macOS Collector - File monitoring and screenshot service
+Athena macOS Collector - Native file monitoring client
 Monitors Claude Code logs, Chrome bookmarks, desktop/download events
-Provides REST API for screenshots and file ingestion
+Sends events to claude_collector server via HTTP
 """
 
 import os
@@ -11,18 +11,19 @@ import time
 import sqlite3
 import hashlib
 import mimetypes
+import uuid
+import requests
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import Thread
 import subprocess
 import base64
 
-from flask import Flask, jsonify, request
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
 # Configuration
-DATA_DIR = Path(os.getenv('ATHENA_DATA_DIR', '/data'))
+DATA_DIR = Path(os.getenv('ATHENA_DATA_DIR', Path.home() / '.athena-collector'))
 DB_PATH = DATA_DIR / 'collector.sqlite'
 FILES_DIR = DATA_DIR / 'files'
 CONFIG = {
@@ -33,13 +34,110 @@ CONFIG = {
     'downloads': Path.home() / 'Downloads',
     'max_file_size': 1024 * 1024,  # 1MB limit
     'screenshot_format': 'png',
-    'port': int(os.getenv('PORT', 5001))
+    'claude_collector_url': os.getenv('CLAUDE_COLLECTOR_URL', 'http://localhost:4000/webhook/test'),
+    'heartbeat_interval': 300  # 5 minutes
 }
 
-app = Flask(__name__)
+class EventSender:
+    """HTTP client for sending events to claude_collector"""
+    
+    def __init__(self, endpoint_url):
+        self.endpoint_url = endpoint_url
+        self.session = requests.Session()
+        self.session.timeout = 10
+    
+    def send_event(self, event_type, source_path, content=None, metadata=None):
+        """Send event to claude_collector via HTTP"""
+        try:
+            event = {
+                'id': str(uuid.uuid4()),
+                'type': event_type,
+                'timestamp': datetime.now(timezone.utc).isoformat(),
+                'source': 'athena-collector-macos',
+                'file_path': str(source_path),
+                'content': content or {},
+                'metadata': metadata or {}
+            }
+            
+            response = self.session.post(self.endpoint_url, json=event)
+            if response.status_code == 202:
+                print(f"✅ Sent event: {event_type} ({source_path})")
+                return True
+            else:
+                print(f"⚠️ Failed to send event: HTTP {response.status_code}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ Error sending event: {e}")
+            return False
+
+class EventSyncWorker:
+    """Background worker to sync local events to claude_collector"""
+    
+    def __init__(self, db, event_sender, sync_interval=30):
+        self.db = db
+        self.event_sender = event_sender
+        self.sync_interval = sync_interval
+        self.running = False
+    
+    def start(self):
+        """Start the background sync worker"""
+        self.running = True
+        worker_thread = Thread(target=self._sync_loop, daemon=True)
+        worker_thread.start()
+        print(f"✅ Started event sync worker (every {self.sync_interval}s)")
+    
+    def stop(self):
+        """Stop the background sync worker"""
+        self.running = False
+    
+    def _sync_loop(self):
+        """Main sync loop - runs in background thread"""
+        while self.running:
+            try:
+                self._sync_unsent_events()
+            except Exception as e:
+                print(f"⚠️ Sync error: {e}")
+            
+            time.sleep(self.sync_interval)
+    
+    def _sync_unsent_events(self):
+        """Send unsent events to claude_collector"""
+        unsent_events = self.db.get_unsent_events(limit=20)  # Process in small batches
+        
+        if not unsent_events:
+            return  # Nothing to sync
+        
+        print(f"📤 Syncing {len(unsent_events)} unsent events...")
+        
+        for event in unsent_events:
+            try:
+                # Parse metadata back from JSON
+                metadata = json.loads(event['metadata']) if event['metadata'] else {}
+                
+                # Send event to claude_collector
+                success = self.event_sender.send_event(
+                    event_type=f"file_{event['event_type']}",
+                    source_path=event['source_path'],
+                    content={
+                        'file_hash': event['file_hash'],
+                        'file_size': event['file_size'],
+                        'mime_type': event['mime_type']
+                    },
+                    metadata=metadata
+                )
+                
+                if success:
+                    self.db.mark_event_sent(event['id'])
+                else:
+                    break  # Stop on first failure to avoid overwhelming server
+                    
+            except Exception as e:
+                print(f"❌ Failed to sync event {event['id']}: {e}")
+                break
 
 class CollectorDB:
-    """SQLite database for file metadata and events"""
+    """Local SQLite database for event backup and statistics"""
     
     def __init__(self, db_path):
         self.db_path = db_path
@@ -59,6 +157,7 @@ class CollectorDB:
                     mime_type TEXT,
                     metadata TEXT,
                     stored_path TEXT,
+                    sent_to_server BOOLEAN DEFAULT FALSE,
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
@@ -66,13 +165,13 @@ class CollectorDB:
             conn.execute('CREATE INDEX IF NOT EXISTS idx_event_type ON file_events(event_type)')
     
     def insert_event(self, event_type, source_path, file_hash=None, file_size=None, 
-                    mime_type=None, metadata=None, stored_path=None):
+                    mime_type=None, metadata=None, stored_path=None, sent_to_server=False):
         """Insert file event into database"""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute('''
                 INSERT INTO file_events 
-                (timestamp, event_type, source_path, file_hash, file_size, mime_type, metadata, stored_path)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (timestamp, event_type, source_path, file_hash, file_size, mime_type, metadata, stored_path, sent_to_server)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 datetime.now(timezone.utc).isoformat(),
                 event_type,
@@ -81,11 +180,32 @@ class CollectorDB:
                 file_size,
                 mime_type,
                 json.dumps(metadata) if metadata else None,
-                str(stored_path) if stored_path else None
+                str(stored_path) if stored_path else None,
+                sent_to_server
             ))
+    
+    def get_unsent_events(self, limit=50):
+        """Get events that haven't been sent to server yet"""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.row_factory = sqlite3.Row
+            return conn.execute('''
+                SELECT * FROM file_events 
+                WHERE sent_to_server = FALSE 
+                ORDER BY timestamp ASC 
+                LIMIT ?
+            ''', (limit,)).fetchall()
+    
+    def mark_event_sent(self, event_id):
+        """Mark an event as successfully sent to server"""
+        with sqlite3.connect(self.db_path) as conn:
+            conn.execute('''
+                UPDATE file_events 
+                SET sent_to_server = TRUE 
+                WHERE id = ?
+            ''', (event_id,))
 
 class FileCollector(FileSystemEventHandler):
-    """Handles file system events and stores relevant files"""
+    """Handles file system events and writes them to local database"""
     
     def __init__(self, db, files_dir):
         self.db = db
@@ -156,7 +276,7 @@ class FileCollector(FileSystemEventHandler):
                              metadata={'from': event.src_path})
     
     def handle_file_event(self, event_type, file_path, metadata=None):
-        """Process a file system event"""
+        """Process a file system event - write to local DB immediately"""
         if not self.should_collect(file_path):
             return
         
@@ -173,7 +293,7 @@ class FileCollector(FileSystemEventHandler):
         elif file_path.name == 'Bookmarks' and 'Chrome' in str(file_path):
             metadata = {**(metadata or {}), 'source_type': 'chrome_bookmarks'}
         
-        # Insert into database
+        # Write to local database immediately (fast, reliable)
         self.db.insert_event(
             event_type=event_type,
             source_path=file_path,
@@ -181,7 +301,8 @@ class FileCollector(FileSystemEventHandler):
             file_size=file_info['file_size'],
             mime_type=file_info['mime_type'],
             metadata=metadata,
-            stored_path=file_info['stored_path']
+            stored_path=file_info['stored_path'],
+            sent_to_server=False  # Background worker will send later
         )
 
 class ScreenshotService:
@@ -212,88 +333,33 @@ class ScreenshotService:
                 'timestamp': datetime.now(timezone.utc).isoformat()
             }
 
-# Flask API Routes
-@app.route('/health')
-def health():
-    """Health check endpoint"""
-    return jsonify({'status': 'healthy', 'timestamp': datetime.now(timezone.utc).isoformat()})
-
-@app.route('/screenshot', methods=['GET'])
-def screenshot():
-    """Capture and return screenshot"""
-    return jsonify(ScreenshotService.capture_screenshot())
-
-@app.route('/events')
-def events():
-    """Get recent file events"""
-    limit = request.args.get('limit', 50, type=int)
-    event_type = request.args.get('type')
-    
-    with sqlite3.connect(DB_PATH) as conn:
-        conn.row_factory = sqlite3.Row
-        
-        query = 'SELECT * FROM file_events'
-        params = []
-        
-        if event_type:
-            query += ' WHERE event_type = ?'
-            params.append(event_type)
-        
-        query += ' ORDER BY timestamp DESC LIMIT ?'
-        params.append(limit)
-        
-        rows = conn.execute(query, params).fetchall()
-        
-        events = []
-        for row in rows:
-            event = dict(row)
-            if event['metadata']:
-                event['metadata'] = json.loads(event['metadata'])
-            events.append(event)
-        
-        return jsonify({
-            'events': events,
-            'count': len(events),
-            'timestamp': datetime.now(timezone.utc).isoformat()
-        })
-
-@app.route('/stats')
-def stats():
-    """Get collection statistics"""
-    with sqlite3.connect(DB_PATH) as conn:
-        total_files = conn.execute('SELECT COUNT(*) FROM file_events').fetchone()[0]
-        event_types = conn.execute('''
-            SELECT event_type, COUNT(*) as count 
-            FROM file_events 
-            GROUP BY event_type
-        ''').fetchall()
-        
-        return jsonify({
-            'total_files': total_files,
-            'event_types': dict(event_types),
-            'data_dir': str(DATA_DIR),
-            'files_dir': str(FILES_DIR),
-            'timestamp': datetime.now(timezone.utc).isoformat()
-        })
+# No HTTP routes - this is a client that sends data to claude_collector
 
 def start_file_monitoring():
-    """Start file system monitoring in background thread"""
+    """Start file system monitoring and background event syncing"""
     db = CollectorDB(DB_PATH)
+    event_sender = EventSender(CONFIG['claude_collector_url'])
     collector = FileCollector(db, FILES_DIR)
     
-    # Log startup event
+    # Start background event sync worker
+    sync_worker = EventSyncWorker(db, event_sender, sync_interval=30)
+    sync_worker.start()
+    
+    # Log startup event locally (sync worker will send it)
+    startup_metadata = {
+        'version': '1.0.0',
+        'pid': os.getpid(),
+        'config': {
+            'data_dir': str(DATA_DIR),
+            'max_file_size': CONFIG['max_file_size']
+        }
+    }
+    
     db.insert_event(
         event_type='collector_startup',
         source_path='athena-collector-macos',
-        metadata={
-            'version': '1.0.0',
-            'pid': os.getpid(),
-            'config': {
-                'data_dir': str(DATA_DIR),
-                'port': CONFIG['port'],
-                'max_file_size': CONFIG['max_file_size']
-            }
-        }
+        metadata=startup_metadata,
+        sent_to_server=False  # Sync worker will handle it
     )
     print("✅ Logged collector startup event")
     
@@ -321,9 +387,9 @@ def start_file_monitoring():
     return observer
 
 def heartbeat_worker(db):
-    """Send periodic heartbeat events"""
+    """Write periodic heartbeat events to local database"""
     while True:
-        time.sleep(60)  # Heartbeat every minute
+        time.sleep(CONFIG['heartbeat_interval'])  # Configurable interval
         try:
             db.insert_event(
                 event_type='heartbeat',
@@ -331,7 +397,8 @@ def heartbeat_worker(db):
                 metadata={
                     'uptime_minutes': int(time.time() - start_time) // 60,
                     'timestamp': datetime.now(timezone.utc).isoformat()
-                }
+                },
+                sent_to_server=False  # Sync worker will handle it
             )
         except Exception as e:
             print(f"Heartbeat error: {e}")
@@ -353,7 +420,7 @@ if __name__ == '__main__':
     print(f"Data directory: {DATA_DIR}")
     print(f"Files directory: {FILES_DIR}")
     print(f"Database: {DB_PATH}")
-    print(f"API port: {CONFIG['port']}")
+    print(f"Claude collector URL: {CONFIG['claude_collector_url']}")
     
     # Start file monitoring
     observer = start_file_monitoring()
@@ -373,7 +440,8 @@ if __name__ == '__main__':
                 if events:
                     print(f"\n✅ Collected {len(events)} events:")
                     for event in events:
-                        print(f"  {event['event_type']}: {event['source_path']} ({event['file_size']} bytes)")
+                        sent_status = "✅" if event['sent_to_server'] else "📤"
+                        print(f"  {sent_status} {event['event_type']}: {event['source_path']} ({event['file_size']} bytes)")
                         if event['metadata']:
                             metadata = json.loads(event['metadata'])
                             if 'source_type' in metadata:
@@ -381,8 +449,12 @@ if __name__ == '__main__':
                 else:
                     print("\n⚠️  No events collected during test")
         else:
-            # Start Flask API
-            app.run(host='0.0.0.0', port=CONFIG['port'], debug=False)
+            # Run as daemon - monitor files and sync events
+            print("🔄 Running as daemon... Press Ctrl+C to stop")
+            while True:
+                time.sleep(1)
+    except KeyboardInterrupt:
+        print("\n👋 Shutting down gracefully...")
     finally:
         observer.stop()
         observer.join()
