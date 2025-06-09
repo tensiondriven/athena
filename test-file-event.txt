@@ -4,3 +4,10 @@ Event type: system.filesystem.modified
 Size: Small enough to be included in full.
 
 UPDATED: Now we should see a system.filesystem.modified event!
+
+FINAL UPDATE: Enhanced file events with:
+- Namespace: system.filesystem.modified (instead of file_modified)
+- Full file content for files under 10KB
+- Filename and directory path
+- File hash, size, and mime type
+- Fixed null file size handling
