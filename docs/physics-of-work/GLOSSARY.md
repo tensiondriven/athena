@@ -29,6 +29,23 @@
 ## Genie Protocol  
 **Definition**: When Jonathan says "I wish" about missing capabilities, Claude automatically captures the idea in FUTURE_WORK.md, commits only that file, and pushes to preserve innovation without disrupting active work.
 
+## AIX (AI Experience)
+**Definition**: The quality of how AI systems interact with tools, functions, and interfaces. Focused on optimizing for AI cognitive load, workflow patterns, and task completion efficiency.
+
+**Key Aspects**:
+- Function naming that clearly indicates purpose and scope
+- Parameter design that anticipates AI workflow needs  
+- Error messages and feedback that enable quick iteration
+- Documentation structure that serves AI reasoning patterns
+- Interface design optimized for AI parsing and decision-making
+
+**Examples**:
+- ✅ `send_command_and_read` combines two common AI operations
+- ✅ Emoji status indicators (✅❌🚀) for quick result parsing
+- ✅ Rich error context: "Command not allowed: git. Use list_allowed_commands to see approved commands"
+- ❌ Generic errors: "Invalid input"
+- ❌ Function names requiring deep context: `execute()`
+
 ## Physics of Work
 **Definition**: Systematic methodology for AI-human collaboration that treats the collaboration itself as both product and research platform.
 
