@@ -5,66 +5,70 @@
 ## Phase 1: Live Chat Dashboard
 
 ### Step 1: Extend Shell Collector for Claude JSONL
-**Status**: 🔵 Planned  
+**Status**: ✅ Done  
 **Goal**: Monitor Claude Code JSONL files and stream to Phoenix
 
 **Tasks**:
-- [ ] Modify `/domains/events/sources/macos/athena-collector-shell.sh`
-- [ ] Add Claude Code logs directory monitoring (`~/.claude-code/logs/`)
-- [ ] Stream full JSONL file contents when changes detected
-- [ ] Test with real Claude Code conversation logs
+- [x] Modify `/domains/events/sources/macos/athena-collector-shell.sh`
+- [x] Add Claude Code logs directory monitoring (`~/.claude-code/logs/`)
+- [x] Stream full JSONL file contents when changes detected
+- [x] Test with real Claude Code conversation logs
 
 **Implementation Notes**:
-- Use existing fswatch infrastructure
-- Store entire file contents (not incremental)
-- Send to Phoenix via HTTP/WebSocket
+- Uses fswatch infrastructure
+- Stores entire file contents (complete approach)
+- Sends to Phoenix via HTTP POST
 
 ### Step 2: Add Live Events Page to ash_chat
-**Status**: 🔵 Planned  
+**Status**: ✅ Done  
 **Goal**: Real-time dashboard showing chat conversations
 
 **Tasks**:
-- [ ] Create new LiveView at `/live-events` in ash_chat
-- [ ] Add route in router.ex
-- [ ] Set up PubSub subscription for chat events
-- [ ] Display JSONL chat messages in real-time
-- [ ] Add basic message count/rate metrics
+- [x] Create new LiveView at `/live-events` in ash_chat
+- [x] Add route in router.ex
+- [x] Set up PubSub subscription for chat events
+- [x] Display JSONL chat messages in real-time
+- [x] Add basic message count/rate metrics
 
 **Implementation Notes**:
-- Extend existing ash_chat Phoenix app
-- Use Phoenix.PubSub for real-time updates
-- Simple list view of messages flowing in
+- Extended ash_chat Phoenix app
+- Uses Phoenix.PubSub for real-time updates
+- Shows messages with content preview and statistics
 
 ### Step 3: Connect Collector to Phoenix
-**Status**: 🔵 Planned  
+**Status**: ✅ Done  
 **Goal**: Data flow from collector to LiveView dashboard
 
 **Tasks**:
-- [ ] Set up HTTP endpoint in ash_chat for receiving events
-- [ ] Configure shell collector to POST to ash_chat
-- [ ] Implement PubSub broadcasting in Phoenix
-- [ ] Test end-to-end data flow
+- [x] Extended Event resource with content/source_path fields
+- [x] Updated EventController to handle collector data format
+- [x] Implemented PubSub broadcasting to "live_events" topic
+- [x] Fixed .gitignore to allow lib/ directories
 
 **Implementation Notes**:
-- Reuse existing event ingestion patterns
-- Minimal processing - just pass through to dashboard
-- Focus on reliability over complexity
+- Reused existing /api/events endpoint
+- Added dual PubSub broadcasting (events + live_events)
+- Handles complete file content storage
 
 ### Step 4: Verify Live Data Flow
-**Status**: 🔵 Planned  
+**Status**: 🟡 Ready for Testing  
 **Goal**: Demonstrate real chat conversations appearing
 
 **Tasks**:
-- [ ] Start ash_chat Phoenix app
-- [ ] Start shell collector
-- [ ] Have Claude Code conversation
-- [ ] Verify conversation appears in `/live-events` dashboard
+- [ ] Start ash_chat Phoenix app (`cd ash_chat && mix phx.server`)
+- [ ] Start shell collector (`cd domains/events/sources/macos && ./athena-collector-shell.sh`)
+- [ ] Have Claude Code conversation (this generates JSONL files)
+- [ ] Visit http://localhost:4000/live-events
+- [ ] Verify conversation appears in dashboard in real-time
 - [ ] Document success metrics
 
 **Success Criteria**:
 - Chat messages appear in real-time as they're created
-- File modification metrics continue working
+- File modification metrics continue working  
 - Dashboard shows "numbers going up"
+- Full file content visible in event previews
+
+**Ready to test!** All components implemented and committed.
 
 ## Phase 2: Future Enhancements (Not Started)
 
