@@ -5,7 +5,7 @@ defmodule AshChat.AI.ChatAgent do
 
   alias LangChain.Chains.LLMChain
   alias LangChain.ChatModels.ChatOpenAI
-  alias LangChain.Messages.Message, as: LangChainMessage
+  alias LangChain.Message, as: LangChainMessage
   alias AshChat.Resources.{Chat, Message}
   alias AshChat.Tools
   alias AshChat.AI.InferenceConfig
