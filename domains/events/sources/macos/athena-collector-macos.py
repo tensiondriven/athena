@@ -116,13 +116,27 @@ class EventSyncWorker:
                 metadata = json.loads(event['metadata']) if event['metadata'] else {}
                 
                 # Send event to claude_collector
+                # Read file content if it's small enough (10KB limit)
+                file_content = None
+                if event['file_size'] <= 10240:  # 10KB limit
+                    try:
+                        stored_path = Path(event['stored_path'])
+                        if stored_path.exists():
+                            with open(stored_path, 'r', encoding='utf-8', errors='ignore') as f:
+                                file_content = f.read()
+                    except Exception as e:
+                        print(f"⚠️ Could not read file content: {e}")
+                
                 success = self.event_sender.send_event(
-                    event_type=f"file_{event['event_type']}",
+                    event_type=f"system.filesystem.{event['event_type']}",
                     source_path=event['source_path'],
                     content={
                         'file_hash': event['file_hash'],
                         'file_size': event['file_size'],
-                        'mime_type': event['mime_type']
+                        'mime_type': event['mime_type'],
+                        'file_content': file_content,
+                        'filename': Path(event['source_path']).name,
+                        'directory': str(Path(event['source_path']).parent)
                     },
                     metadata=metadata
                 )
