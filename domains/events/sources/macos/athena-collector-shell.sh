@@ -179,8 +179,9 @@ process_events() {
                 if [[ "$line" == *.jsonl ]]; then
                     # For JSONL files, send whole file content to Phoenix
                     file_content=$(cat "$line" 2>/dev/null || echo "")
-                    record_event "modified" "$line" "{\"source_type\": \"claude_log\"}"
-                    send_to_phoenix "claude_code.conversation.updated" "$line" "$file_content" "{\"source_type\": \"claude_code_jsonl\"}"
+                    local filename=$(basename "$line")
+                    record_event "modified" "$line" "{\"source_type\": \"claude_log\", \"filename\": \"$filename\"}"
+                    send_to_phoenix "claude_code.conversation.updated" "$line" "$file_content" "{\"source_type\": \"claude_code_jsonl\", \"filename\": \"$filename\"}"
                 elif [[ $file_size -lt 1048576 ]]; then
                     # For small files (<1MB), include content
                     file_content=$(cat "$line" 2>/dev/null || echo "")
