@@ -81,7 +81,7 @@ record_event() {
     local source_path="$2"
     local metadata="${3:-}"
     
-    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%6N+00:00")
+    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
     local file_hash=""
     local file_size=""
     local mime_type=""
@@ -121,13 +121,13 @@ send_to_phoenix() {
     local content="$3"
     local metadata="${4:-}"
     
-    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%6N+00:00")
+    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
     
-    # Create JSON payload
+    # Create JSON payload - use "type" field as expected by Phoenix API
     local json_payload=$(cat <<EOF
 {
   "timestamp": "$timestamp",
-  "event_type": "$event_type",
+  "type": "$event_type",
   "source_path": "$source_path",
   "content": $(echo "$content" | jq -Rs .),
   "metadata": $metadata
