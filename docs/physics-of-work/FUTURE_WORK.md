@@ -140,5 +140,57 @@ Innovation [--●------] Reliability   (Current: 30%, adjust ±10%)
 - **Collaborative control**: Give humans fine-grained influence over AI decisions
 - **Learning acceleration**: Systematic exploration of decision-making trade-offs
 
+## Expected Device Registry System
+
+**Vision**: Centralized registry of expected devices/services with health monitoring and automatic discovery.
+
+### Core Concept
+- **Device manifest** defining expected cameras, sensors, services, and endpoints
+- **Automatic discovery** of devices on network startup
+- **Health monitoring** with expected vs actual device status
+- **Alert system** for missing or unhealthy devices
+- **Configuration management** for device-specific settings
+
+### Device Registry Features
+- **Static device list**: Cameras, Pi devices, IoT sensors, services
+- **Dynamic discovery**: Network scanning and service detection
+- **Health checks**: Periodic pings and status validation
+- **Dependency mapping**: Which services depend on which devices
+- **Failover configuration**: Backup devices and graceful degradation
+
+### Implementation Approach
+```yaml
+expected_devices:
+  cameras:
+    - name: "front_door_camera"
+      type: "hikvision_ptz" 
+      ip: "10.1.0.50"
+      health_check: "/api/status"
+      required: true
+    - name: "backup_webcam"
+      type: "usb_webcam"
+      device: "/dev/video0"
+      required: false
+  
+  services:
+    - name: "clip_service"
+      endpoint: "http://localhost:8001/health"
+      required: true
+    - name: "sam_service" 
+      endpoint: "http://localhost:8003/health"
+      required: false
+```
+
+### Benefits
+- **Operational visibility**: Know what should vs actually is running
+- **Proactive alerts**: Detect device failures before they impact functionality
+- **Deployment validation**: Ensure all expected devices are online after changes
+- **Documentation**: Living registry of system components and dependencies
+
+### Implementation Priority
+- Low-Medium - valuable but requires stable base system first
+- Best added after core collection and processing pipelines are solid
+- Could start with simple YAML config and basic health checks
+
 ---
-*Captured from collaboration sessions on 2025-06-07 and 2025-06-08*
+*Captured from collaboration sessions on 2025-06-07, 2025-06-08, and 2025-06-08*
