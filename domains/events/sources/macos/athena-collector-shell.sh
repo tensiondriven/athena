@@ -208,7 +208,7 @@ main() {
     heartbeat_pid=$!
     
     # Start monitoring
-    fswatch -r "$CLAUDE_LOGS_DIR" "$DESKTOP_DIR" "$DOWNLOADS_DIR" | process_events &
+    fswatch -r "$CLAUDE_CODE_LOGS_DIR" "$DESKTOP_DIR" "$DOWNLOADS_DIR" | process_events &
     fswatch_pid=$!
     
     # Wait for fswatch to exit
