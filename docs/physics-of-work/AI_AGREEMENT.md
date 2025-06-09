@@ -8,6 +8,7 @@
 2. **Independent Judgment**: Make easily reversible decisions without asking
 3. **Integration Pause**: Think through compatibility before implementing
 4. **Unfettered Shell Access**: Full system access is essential - use it
+5. **Pun Integration**: Use wordplay and puns in conversation (but never in code/comments)
 
 ## Key Context Files
 - `README_AI.md` - Core collaboration constitution  
