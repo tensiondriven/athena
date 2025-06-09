@@ -14,6 +14,7 @@ import json
 import subprocess
 import os
 import sys
+from datetime import datetime
 from typing import Dict, Any
 
 # MCP server implementation
@@ -155,9 +156,40 @@ class McpServer:
                 ]
             }
 
+# Logging setup
+def setup_logging():
+    """Set up logging to terminal-mcp.log"""
+    log_file = os.path.join(os.path.dirname(__file__), "terminal-mcp.log")
+    return log_file
+
+def log_request(log_file: str, request_data: str):
+    """Log incoming request with timestamp"""
+    try:
+        with open(log_file, "a", encoding="utf-8") as f:
+            timestamp = datetime.now().isoformat()
+            f.write(f"[{timestamp}] INPUT: {request_data}\n")
+    except Exception:
+        # Don't fail if logging fails
+        pass
+
+def log_response(log_file: str, response_data: str):
+    """Log outgoing response with timestamp"""
+    try:
+        with open(log_file, "a", encoding="utf-8") as f:
+            timestamp = datetime.now().isoformat()
+            f.write(f"[{timestamp}] OUTPUT: {response_data}\n")
+    except Exception:
+        # Don't fail if logging fails
+        pass
+
 # MCP Protocol Implementation
 async def main():
     server = McpServer()
+    log_file = setup_logging()
+    
+    # Log startup
+    with open(log_file, "a", encoding="utf-8") as f:
+        f.write(f"[{datetime.now().isoformat()}] Terminal MCP Server started\n")
     
     # Simple line-based MCP protocol over stdio
     while True:
@@ -165,6 +197,9 @@ async def main():
             line = input()
             if not line:
                 break
+            
+            # Log the input
+            log_request(log_file, line)
                 
             request = json.loads(line)
             response = await server.handle_request(request)
@@ -176,7 +211,12 @@ async def main():
                 "result": response
             }
             
-            print(json.dumps(mcp_response))
+            response_json = json.dumps(mcp_response)
+            
+            # Log the output
+            log_response(log_file, response_json)
+            
+            print(response_json)
             
         except EOFError:
             break
@@ -186,14 +226,18 @@ async def main():
                 "id": None,
                 "error": {"code": -32700, "message": "Parse error"}
             }
-            print(json.dumps(error_response))
+            error_json = json.dumps(error_response)
+            log_response(log_file, error_json)
+            print(error_json)
         except Exception as e:
             error_response = {
                 "jsonrpc": "2.0",
                 "id": request.get("id") if 'request' in locals() else None,
                 "error": {"code": -32603, "message": f"Internal error: {str(e)}"}
             }
-            print(json.dumps(error_response))
+            error_json = json.dumps(error_response)
+            log_response(log_file, error_json)
+            print(error_json)
 
 if __name__ == "__main__":
     asyncio.run(main())
