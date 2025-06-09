@@ -1,0 +1,5 @@
+%{
+  "esqlite": {:hex, :esqlite, "0.8.9", "73cd52b869eb63ff6fc9b89521e82e8d74806dff26c470c36054241a91856f18", [:rebar3], [], "hexpm", "465ae9ae28ae4192ea54c829fdc90c320447d439a9b2e10946621672fc6a6f8c"},
+  "file_system": {:hex, :file_system, "1.1.0", "08d232062284546c6c34426997dd7ef6ec9f8bbd090eb91780283c9016840e8f", [:mix], [], "hexpm", "bfcf81244f416871f2a2e15c1b515287faa5db9c6bcf290222206d120b3d43f6"},
+  "jason": {:hex, :jason, "1.4.4", "b9226785a9aa77b6857ca22832cffa5d5011a667207eb2a0ad56adb5db443b8a", [:mix], [{:decimal, "~> 1.0 or ~> 2.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm", "c5eb0cab91f094599f94d55bc63409236a8ec69a21a67814529e8d5f6cc90b3b"},
+}
