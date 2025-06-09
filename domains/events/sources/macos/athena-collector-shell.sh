@@ -10,7 +10,8 @@ DATA_DIR="${ATHENA_DATA_DIR:-$PWD/data}"
 DB_PATH="$DATA_DIR/collector.sqlite"
 FILES_DIR="$DATA_DIR/files"
 
-# Watch paths
+# Watch paths - Updated to monitor active Claude conversations
+CLAUDE_ACTIVE_DIR="$HOME/.claude/projects/-Users-j-Code-athena"
 CLAUDE_CODE_LOGS_DIR="$HOME/.claude-code/logs"
 DESKTOP_DIR="$HOME/Desktop"
 DOWNLOADS_DIR="$HOME/Downloads"
@@ -187,7 +188,7 @@ cleanup() {
 main() {
     echo "Starting Athena macOS File Event Collector (Shell Edition)"
     echo "Database: $DB_PATH"
-    echo "Monitoring: $CLAUDE_CODE_LOGS_DIR, $DESKTOP_DIR, $DOWNLOADS_DIR"
+    echo "Monitoring: $CLAUDE_ACTIVE_DIR, $CLAUDE_CODE_LOGS_DIR, $DESKTOP_DIR, $DOWNLOADS_DIR"
     
     # Check if fswatch is available
     if ! command -v fswatch >/dev/null 2>&1; then
@@ -207,8 +208,8 @@ main() {
     send_heartbeat &
     heartbeat_pid=$!
     
-    # Start monitoring
-    fswatch -r "$CLAUDE_CODE_LOGS_DIR" "$DESKTOP_DIR" "$DOWNLOADS_DIR" | process_events &
+    # Start monitoring - prioritize active Claude conversations
+    fswatch -r "$CLAUDE_ACTIVE_DIR" "$CLAUDE_CODE_LOGS_DIR" "$DESKTOP_DIR" "$DOWNLOADS_DIR" | process_events &
     fswatch_pid=$!
     
     # Wait for fswatch to exit
