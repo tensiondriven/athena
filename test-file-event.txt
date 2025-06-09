@@ -1,0 +1,6 @@
+This is a test file to trigger enhanced file events.
+It should now include the filename, directory, and full content in the event!
+Event type: system.filesystem.modified
+Size: Small enough to be included in full.
+
+UPDATED: Now we should see a system.filesystem.modified event!

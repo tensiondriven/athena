@@ -32,6 +32,7 @@ CONFIG = {
     'ingest_folder': Path.home() / 'Downloads' / 'ingest',
     'desktop': Path.home() / 'Desktop',
     'downloads': Path.home() / 'Downloads',
+    'athena_code': Path.home() / 'Code' / 'athena',  # Monitor athena development
     'max_file_size': 1024 * 1024,  # 1MB limit
     'screenshot_format': 'png',
     'claude_collector_url': os.getenv('CLAUDE_COLLECTOR_URL', 'http://localhost:4000/webhook/test'),
@@ -60,7 +61,7 @@ class EventSender:
             }
             
             response = self.session.post(self.endpoint_url, json=event)
-            if response.status_code == 202:
+            if response.status_code in [200, 201, 202]:
                 print(f"✅ Sent event: {event_type} ({source_path})")
                 return True
             else:
@@ -118,7 +119,8 @@ class EventSyncWorker:
                 # Send event to claude_collector
                 # Read file content if it's small enough (10KB limit)
                 file_content = None
-                if event['file_size'] <= 10240:  # 10KB limit
+                file_size = event['file_size'] or 0
+                if file_size <= 10240:  # 10KB limit
                     try:
                         stored_path = Path(event['stored_path'])
                         if stored_path.exists():
@@ -132,7 +134,7 @@ class EventSyncWorker:
                     source_path=event['source_path'],
                     content={
                         'file_hash': event['file_hash'],
-                        'file_size': event['file_size'],
+                        'file_size': file_size,
                         'mime_type': event['mime_type'],
                         'file_content': file_content,
                         'filename': Path(event['source_path']).name,
