@@ -1,5 +1,6 @@
 defmodule AshChatWeb.ChatLive do
   use AshChatWeb, :live_view
+  require Logger
 
   alias AshChat.AI.ChatAgent
   alias AshChat.Resources.Chat
@@ -58,6 +59,7 @@ defmodule AshChatWeb.ChatLive do
         provider: "ollama",
         model: "qwen2.5:latest",
         temperature: 0.7,
+        stream: false,  # Disable streaming for now
         system_prompt: socket.assigns.system_prompt
       }
       
@@ -69,6 +71,7 @@ defmodule AshChatWeb.ChatLive do
           config
         ) do
           {:ok, _ai_message} ->
+            Logger.info("Broadcasting message_processed for chat #{socket.assigns.chat.id}")
             Phoenix.PubSub.broadcast(
               AshChat.PubSub, 
               "chat:#{socket.assigns.chat.id}", 
@@ -76,6 +79,7 @@ defmodule AshChatWeb.ChatLive do
             )
           
           {:error, error} ->
+            Logger.error("Broadcasting error for chat #{socket.assigns.chat.id}: #{error}")
             Phoenix.PubSub.broadcast(
               AshChat.PubSub, 
               "chat:#{socket.assigns.chat.id}", 
@@ -100,7 +104,7 @@ defmodule AshChatWeb.ChatLive do
     {:noreply, assign(socket, :current_message, content)}
   end
 
-  def handle_event("update_system_prompt", %{"system_prompt" => prompt}, socket) do
+  def handle_event("update_system_prompt", %{"value" => prompt}, socket) do
     {:noreply, assign(socket, :system_prompt, prompt)}
   end
 

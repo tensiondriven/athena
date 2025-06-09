@@ -13,8 +13,8 @@ config :ash_chat, AshChat.Mailer, adapter: Swoosh.Adapters.Test
 # Disable swoosh api client as it is only required for production adapters
 config :swoosh, :api_client, false
 
-# Print only warnings and errors during test
-config :logger, level: :warning
+# Print info messages during test for debugging
+config :logger, level: :info
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime

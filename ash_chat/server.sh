@@ -7,6 +7,7 @@ cd "$SCRIPT_DIR"
 
 PORT=4000
 PID_FILE="$SCRIPT_DIR/tmp/server.pid"
+ERROR_LOG="$SCRIPT_DIR/tmp/error.log"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -18,6 +19,15 @@ check_server() {
     if lsof -i :$PORT -t >/dev/null 2>&1; then
         PID=$(lsof -i :$PORT -t)
         echo -e "${GREEN}✓ Server is running${NC} (PID: $PID on port $PORT)"
+        
+        # Check for errors
+        if [ -f "$ERROR_LOG" ] && [ -s "$ERROR_LOG" ]; then
+            ERROR_COUNT=$(grep -c "\\[error\\]" "$ERROR_LOG" 2>/dev/null || echo 0)
+            if [ "$ERROR_COUNT" -gt 0 ]; then
+                echo -e "${RED}⚠ $ERROR_COUNT errors in error log${NC} - Check: $ERROR_LOG"
+            fi
+        fi
+        
         return 0
     else
         echo -e "${RED}✗ Server is not running${NC}"
@@ -95,6 +105,18 @@ logs() {
     fi
 }
 
+errors() {
+    if [ -f "$ERROR_LOG" ] && [ -s "$ERROR_LOG" ]; then
+        echo -e "${YELLOW}=== Error Log ===${NC}"
+        cat "$ERROR_LOG"
+        echo ""
+        ERROR_COUNT=$(grep -c "\\[error\\]" "$ERROR_LOG" 2>/dev/null || echo 0)
+        echo -e "Total errors: ${RED}$ERROR_COUNT${NC}"
+    else
+        echo -e "${GREEN}✓ No errors logged${NC}"
+    fi
+}
+
 case "$1" in
     start)
         start_server
@@ -111,14 +133,18 @@ case "$1" in
     logs)
         logs
         ;;
+    errors)
+        errors
+        ;;
     *)
-        echo "Usage: $0 {start|stop|restart|status|logs}"
+        echo "Usage: $0 {start|stop|restart|status|logs|errors}"
         echo ""
         echo "  start   - Start the Phoenix server"
         echo "  stop    - Stop the Phoenix server"
         echo "  restart - Restart the Phoenix server"
         echo "  status  - Check if server is running"
         echo "  logs    - Tail the server logs"
+        echo "  errors  - Show error log"
         exit 1
         ;;
 esac

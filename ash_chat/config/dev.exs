@@ -58,6 +58,16 @@ config :ash_chat, dev_routes: true
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"
 
+# Configure separate error logging
+config :logger,
+  backends: [:console, {LoggerFileBackend, :error_log}]
+
+config :logger, :error_log,
+  path: "tmp/error.log",
+  level: :error,
+  format: "$date $time [$level] $metadata $message\n",
+  metadata: [:module, :function, :line]
+
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20

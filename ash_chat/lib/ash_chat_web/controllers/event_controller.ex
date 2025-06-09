@@ -178,12 +178,4 @@ defmodule AshChatWeb.EventController do
       end
     end)
   end
-
-  defp format_errors(errors) do
-    Enum.map(errors, fn
-      {field, {message, _}} -> %{field: field, message: message}
-      {field, message} when is_binary(message) -> %{field: field, message: message}
-      error -> %{field: :unknown, message: inspect(error)}
-    end)
-  end
 end

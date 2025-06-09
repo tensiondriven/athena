@@ -36,7 +36,7 @@ defmodule AshChat.AI.InferenceConfig do
   def validate_config(config) do
     validated = %{
       provider: validate_string(config[:provider], "ollama"),
-      model: validate_string(config[:model], "llama3.2"),
+      model: validate_string(config[:model], "llama3.2:latest"),
       temperature: validate_float(config[:temperature], 0.7, 0.0, 2.0),
       top_p: validate_float(config[:top_p], 0.9, 0.0, 1.0),
       max_tokens: validate_integer(config[:max_tokens], 2048, 1, 32000),
@@ -47,16 +47,9 @@ defmodule AshChat.AI.InferenceConfig do
       seed: validate_optional_integer(config[:seed])
     }
 
-    # Validate provider/model combination
-    case get_available_models(validated.provider) do
-      [] -> validated
-      models -> 
-        if validated.model in models do
-          validated
-        else
-          %{validated | model: List.first(models)}
-        end
-    end
+    # For now, just return the validated config without checking available models
+    # since the model list in config might not match the actual Ollama models
+    validated
   end
 
   def create_chat_model(config) do
@@ -66,16 +59,22 @@ defmodule AshChat.AI.InferenceConfig do
     case validated_config.provider do
       "ollama" ->
         alias LangChain.ChatModels.ChatOllamaAI
+        
+        # Get the endpoint URL from provider config or use default
+        base_url = case provider_config do
+          %{url: url} when is_binary(url) -> url
+          _ -> Application.get_env(:langchain, :ollama_url, "http://10.1.2.200:11434")
+        end
+        
+        # LangChain ChatOllamaAI expects the full endpoint including /api/chat
+        endpoint = "#{base_url}/api/chat"
+        
         ChatOllamaAI.new!(%{
           model: validated_config.model,
-          base_url: provider_config[:url],
+          endpoint: endpoint,
           temperature: validated_config.temperature,
           top_p: validated_config.top_p,
-          frequency_penalty: validated_config.frequency_penalty,
-          presence_penalty: validated_config.presence_penalty,
-          max_tokens: validated_config.max_tokens,
-          stream: validated_config.stream,
-          seed: validated_config.seed
+          stream: validated_config.stream
         })
 
       "openai" ->
@@ -113,10 +112,10 @@ defmodule AshChat.AI.InferenceConfig do
   end
 
   # Validation helpers
-  defp validate_string(value, default) when is_binary(value), do: value
+  defp validate_string(value, _default) when is_binary(value), do: value
   defp validate_string(_, default), do: default
 
-  defp validate_float(value, default, min, max) when is_number(value) do
+  defp validate_float(value, _default, min, max) when is_number(value) do
     cond do
       value < min -> min
       value > max -> max
@@ -125,7 +124,7 @@ defmodule AshChat.AI.InferenceConfig do
   end
   defp validate_float(_, default, _, _), do: default
 
-  defp validate_integer(value, default, min, max) when is_integer(value) do
+  defp validate_integer(value, _default, min, max) when is_integer(value) do
     cond do
       value < min -> min
       value > max -> max
@@ -143,7 +142,7 @@ defmodule AshChat.AI.InferenceConfig do
   defp validate_boolean(value, _default) when is_boolean(value), do: value
   defp validate_boolean(_, default), do: default
 
-  defp validate_list(value, default) when is_list(value), do: value
+  defp validate_list(value, _default) when is_list(value), do: value
   defp validate_list(_, default), do: default
 
   defp validate_optional_integer(nil), do: nil

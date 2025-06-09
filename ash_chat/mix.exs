@@ -7,6 +7,7 @@ defmodule AshChat.MixProject do
       version: "0.1.0",
       elixir: "~> 1.14",
       elixirc_paths: elixirc_paths(Mix.env()),
+      elixirc_options: [warnings_as_errors: Mix.env() != :test],
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps()
@@ -59,7 +60,9 @@ defmodule AshChat.MixProject do
       {:ash, "~> 3.5.15"},
       {:ash_ai, "~> 0.1.10"},
       {:ash_phoenix, "~> 2.3.5"},
-      {:igniter, "~> 0.6.4", only: :dev}
+      {:igniter, "~> 0.6.4", only: :dev},
+      {:logger_file_backend, "~> 0.0.13"},
+      {:httpoison, "~> 2.0"}
     ]
   end
 

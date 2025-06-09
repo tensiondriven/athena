@@ -150,7 +150,7 @@ defmodule AshChatWeb.SystemDashboardLive do
     %{
       total_chats: count_chats(),
       total_messages: count_messages(),
-      active_connections: Phoenix.PubSub.subscribers(AshChat.PubSub, "chat:*") |> length(),
+      active_connections: 0, # TODO: Track active WebSocket connections properly
       image_processor_sources: 0,
       tool_calls_made: 0,
       events_consumed: 0  # This is the key issue - nothing consuming events yet
