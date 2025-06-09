@@ -147,9 +147,12 @@ EOF
 )
     
     # Send to Phoenix (non-blocking)
+    # Use temp file for large payloads to avoid "Argument list too long" error
+    local temp_file=$(mktemp)
+    echo "$json_payload" > "$temp_file"
     curl -s -X POST "$PHOENIX_ENDPOINT" \
         -H "Content-Type: application/json" \
-        -d "$json_payload" &
+        -d "@$temp_file" && rm "$temp_file" &
 }
 
 # Send startup event
