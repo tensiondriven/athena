@@ -142,14 +142,12 @@
                   </p>
                 <% end %>
 
-                <!-- Event Metadata Preview -->
-                <%= if map_size(event.metadata) > 0 do %>
+                <!-- Payload Size Preview -->
+                <%= if event.content do %>
                   <div class="flex items-center space-x-2 text-xs text-gray-400">
-                    <span>📋 <%= map_size(event.metadata) %> fields</span>
-                    <%= if event.confidence do %>
-                      <span>•</span>
-                      <span>⚡ <%= Float.round(event.confidence, 2) %></span>
-                    <% end %>
+                    <span>📦 <%= Float.round(byte_size(event.content) / 1024, 1) %> KB</span>
+                    <span>•</span>
+                    <span>📄 <%= String.length(event.content) %> chars</span>
                   </div>
                 <% end %>
               </div>
@@ -185,10 +183,10 @@
                 <label class="text-gray-400 font-medium">Event ID</label>
                 <p class="text-gray-200 font-mono text-xs"><%= selected_event.id %></p>
               </div>
-              <%= if selected_event.confidence do %>
+              <%= if selected_event.content do %>
                 <div>
-                  <label class="text-gray-400 font-medium">Confidence</label>
-                  <p class="text-gray-200"><%= Float.round(selected_event.confidence, 2) %></p>
+                  <label class="text-gray-400 font-medium">Payload Size</label>
+                  <p class="text-gray-200"><%= Float.round(byte_size(selected_event.content) / 1024, 1) %> KB (<%= String.length(selected_event.content) %> chars)</p>
                 </div>
               <% end %>
             </div>

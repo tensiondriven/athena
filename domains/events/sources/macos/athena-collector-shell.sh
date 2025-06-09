@@ -140,7 +140,6 @@ send_to_phoenix() {
   "source_id": "claude-collector-shell",
   "source_path": "$source_path",
   "description": "$description",
-  "confidence": 1.0,
   "content": $(echo "$content" | jq -Rs .),
   "metadata": $metadata
 }
