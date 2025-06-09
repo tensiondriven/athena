@@ -11,9 +11,12 @@ DB_PATH="$DATA_DIR/collector.sqlite"
 FILES_DIR="$DATA_DIR/files"
 
 # Watch paths
-CLAUDE_LOGS_DIR="/Users/j/Code/athena/data/claude-logs/live"
+CLAUDE_CODE_LOGS_DIR="$HOME/.claude-code/logs"
 DESKTOP_DIR="$HOME/Desktop"
 DOWNLOADS_DIR="$HOME/Downloads"
+
+# Phoenix app endpoint for sending events
+PHOENIX_ENDPOINT="${PHOENIX_ENDPOINT:-http://localhost:4000/api/events}"
 
 # Ensure directories exist
 mkdir -p "$DATA_DIR" "$FILES_DIR"
@@ -110,6 +113,33 @@ record_event() {
     echo "$(date): $event_type - $source_path"
 }
 
+# Send event to Phoenix app
+send_to_phoenix() {
+    local event_type="$1"
+    local source_path="$2"
+    local content="$3"
+    local metadata="${4:-}"
+    
+    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.%6N+00:00")
+    
+    # Create JSON payload
+    local json_payload=$(cat <<EOF
+{
+  "timestamp": "$timestamp",
+  "event_type": "$event_type",
+  "source_path": "$source_path",
+  "content": $(echo "$content" | jq -Rs .),
+  "metadata": $metadata
+}
+EOF
+)
+    
+    # Send to Phoenix (non-blocking)
+    curl -s -X POST "$PHOENIX_ENDPOINT" \
+        -H "Content-Type: application/json" \
+        -d "$json_payload" &
+}
+
 # Send startup event
 send_startup() {
     record_event "collector_startup" "athena-collector-shell" "{\"version\": \"2.0.0\", \"pid\": $$}"
@@ -131,7 +161,10 @@ process_events() {
             # Determine event type based on file state
             if [[ -f "$line" ]]; then
                 if [[ "$line" == *.jsonl ]]; then
+                    # For JSONL files, send whole file content to Phoenix
+                    local file_content=$(cat "$line" 2>/dev/null || echo "")
                     record_event "modified" "$line" "{\"source_type\": \"claude_log\"}"
+                    send_to_phoenix "claude_conversation" "$line" "$file_content" "{\"source_type\": \"claude_code_jsonl\"}"
                 else
                     record_event "modified" "$line"
                 fi
@@ -154,7 +187,7 @@ cleanup() {
 main() {
     echo "Starting Athena macOS File Event Collector (Shell Edition)"
     echo "Database: $DB_PATH"
-    echo "Monitoring: $CLAUDE_LOGS_DIR, $DESKTOP_DIR, $DOWNLOADS_DIR"
+    echo "Monitoring: $CLAUDE_CODE_LOGS_DIR, $DESKTOP_DIR, $DOWNLOADS_DIR"
     
     # Check if fswatch is available
     if ! command -v fswatch >/dev/null 2>&1; then
