@@ -29,6 +29,10 @@ defmodule AshChat.Resources.Room do
       accept [:title]
       change set_attribute(:title, "New Multimodal Room")
     end
+    
+    read :get do
+      get? true
+    end
 
     read :visible do
       filter expr(hidden == false)
@@ -53,6 +57,7 @@ defmodule AshChat.Resources.Room do
     domain AshChat.Domain
     define :create
     define :read
+    define :get
     define :list_visible, action: :visible
     define :list_all, action: :all
     define :update
