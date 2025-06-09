@@ -92,7 +92,7 @@ defmodule AshChatWeb.EventController do
       validation_errors: params["validation_errors"]
     }
 
-    Logger.debug("Creating event with arguments: #{inspect(event_args)}")
+    Logger.debug("Creating event with type: #{event_args.event_type}")
     AshChat.Resources.Event.create_from_collector!(event_args)
   rescue
     error ->

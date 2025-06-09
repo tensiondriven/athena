@@ -78,12 +78,23 @@ defmodule AshChat.AI.ChatAgent do
           
           {:ok, ai_message}
         
+        {:error, %{message: "LLMChain cannot be run without messages"}} ->
+          {:error, "Cannot process chat without message history. Please ensure at least one message exists."}
+          
         {:error, error} ->
-          {:error, "AI processing failed: #{inspect(error)}"}
+          error_msg = case error do
+            %{message: msg} -> msg
+            _ -> inspect(error)
+          end
+          {:error, "AI processing failed: #{error_msg}"}
       end
     rescue
+      %CaseClauseError{term: {:error, _chain, %{message: msg}}} ->
+        {:error, "Chat processing error: #{msg}"}
+        
       error ->
-        {:error, "AI processing failed: #{inspect(error)}"}
+        error_msg = Exception.message(error)
+        {:error, "Unexpected error: #{error_msg}"}
     end
   end
 
@@ -141,12 +152,23 @@ defmodule AshChat.AI.ChatAgent do
           
           {:ok, ai_message}
         
+        {:error, %{message: "LLMChain cannot be run without messages"}} ->
+          {:error, "Cannot process chat without message history. Please ensure at least one message exists."}
+          
         {:error, error} ->
-          {:error, "AI processing failed: #{inspect(error)}"}
+          error_msg = case error do
+            %{message: msg} -> msg
+            _ -> inspect(error)
+          end
+          {:error, "AI processing failed: #{error_msg}"}
       end
     rescue
+      %CaseClauseError{term: {:error, _chain, %{message: msg}}} ->
+        {:error, "Chat processing error: #{msg}"}
+        
       error ->
-        {:error, "AI processing failed: #{inspect(error)}"}
+        error_msg = Exception.message(error)
+        {:error, "Unexpected error: #{error_msg}"}
     end
   end
 
