@@ -161,13 +161,22 @@ process_events() {
         if [[ -n "$line" ]]; then
             # Determine event type based on file state
             if [[ -f "$line" ]]; then
+                # Check file size (1MB = 1048576 bytes)
+                local file_size=$(stat -f%z "$line" 2>/dev/null || echo "0")
+                local file_content=""
+                
                 if [[ "$line" == *.jsonl ]]; then
                     # For JSONL files, send whole file content to Phoenix
-                    local file_content=$(cat "$line" 2>/dev/null || echo "")
+                    file_content=$(cat "$line" 2>/dev/null || echo "")
                     record_event "modified" "$line" "{\"source_type\": \"claude_log\"}"
                     send_to_phoenix "claude_conversation" "$line" "$file_content" "{\"source_type\": \"claude_code_jsonl\"}"
+                elif [[ $file_size -lt 1048576 ]]; then
+                    # For small files (<1MB), include content
+                    file_content=$(cat "$line" 2>/dev/null || echo "")
+                    send_to_phoenix "file_modified" "$line" "$file_content" "{\"source_type\": \"filesystem\", \"file_size\": $file_size}"
                 else
-                    record_event "modified" "$line"
+                    # For large files, just record the event without content
+                    record_event "modified" "$line" "{\"file_size\": $file_size}"
                 fi
             else
                 record_event "deleted" "$line"
