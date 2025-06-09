@@ -83,3 +83,6 @@ data/*
 # OS generated files
 .directory
 *~
+
+# Third-party MCP servers (install manually, don't commit)
+dev-tools/third-party/

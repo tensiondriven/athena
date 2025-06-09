@@ -42,7 +42,7 @@ def main():
         "athena-terminal": {
             "type": "stdio",
             "command": "python3",
-            "args": ["/Users/j/Code/athena/dev-tools/terminal_mcp_server.py"],
+            "args": ["/Users/j/Code/athena/dev-tools/terminal-mcp/terminal_mcp_server.py"],
             "env": {}
         }
     }
@@ -57,7 +57,7 @@ def main():
     print("✅ Added Terminal MCP Server to Claude Code configuration:")
     print("   - Server name: athena-terminal")
     print("   - Command: python3")
-    print("   - Script: /Users/j/Code/athena/dev-tools/terminal_mcp_server.py")
+    print("   - Script: /Users/j/Code/athena/dev-tools/terminal-mcp/terminal_mcp_server.py")
     print()
     print("🔄 Please restart Claude Code to activate the new MCP server")
     print("📝 Test with: send_terminal_command tool")

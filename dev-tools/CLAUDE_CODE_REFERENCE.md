@@ -85,16 +85,13 @@ Project-Specific:
 ### Available MCP Servers
 ```bash
 # Terminal control (our creation)
-/Users/j/Code/athena/dev-tools/terminal_mcp_server.py
-
-# Audit bash execution  
-/Users/j/Code/athena/dev-tools/audit_bash_mcp_server.py
+/Users/j/Code/athena/dev-tools/terminal-mcp/terminal_mcp_server.py
 
 # GitHub integration
-/Users/j/Code/athena/dev-tools/github-mcp-server/
+/Users/j/Code/athena/dev-tools/third-party/github-mcp-server/
 
 # Neo4j integration
-/Users/j/Code/athena/dev-tools/mcp-neo4j/servers/mcp-neo4j-cypher/
+/Users/j/Code/athena/dev-tools/third-party/mcp-neo4j/servers/mcp-neo4j-cypher/
 ```
 
 ## Research Needed
