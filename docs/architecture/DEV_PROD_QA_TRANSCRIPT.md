@@ -34,3 +34,48 @@ The gap is that raw JSONL files are being collected locally but never making it 
 - Or is it more about data/config separation than infrastructure?
 
 And where should the Claude chat interface we just built fit - dev only for now, or should it eventually run in both environments?
+
+**Jonathan**: Yes, dev is local on mac. Prod is on llm. We may use services from prod though, like Ollama, we dont have to have everything copied locally - just the parts we're working on, so our git projects. Does that make sense? Please keep grilling me till you're crystal clear. It's also about having some good live data availble because i want to see those numbers go up on the prod machine as i work throughout the day.
+
+---
+
+## Question 3: Service Distribution Strategy
+
+**Claude**: Got it! So it's a hybrid approach - dev environment runs locally but can consume prod services. Let me drill down on the specifics:
+
+**For the Claude chat interface we just built:**
+- Should it run locally (dev) but connect to Ollama on 10.1.2.200 (prod service)?
+- When you use it locally, should those chat logs flow to the prod knowledge graph?
+- Or should dev chats stay separate from prod data?
+
+**For "seeing numbers go up" - what metrics matter to you?**
+- Total chat messages processed?
+- Knowledge graph node/relationship counts?
+- Event processing rates?
+- Something else?
+
+**And when you say "parts we're working on" - which services should definitely be local vs remote?**
+- Local: ash_chat, collectors, development tools?
+- Remote: Ollama, Neo4j, long-running processors?
+
+**Jonathan**: Claude Chat is a data source, all data sources should be treated as sort of immutable, so when we run the DEV consumer, it'll send data to dev, same for prod consumer. i think, anyway, im open to changes there. Dont think like prod and dev chats, think like we want a prod system consuming the live claude code chat jsonl files, and we want that to keep working when we're working on the dev version. Both dev and prod in this case are reading the exact same data source - claude code jsonl log files
+
+---
+
+## Question 4: Consumer Architecture Clarification
+
+**Claude**: Ah! Now I get it - this is a much cleaner architecture. So we have:
+
+**Single Data Source**: Claude Code JSONL files (immutable)
+**Two Consumers**: 
+- PROD consumer: runs on 10.1.2.200, processes JSONL → prod Neo4j
+- DEV consumer: runs locally, processes same JSONL → local/dev storage
+
+**Critical questions:**
+1. **File access**: How does the prod consumer on 10.1.2.200 read your local `~/.claude-code/logs/` files? Network share, rsync, file sync service?
+
+2. **Consumer independence**: Should both consumers be able to run simultaneously without interfering with each other (like different read positions in the files)?
+
+3. **Dev storage**: Where should the dev consumer send data? Local Neo4j instance, SQLite, or somewhere else?
+
+4. **"Keep working"**: When you say prod should keep working while you develop - does this mean the prod consumer should be a stable, deployed service while dev consumer is your experimental version?
