@@ -123,12 +123,24 @@ send_to_phoenix() {
     
     local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
     
-    # Create JSON payload - use "type" field as expected by Phoenix API
+    # Create JSON payload with proper inspector fields
+    local file_size=${#content}
+    local description="File modified: $(basename "$source_path") (${file_size} chars)"
+    
+    if [[ "$event_type" == "claude_code.conversation.updated" ]]; then
+        description="Claude Code conversation updated: $(basename "$source_path") (${file_size} chars)"
+    elif [[ "$event_type" == "filesystem.file.modified" ]]; then
+        description="File system change: $(basename "$source_path") (${file_size} chars)"
+    fi
+    
     local json_payload=$(cat <<EOF
 {
   "timestamp": "$timestamp",
   "type": "$event_type",
+  "source_id": "claude-collector-shell",
   "source_path": "$source_path",
+  "description": "$description",
+  "confidence": 1.0,
   "content": $(echo "$content" | jq -Rs .),
   "metadata": $metadata
 }
@@ -169,11 +181,11 @@ process_events() {
                     # For JSONL files, send whole file content to Phoenix
                     file_content=$(cat "$line" 2>/dev/null || echo "")
                     record_event "modified" "$line" "{\"source_type\": \"claude_log\"}"
-                    send_to_phoenix "claude_conversation" "$line" "$file_content" "{\"source_type\": \"claude_code_jsonl\"}"
+                    send_to_phoenix "claude_code.conversation.updated" "$line" "$file_content" "{\"source_type\": \"claude_code_jsonl\"}"
                 elif [[ $file_size -lt 1048576 ]]; then
                     # For small files (<1MB), include content
                     file_content=$(cat "$line" 2>/dev/null || echo "")
-                    send_to_phoenix "file_modified" "$line" "$file_content" "{\"source_type\": \"filesystem\", \"file_size\": $file_size}"
+                    send_to_phoenix "filesystem.file.modified" "$line" "$file_content" "{\"source_type\": \"filesystem\", \"file_size\": $file_size}"
                 else
                     # For large files, just record the event without content
                     record_event "modified" "$line" "{\"file_size\": $file_size}"
