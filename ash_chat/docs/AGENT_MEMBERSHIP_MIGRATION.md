@@ -44,17 +44,26 @@
 - ✅ Created AgentMembership records for all demo rooms
 - ✅ Set up multi-agent example: General Chat has both Helpful Assistant (auto) and Research Assistant (manual)
 
-### Turn 4: Update UI to handle agent memberships (IN PROGRESS) ⚠️
+### Turn 4: Update UI to handle agent memberships (PARTIAL) ✅
 - ✅ Added agent_memberships loading in handle_params for rooms
 - ✅ Initialize agent_memberships: [] in mount function
 - ✅ Updated update_agent_card event to work with agent memberships
-- 🚧 **REMAINING**: Fix assign_agent_to_room and template UI sections
-- 🚧 **REMAINING**: Update template to show multiple agents instead of single agent
 
-### Next Steps (Future Session)
-- Complete Turn 4: Fix remaining agent_card_id references in UI
-- Turn 5: Design pass for cleaner interface and better UX
-- Architecture cleanup and high-level reflection
+### Turn 5: Complete UI migration to agent memberships ✅
+- ✅ Fixed assign_agent_to_room to create AgentMembership instead of updating room
+- ✅ Fixed create_new_agent auto-assignment to use AgentMembership
+- ✅ Updated template to show multiple agents instead of single agent_card_id
+- ✅ Added "Room Agents (N)" section showing all agent members
+- ✅ Updated "No Agents" section with proper messaging
+
+**FIRST CYCLE COMPLETE (5/25 turns)**
+
+## Cycle 2: Enhanced Agent Management (Turns 6-10)
+- Turn 6: Add agent membership controls (remove, toggle auto-respond)
+- Turn 7: Preload agent cards for better performance
+- Turn 8: Add agent role management (participant vs moderator)
+- Turn 9: Implement smart agent selection for responses
+- Turn 10: Add agent activity indicators and status
 
 #### Turn 2 Issues:
 - **Preloading needed**: May need to preload AgentMembership relationships for efficiency

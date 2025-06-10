@@ -368,11 +368,22 @@ defmodule AshChatWeb.ChatLive do
 
   def handle_event("assign_agent_to_room", %{"agent_id" => agent_id}, socket) do
     if socket.assigns.room do
-      case AshChat.Resources.Room.update(socket.assigns.room, %{agent_card_id: agent_id}) do
-        {:ok, updated_room} ->
+      case AshChat.Resources.AgentMembership.create(%{
+        agent_card_id: agent_id,
+        room_id: socket.assigns.room.id,
+        role: "participant",
+        auto_respond: true
+      }) do
+        {:ok, _membership} ->
+          # Reload agent memberships
+          agent_memberships = case AshChat.Resources.AgentMembership.for_room(%{room_id: socket.assigns.room.id}) do
+            {:ok, memberships} -> memberships
+            {:error, _} -> []
+          end
+          
           socket = 
             socket
-            |> assign(:room, updated_room)
+            |> assign(:agent_memberships, agent_memberships)
             |> assign(:show_agent_library, false)
             |> put_flash(:info, "Agent assigned to room successfully")
           {:noreply, socket}
@@ -481,8 +492,19 @@ defmodule AshChatWeb.ChatLive do
       {:ok, new_agent} ->
         # Auto-assign to current room if one exists
         socket = if socket.assigns.room do
-          case AshChat.Resources.Room.update(socket.assigns.room, %{agent_card_id: new_agent.id}) do
-            {:ok, updated_room} -> assign(socket, :room, updated_room)
+          case AshChat.Resources.AgentMembership.create(%{
+            agent_card_id: new_agent.id,
+            room_id: socket.assigns.room.id,
+            role: "participant",
+            auto_respond: true
+          }) do
+            {:ok, _membership} ->
+              # Reload agent memberships
+              agent_memberships = case AshChat.Resources.AgentMembership.for_room(%{room_id: socket.assigns.room.id}) do
+                {:ok, memberships} -> memberships
+                {:error, _} -> []
+              end
+              assign(socket, :agent_memberships, agent_memberships)
             {:error, _} -> socket
           end
         else
@@ -1065,13 +1087,14 @@ defmodule AshChatWeb.ChatLive do
               </.form>
             </div>
             
-            <!-- Agent Card Section -->
-            <%= if @room && @room.agent_card_id do %>
+            <!-- Agent Members Section -->
+            <%= if @room && !Enum.empty?(@agent_memberships || []) do %>
               <div class="border-t pt-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-2">Current Agent Card</h3>
-                <p class="text-sm text-gray-600 mb-3">This room uses an AI agent with the following configuration:</p>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Room Agents (<%= length(@agent_memberships) %>)</h3>
+                <p class="text-sm text-gray-600 mb-3">This room has the following AI agents:</p>
                 
-                <%= case Ash.get(AshChat.Resources.AgentCard, @room.agent_card_id) do %>
+                <%= for agent_membership <- @agent_memberships do %>
+                  <%= case Ash.get(AshChat.Resources.AgentCard, agent_membership.agent_card_id) do %>
                   <% {:ok, agent_card} -> %>
                     <%= if @editing_agent_card do %>
                       <!-- Edit Mode -->
@@ -1178,19 +1201,20 @@ defmodule AshChatWeb.ChatLive do
                   <% _ -> %>
                     <div class="text-sm text-gray-500">Agent card not found or error loading</div>
                 <% end %>
+                <% end %>
               </div>
             <% else %>
               <div class="border-t pt-6">
                 <div class="flex justify-between items-center mb-2">
-                  <h3 class="text-lg font-medium text-gray-900">No Agent Card</h3>
+                  <h3 class="text-lg font-medium text-gray-900">No Agents in Room</h3>
                   <button 
                     phx-click="show_agent_library"
                     class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-md transition-colors"
                   >
-                    Choose Agent
+                    Add Agent
                   </button>
                 </div>
-                <p class="text-sm text-gray-600">This room doesn't have an agent card assigned. Choose from the agent library to add AI capabilities.</p>
+                <p class="text-sm text-gray-600">This room doesn't have any AI agents. Add agents from the library to enable AI capabilities.</p>
               </div>
             <% end %>
           </div>
