@@ -35,6 +35,17 @@ defmodule AshChat.AI.ChatAgent do
     Message.for_room!(%{room_id: room_id})
   end
 
+  def create_ai_agent_with_profile(profile, inference_params \\ %{}) do
+    chat_model = InferenceConfig.create_chat_model_from_profile(profile, inference_params)
+    
+    %{
+      llm: chat_model,
+      tools: Tools.list(),  # Enable AI tool calling
+      verbose: true
+    }
+    |> LLMChain.new!()
+  end
+
   def create_ai_agent(inference_config \\ %{}) do
     config = InferenceConfig.validate_config(inference_config)
     chat_model = InferenceConfig.create_chat_model(config)

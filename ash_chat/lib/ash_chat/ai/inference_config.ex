@@ -52,6 +52,18 @@ defmodule AshChat.AI.InferenceConfig do
     validated
   end
 
+  def create_chat_model_from_profile(profile, inference_params \\ %{}) do
+    config = %{
+      provider: profile.provider,
+      model: profile.model,
+      api_key: profile.api_key,
+      url: profile.url
+    }
+    |> Map.merge(inference_params)
+    
+    create_chat_model(config)
+  end
+
   def create_chat_model(config) do
     validated_config = validate_config(config)
     provider_config = get_provider_config(validated_config.provider)

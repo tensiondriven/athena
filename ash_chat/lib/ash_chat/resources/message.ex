@@ -22,12 +22,17 @@ defmodule AshChat.Resources.Message do
     attribute :image_url, :string
     attribute :image_data, :binary
     attribute :metadata, :map, default: %{}
+    attribute :profile_id, :uuid  # Which profile generated this message (for assistant messages)
     create_timestamp :created_at
     update_timestamp :updated_at
   end
 
   relationships do
     belongs_to :room, AshChat.Resources.Room
+    belongs_to :profile, AshChat.Resources.Profile do
+      source_attribute :profile_id
+      destination_attribute :id
+    end
   end
 
   actions do

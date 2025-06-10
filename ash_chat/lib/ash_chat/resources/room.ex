@@ -11,7 +11,7 @@ defmodule AshChat.Resources.Room do
     uuid_primary_key :id
     attribute :title, :string, default: "New Room"
     attribute :hidden, :boolean, default: false
-    attribute :current_model, :string, default: "qwen2.5:latest"
+    attribute :profile_id, :uuid
     create_timestamp :created_at
     update_timestamp :updated_at
   end
@@ -20,13 +20,18 @@ defmodule AshChat.Resources.Room do
     has_many :messages, AshChat.Resources.Message do
       destination_attribute :room_id
     end
+    
+    belongs_to :profile, AshChat.Resources.Profile do
+      source_attribute :profile_id
+      destination_attribute :id
+    end
   end
 
   actions do
     defaults [:read, :update, :destroy]
 
     create :create do
-      accept [:title]
+      accept [:title, :profile_id]
       change set_attribute(:title, "New Multimodal Room")
     end
     
