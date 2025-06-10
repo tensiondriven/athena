@@ -17,6 +17,7 @@ defmodule AshChat.Resources.AgentCard do
     attribute :context_settings, :map, public?: true, default: %{} # history_limit, vector_search, etc.
     attribute :avatar_url, :string, public?: true # Optional character avatar
     attribute :is_default, :boolean, default: false, public?: true
+    attribute :add_to_new_rooms, :boolean, default: false, public?: true # Auto-join new rooms
     create_timestamp :created_at
     update_timestamp :updated_at
   end
@@ -25,6 +26,16 @@ defmodule AshChat.Resources.AgentCard do
     belongs_to :default_profile, AshChat.Resources.Profile do
       source_attribute :default_profile_id
       destination_attribute :id
+    end
+    
+    has_many :agent_memberships, AshChat.Resources.AgentMembership do
+      destination_attribute :agent_card_id
+    end
+    
+    many_to_many :rooms, AshChat.Resources.Room do
+      through AshChat.Resources.AgentMembership
+      source_attribute_on_join_resource :agent_card_id
+      destination_attribute_on_join_resource :room_id
     end
   end
 
@@ -38,7 +49,7 @@ defmodule AshChat.Resources.AgentCard do
 
     create :create do
       accept [:name, :description, :system_message, :model_preferences, 
-              :available_tools, :context_settings, :avatar_url, :is_default, :default_profile_id]
+              :available_tools, :context_settings, :avatar_url, :is_default, :add_to_new_rooms, :default_profile_id]
       
       change fn changeset, _context ->
         # If this is being set as default, unset other defaults
@@ -59,6 +70,10 @@ defmodule AshChat.Resources.AgentCard do
       filter expr(is_default == true)
     end
 
+    read :auto_join_new_rooms do
+      filter expr(add_to_new_rooms == true)
+    end
+
     update :set_as_default do
       accept []
       change set_attribute(:is_default, true)
@@ -73,6 +88,7 @@ defmodule AshChat.Resources.AgentCard do
     define :update
     define :destroy
     define :get_default, action: :default
+    define :get_auto_join_agents, action: :auto_join_new_rooms
     define :set_as_default
   end
 end

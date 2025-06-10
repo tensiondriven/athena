@@ -12,7 +12,6 @@ defmodule AshChat.Resources.Room do
     attribute :title, :string, default: "New Room"
     attribute :hidden, :boolean, default: false
     attribute :parent_room_id, :uuid
-    attribute :agent_card_id, :uuid
     attribute :starting_message, :string do
       description "Optional context or introductory message that appears at the beginning of the room"
     end
@@ -44,9 +43,14 @@ defmodule AshChat.Resources.Room do
       destination_attribute :parent_room_id
     end
     
-    belongs_to :agent_card, AshChat.Resources.AgentCard do
-      source_attribute :agent_card_id
-      destination_attribute :id
+    has_many :agent_memberships, AshChat.Resources.AgentMembership do
+      destination_attribute :room_id
+    end
+    
+    many_to_many :agent_cards, AshChat.Resources.AgentCard do
+      through AshChat.Resources.AgentMembership
+      source_attribute_on_join_resource :room_id
+      destination_attribute_on_join_resource :agent_card_id
     end
   end
 
@@ -54,7 +58,7 @@ defmodule AshChat.Resources.Room do
     defaults [:read, :update, :destroy]
 
     create :create do
-      accept [:title, :parent_room_id, :agent_card_id, :starting_message, :hidden]
+      accept [:title, :parent_room_id, :starting_message, :hidden]
     end
     
     read :get do
