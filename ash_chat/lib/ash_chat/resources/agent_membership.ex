@@ -77,6 +77,7 @@ defmodule AshChat.Resources.AgentMembership do
 
     update :toggle_auto_respond do
       accept []
+      require_atomic? false
       change fn changeset, _context ->
         current_value = Ash.Changeset.get_attribute(changeset, :auto_respond)
         Ash.Changeset.change_attribute(changeset, :auto_respond, !current_value)
