@@ -1,15 +1,22 @@
 # AI-Human Collaboration Methodology
 
-*Proven patterns from the Athena project's conversation archaeology*
+*Proven patterns from research through practice on the Athena distributed AI system*
+
+## Methodology Origin: Research Through Practice
+
+This methodology emerged from building a **real distributed AI system** with cameras, sensors, and intelligent decision-making. Rather than studying collaboration in abstract, we discovered patterns by solving actual technical problems: PTZ camera control, event processing, real-time interfaces, hardware integration.
+
+**Key insight**: Building practical systems while simultaneously refining collaboration methodology produces better results than either approach alone.
 
 ## Core Principle: Physics of Work
 
 **Meta-Goal**: Make it better for the next person (which is us)
 
 Don't just want working output - want to:
-- Note issues that come up in the process
-- Find ways to change the process to improve them  
+- Note issues that come up in the process  
+- Find ways to change the process to improve them
 - Create better collaboration patterns for future work
+- Build practical systems that actually work
 
 ## Two-Role Framework
 

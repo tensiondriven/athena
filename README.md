@@ -1,28 +1,28 @@
-# Athena: AI Collaboration Research Platform
+# Athena: Distributed AI System + Collaboration Research
 
-**A living laboratory for AI-human collaboration with complete conversation archaeology**
+**Research through practice: Building a real distributed AI system while developing universal AI-human collaboration methodology**
 
 ## What This Is
 
-Athena demonstrates **conversation archaeology** - the complete preservation of AI development consciousness alongside code. This could fundamentally change how we approach AI-assisted development.
+Athena is a **distributed AI system** with physical components (cameras, sensors, displays) that make intelligent decisions and control devices. What makes it unique is that it's built using **research through practice** - simultaneously developing the system AND the methodology for effective AI-human collaboration.
 
-### 🔍 Key Innovation: Conversation Archaeology  
+### 🎯 Dual Purpose Design
 
-Traditional development loses the reasoning behind code. Athena preserves **every architectural decision, debugging step, and design choice** with complete context in structured JSONL files.
+**Practical Output**: Distributed AI system with:
+- **Physical components** - PTZ cameras, sensors, displays, Raspberry Pis
+- **Event processing** - Motion, sound, MQTT, file changes, Home Assistant integration  
+- **AI decision making** - Process events, control devices, display information
+- **Real-time interfaces** - Phoenix LiveView dashboards and chat system
 
-**When you encounter unfamiliar code:**
-1. **Check git blame** → find the commit
-2. **Get conversation UUID** → from commit message  
-3. **Read full conversation** → complete JSONL with all reasoning
-4. **Understand the why** → not just the what
+**Research Output**: Universal AI-human collaboration patterns:
+- **Physics of Work methodology** - Make it better for the next person (which is us)
+- **Two-role framework** - AI as development team, human as product team
+- **Conversation archaeology** - Complete development consciousness preservation
+- **Decision confidence protocols** - Systematic risk assessment for AI autonomy
 
-**Result**: End of "archaeological guesswork" in software development.
+### 🔍 What Makes This Unique
 
-### 📊 Dataset Scale
-- **90 conversation files** (50MB) of complete development consciousness
-- **20,247 lines** of structured metadata with full context
-- **Perfect correlation** between conversations and git commits
-- **Complete timeline** from project inception to current state
+This isn't just building software OR studying methodology - it's **research through practice**. Every component is both functional system code AND a laboratory for discovering collaboration patterns that work at scale.
 
 ## Quick Start
 
@@ -74,12 +74,12 @@ AshChat.Setup.reset_demo_data()
 
 ## Research Value
 
-This project demonstrates:
+**Physics of Work in Practice**: This project demonstrates:
 
-- **Complete development consciousness preservation** 
-- **Proven AI-human collaboration patterns**
-- **Automatic documentation** of architectural decisions
-- **Knowledge transfer** that survives beyond individual sessions
+- **Iterative process improvement** - Each component development improves the methodology
+- **Knowledge transfer patterns** - AI learns from human expertise, human learns from AI systematic thinking
+- **Decision confidence protocols** - Proven risk assessment for autonomous AI development
+- **Universal applicability** - Patterns that work across project types and technical domains
 
 ## Documentation
 
@@ -95,8 +95,12 @@ This project demonstrates:
 
 ## Impact
 
-Athena has accidentally become one of the most documented software development processes in history - not through manual effort, but through **automatic consciousness preservation**. This could fundamentally change how we approach AI-assisted development.
+**Practical**: A working distributed AI system with real hardware integration, event processing, and intelligent decision-making capabilities.
+
+**Methodological**: Proven patterns for AI-human collaboration that scale beyond individual projects, with complete development consciousness preservation as a side benefit.
+
+**Future**: Universal methodology that any AI-human team can adopt for effective collaboration, regardless of domain or technical stack.
 
 ---
 
-*The archaeology was the side benefit that became the main discovery.*
+*Research through practice: Building the future while learning how to build it better.*
