@@ -84,4 +84,11 @@ data/*
 *~
 
 # Third-party MCP servers (install manually, don't commit)
-dev-tools/third-party/
+dev-tools/third-party/# Log files
+*.log
+collector.log
+server.log
+error.log
+
+# Build artifacts
+erl_crash.dump
