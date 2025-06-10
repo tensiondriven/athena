@@ -4,18 +4,25 @@
 
 ## What This Is
 
-Athena started as a home automation project but has evolved into something more significant: a research platform demonstrating **conversation archaeology** - the complete preservation of AI development consciousness alongside code.
+Athena demonstrates **conversation archaeology** - the complete preservation of AI development consciousness alongside code. This could fundamentally change how we approach AI-assisted development.
 
-### Key Innovation: Development Archaeology
+### 🔍 Key Innovation: Conversation Archaeology  
 
-Every architectural decision, debugging step, and design choice is captured with complete context and rationale. When you encounter unfamiliar code, you can:
+Traditional development loses the reasoning behind code. Athena preserves **every architectural decision, debugging step, and design choice** with complete context in structured JSONL files.
 
-1. **Check git blame** to find the commit
-2. **Look for conversation UUID** in that commit's chat-history  
-3. **Extract full context** from the JSONL conversation
-4. **Understand the complete thought process** behind the implementation
+**When you encounter unfamiliar code:**
+1. **Check git blame** → find the commit
+2. **Get conversation UUID** → from commit message  
+3. **Read full conversation** → complete JSONL with all reasoning
+4. **Understand the why** → not just the what
 
-**Result**: Development transforms from "archaeological guesswork" to "documented decision archaeology."
+**Result**: End of "archaeological guesswork" in software development.
+
+### 📊 Dataset Scale
+- **90 conversation files** (50MB) of complete development consciousness
+- **20,247 lines** of structured metadata with full context
+- **Perfect correlation** between conversations and git commits
+- **Complete timeline** from project inception to current state
 
 ## Quick Start
 
@@ -76,10 +83,15 @@ This project demonstrates:
 
 ## Documentation
 
+### Essential Reading
+- **[Conversation Archaeology](docs/CONVERSATION_ARCHAEOLOGY.md)** - The core innovation explained
+- **[Quick Start Guide](docs/QUICK_START.md)** - Get running in 5 minutes
+- **[Collaboration Methodology](docs/COLLABORATION_METHODOLOGY.md)** - Proven AI-human patterns
+
+### For AI Collaborators  
 - **[AI Collaboration Protocol](AI_COLLABORATION_PROTOCOL.md)** - Core working agreements
-- **[Quick Reference](docs/AI_QUICK_REFERENCE.md)** - Key patterns and commands
+- **[AI Quick Reference](docs/AI_QUICK_REFERENCE.md)** - Commands and patterns
 - **[Development Journal](docs/journal/)** - Real-time discoveries and insights
-- **[Physics of Work](docs/physics-of-work/)** - Collaboration methodology
 
 ## Impact
 
