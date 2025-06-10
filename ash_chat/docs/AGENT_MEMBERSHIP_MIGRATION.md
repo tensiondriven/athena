@@ -59,7 +59,15 @@
 **FIRST CYCLE COMPLETE (5/25 turns)**
 
 ## Cycle 2: Enhanced Agent Management (Turns 6-10)
-- Turn 6: Add agent membership controls (remove, toggle auto-respond)
+
+### Turn 6: Add agent membership controls (remove, toggle auto-respond) ✅
+- ✅ Added UI controls for agent membership management in System Configuration modal
+- ✅ Displays agent role and auto-respond status with visual indicators
+- ✅ Toggle auto-respond button with real-time status updates
+- ✅ Remove agent button with confirmation dialog
+- ✅ Proper error handling and flash messages for user feedback
+- ✅ Clean UI design with consistent styling and color coding
+
 - Turn 7: Preload agent cards for better performance
 - Turn 8: Add agent role management (participant vs moderator)
 - Turn 9: Implement smart agent selection for responses

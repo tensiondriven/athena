@@ -408,6 +408,59 @@ defmodule AshChatWeb.ChatLive do
     {:noreply, socket}
   end
 
+  def handle_event("remove_agent_from_room", %{"membership_id" => membership_id}, socket) do
+    case AshChat.Resources.AgentMembership.get(membership_id) do
+      {:ok, membership} ->
+        case AshChat.Resources.AgentMembership.destroy(membership) do
+          :ok ->
+            # Reload agent memberships
+            agent_memberships = case AshChat.Resources.AgentMembership.for_room(%{room_id: socket.assigns.room.id}) do
+              {:ok, memberships} -> memberships
+              {:error, _} -> []
+            end
+            
+            socket = 
+              socket
+              |> assign(:agent_memberships, agent_memberships)
+              |> put_flash(:info, "Agent removed from room")
+            {:noreply, socket}
+          
+          {:error, _error} ->
+            {:noreply, put_flash(socket, :error, "Failed to remove agent from room")}
+        end
+      
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Agent membership not found")}
+    end
+  end
+
+  def handle_event("toggle_agent_auto_respond", %{"membership_id" => membership_id}, socket) do
+    case AshChat.Resources.AgentMembership.get(membership_id) do
+      {:ok, membership} ->
+        case AshChat.Resources.AgentMembership.toggle_auto_respond(membership) do
+          {:ok, _updated_membership} ->
+            # Reload agent memberships to reflect changes
+            agent_memberships = case AshChat.Resources.AgentMembership.for_room(%{room_id: socket.assigns.room.id}) do
+              {:ok, memberships} -> memberships
+              {:error, _} -> []
+            end
+            
+            status = if membership.auto_respond, do: "disabled", else: "enabled"
+            socket = 
+              socket
+              |> assign(:agent_memberships, agent_memberships)
+              |> put_flash(:info, "Auto-respond #{status} for agent")
+            {:noreply, socket}
+          
+          {:error, _error} ->
+            {:noreply, put_flash(socket, :error, "Failed to toggle auto-respond")}
+        end
+      
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Agent membership not found")}
+    end
+  end
+
   def handle_event("select_template", %{"template" => template_name}, socket) do
     {:noreply, assign(socket, :selected_template, template_name)}
   end
@@ -1184,6 +1237,45 @@ defmodule AshChatWeb.ChatLive do
                                 <% end %>
                               </span>
                             </div>
+                            
+                            <!-- Agent membership controls -->
+                            <div class="mt-3 pt-3 border-t border-gray-200">
+                              <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-600">
+                                  <span class="font-medium">Role:</span> <%= agent_membership.role %>
+                                  <span class="ml-3 font-medium">Auto-respond:</span>
+                                  <span class={[
+                                    "ml-1 px-2 py-1 rounded-full text-xs",
+                                    if(agent_membership.auto_respond, 
+                                       do: "bg-green-100 text-green-800", 
+                                       else: "bg-gray-100 text-gray-800")
+                                  ]}>
+                                    <%= if agent_membership.auto_respond, do: "ON", else: "OFF" %>
+                                  </span>
+                                </div>
+                                
+                                <div class="flex gap-2">
+                                  <button 
+                                    phx-click="toggle_agent_auto_respond"
+                                    phx-value-membership_id={agent_membership.id}
+                                    class="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 rounded transition-colors"
+                                    title="Toggle auto-respond"
+                                  >
+                                    <%= if agent_membership.auto_respond, do: "Disable Auto", else: "Enable Auto" %>
+                                  </button>
+                                  
+                                  <button 
+                                    phx-click="remove_agent_from_room"
+                                    phx-value-membership_id={agent_membership.id}
+                                    class="px-2 py-1 text-xs bg-red-100 hover:bg-red-200 text-red-800 rounded transition-colors"
+                                    title="Remove agent from room"
+                                    onclick="return confirm('Are you sure you want to remove this agent from the room?')"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                           
                           <button 
@@ -1192,7 +1284,7 @@ defmodule AshChatWeb.ChatLive do
                             title="Edit agent card"
                           >
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                           </button>
                         </div>
