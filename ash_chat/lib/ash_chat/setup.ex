@@ -60,6 +60,7 @@ defmodule AshChat.Setup do
 
     creative_writer = AgentCard.create!(%{
       name: "Creative Writer", 
+      description: "Imaginative storyteller and writing mentor",
       system_message: "You are a creative writing assistant. Help users craft stories, poems, and creative content. Be imaginative and inspiring while offering constructive feedback.",
       model_preferences: %{
         temperature: 0.9,
@@ -68,6 +69,51 @@ defmodule AshChat.Setup do
       available_tools: [],
       context_settings: %{
         history_limit: 30,
+        include_room_metadata: false
+      }
+    })
+
+    research_assistant = AgentCard.create!(%{
+      name: "Research Assistant",
+      description: "Analytical thinker focused on facts and sources",
+      system_message: "You are a research assistant specialized in gathering, analyzing, and presenting information. Always cite sources when possible and approach topics with academic rigor.",
+      model_preferences: %{
+        temperature: 0.3,
+        max_tokens: 1000
+      },
+      available_tools: [],
+      context_settings: %{
+        history_limit: 40,
+        include_room_metadata: true
+      }
+    })
+
+    coding_mentor = AgentCard.create!(%{
+      name: "Coding Mentor",
+      description: "Experienced developer and programming teacher",
+      system_message: "You are a coding mentor who helps with programming questions, code reviews, and technical explanations. Focus on best practices, clean code, and teaching concepts clearly.",
+      model_preferences: %{
+        temperature: 0.2,
+        max_tokens: 1200
+      },
+      available_tools: [],
+      context_settings: %{
+        history_limit: 25,
+        include_room_metadata: false
+      }
+    })
+
+    brainstorm_buddy = AgentCard.create!(%{
+      name: "Brainstorm Buddy",
+      description: "Energetic idea generator and creative problem solver",
+      system_message: "You are an enthusiastic brainstorming partner! Help generate creative ideas, explore possibilities, and think outside the box. Be energetic, positive, and encourage wild ideas.",
+      model_preferences: %{
+        temperature: 1.1,
+        max_tokens: 600
+      },
+      available_tools: [],
+      context_settings: %{
+        history_limit: 15,
         include_room_metadata: false
       }
     })
@@ -140,13 +186,13 @@ defmodule AshChat.Setup do
     %{
       profiles: [ollama_profile],
       users: [alice, bob],
-      agent_cards: [helpful_assistant, creative_writer],
+      agent_cards: [helpful_assistant, creative_writer, research_assistant, coding_mentor, brainstorm_buddy],
       rooms: [general_room, creative_room, story_room],
       demo_summary: """
       Demo data created successfully!
       
       👥 Users: Alice (admin), Bob (member)
-      🤖 Agent Cards: Helpful Assistant, Creative Writer
+      🤖 Agent Cards: Helpful Assistant, Creative Writer, Research Assistant, Coding Mentor, Brainstorm Buddy
       🏠 Rooms: General Chat, Creative Writing Workshop, Story Collaboration (sub-room)
       💬 Sample messages in each room
       ⚙️  Default Ollama profile configured

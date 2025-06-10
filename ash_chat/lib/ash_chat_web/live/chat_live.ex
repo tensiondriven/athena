@@ -39,6 +39,7 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:show_system_modal, false)
       |> assign(:editing_agent_card, false)
       |> assign(:show_agent_library, false)
+      |> assign(:creating_new_agent, false)
 
     {:ok, socket}
   end
@@ -367,6 +368,48 @@ defmodule AshChatWeb.ChatLive do
       end
     else
       {:noreply, put_flash(socket, :error, "No room selected")}
+    end
+  end
+
+  def handle_event("show_new_agent_form", _params, socket) do
+    {:noreply, assign(socket, :creating_new_agent, true)}
+  end
+
+  def handle_event("cancel_new_agent", _params, socket) do
+    {:noreply, assign(socket, :creating_new_agent, false)}
+  end
+
+  def handle_event("create_new_agent", %{"agent" => agent_params}, socket) do
+    case AshChat.Resources.AgentCard.create(%{
+      name: agent_params["name"],
+      description: agent_params["description"],
+      system_message: agent_params["system_message"],
+      model_preferences: %{
+        temperature: String.to_float(agent_params["temperature"] || "0.7"),
+        max_tokens: String.to_integer(agent_params["max_tokens"] || "500")
+      }
+    }) do
+      {:ok, new_agent} ->
+        # Auto-assign to current room if one exists
+        socket = if socket.assigns.room do
+          case AshChat.Resources.Room.update(socket.assigns.room, %{agent_card_id: new_agent.id}) do
+            {:ok, updated_room} -> assign(socket, :room, updated_room)
+            {:error, _} -> socket
+          end
+        else
+          socket
+        end
+        
+        socket = 
+          socket
+          |> assign(:creating_new_agent, false)
+          |> assign(:show_agent_library, false)
+          |> put_flash(:info, "New agent created successfully!")
+        
+        {:noreply, socket}
+      
+      {:error, _error} ->
+        {:noreply, put_flash(socket, :error, "Failed to create agent")}
     end
   end
 
@@ -1072,14 +1115,102 @@ defmodule AshChatWeb.ChatLive do
                 <% end %>
             </div>
             
-            <div class="mt-6 text-center">
-              <p class="text-sm text-gray-500 mb-3">Don't see the agent you need?</p>
-              <button 
-                phx-click="hide_agent_library"
-                class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
-              >
-                Create New Agent (coming soon)
-              </button>
+            <div class="mt-6">
+              <%= if @creating_new_agent do %>
+                <!-- New Agent Form -->
+                <div class="border-t pt-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Create New Agent</h3>
+                  <.form for={%{}} as={:agent} phx-submit="create_new_agent" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Agent Name:</label>
+                        <input 
+                          type="text"
+                          name="agent[name]"
+                          placeholder="e.g., Debug Detective"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Description:</label>
+                        <input 
+                          type="text"
+                          name="agent[description]"
+                          placeholder="e.g., Expert at finding and fixing bugs"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label class="block text-sm font-medium text-gray-700 mb-1">System Message:</label>
+                      <textarea 
+                        name="agent[system_message]"
+                        rows="3"
+                        placeholder="You are a debugging expert who helps developers find and fix issues..."
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      ></textarea>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Temperature (0-2):</label>
+                        <input 
+                          type="number"
+                          name="agent[temperature]"
+                          value="0.7"
+                          min="0"
+                          max="2"
+                          step="0.1"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Max Tokens:</label>
+                        <input 
+                          type="number"
+                          name="agent[max_tokens]"
+                          value="500"
+                          min="50"
+                          max="2000"
+                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div class="flex justify-end gap-2">
+                      <button 
+                        type="button"
+                        phx-click="cancel_new_agent"
+                        class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        type="submit"
+                        class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors"
+                      >
+                        Create Agent
+                      </button>
+                    </div>
+                  </.form>
+                </div>
+              <% else %>
+                <!-- Create New Agent Button -->
+                <div class="text-center border-t pt-6">
+                  <p class="text-sm text-gray-500 mb-3">Don't see the agent you need?</p>
+                  <button 
+                    phx-click="show_new_agent_form"
+                    class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md transition-colors"
+                  >
+                    Create New Agent
+                  </button>
+                </div>
+              <% end %>
             </div>
           </div>
         </div>
