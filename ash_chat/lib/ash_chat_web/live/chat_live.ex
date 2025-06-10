@@ -41,6 +41,7 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:show_agent_library, false)
       |> assign(:creating_new_agent, false)
       |> assign(:selected_template, nil)
+      |> assign(:agent_memberships, [])
 
     {:ok, socket}
   end
@@ -58,12 +59,19 @@ defmodule AshChatWeb.ChatLive do
           false
         end
         
+        # Load agent memberships for this room
+        agent_memberships = case AshChat.Resources.AgentMembership.for_room(%{room_id: room_id}) do
+          {:ok, memberships} -> memberships
+          {:error, _} -> []
+        end
+
         socket = 
           socket
           |> assign(:room, room)
           |> assign(:messages, messages)
           |> assign(:current_model, "current")
           |> assign(:is_room_member, is_member)
+          |> assign(:agent_memberships, agent_memberships)
 
         {:noreply, socket}
       
@@ -318,30 +326,35 @@ defmodule AshChatWeb.ChatLive do
   end
 
   def handle_event("update_agent_card", %{"agent" => agent_params}, socket) do
-    if socket.assigns.room && socket.assigns.room.agent_card_id do
-      case Ash.get(AshChat.Resources.AgentCard, socket.assigns.room.agent_card_id) do
-        {:ok, agent_card} ->
-          case AshChat.Resources.AgentCard.update(agent_card, %{
-            name: agent_params["name"],
-            description: agent_params["description"],
-            system_message: agent_params["system_message"]
-          }) do
-            {:ok, _updated_card} ->
-              socket = 
-                socket
-                |> assign(:editing_agent_card, false)
-                |> put_flash(:info, "Agent card updated successfully")
-              {:noreply, socket}
+    # Get the first agent membership to edit (could be enhanced to specify which agent)
+    agent_memberships = socket.assigns.agent_memberships || []
+    
+    case List.first(agent_memberships) do
+      nil ->
+        {:noreply, put_flash(socket, :error, "No agents in this room to update")}
+      
+      agent_membership ->
+          case Ash.get(AshChat.Resources.AgentCard, agent_membership.agent_card_id) do
+            {:ok, agent_card} ->
+              case AshChat.Resources.AgentCard.update(agent_card, %{
+                name: agent_params["name"],
+                description: agent_params["description"],
+                system_message: agent_params["system_message"]
+              }) do
+                {:ok, _updated_card} ->
+                  socket = 
+                    socket
+                    |> assign(:editing_agent_card, false)
+                    |> put_flash(:info, "Agent card updated successfully")
+                  {:noreply, socket}
+                
+                {:error, _error} ->
+                  {:noreply, put_flash(socket, :error, "Failed to update agent card")}
+              end
             
-            {:error, _error} ->
-              {:noreply, put_flash(socket, :error, "Failed to update agent card")}
+            {:error, _} ->
+              {:noreply, put_flash(socket, :error, "Agent card not found")}
           end
-        
-        {:error, _} ->
-          {:noreply, put_flash(socket, :error, "Agent card not found")}
-      end
-    else
-      {:noreply, put_flash(socket, :error, "No agent card to update")}
     end
   end
 

@@ -28,7 +28,7 @@
 - **Relationship complexity**: Many-to-many through join table requires careful setup
 - **Breaking change**: Existing demo data will need migration
 - **UI dependencies**: LiveView currently expects `room.agent_card_id`
-- **GitHub secrets**: Push blocked due to token in chat-history files (needs cleanup)
+- **GitHub secrets**: Push blocked due to token in chat-history files (blob: 17911bd4208659d0a7591dd4002d8b6c60fba919)
 - **Atomic actions**: Had to add `require_atomic? false` to toggle_auto_respond
 
 ### Turn 2: Update ChatAgent to handle multiple agents ✅
@@ -44,9 +44,17 @@
 - ✅ Created AgentMembership records for all demo rooms
 - ✅ Set up multi-agent example: General Chat has both Helpful Assistant (auto) and Research Assistant (manual)
 
-### Next Steps
-- Turn 4: Update UI to show agent members instead of single agent
-- Turn 5: Update demo data and test full integration
+### Turn 4: Update UI to handle agent memberships (IN PROGRESS) ⚠️
+- ✅ Added agent_memberships loading in handle_params for rooms
+- ✅ Initialize agent_memberships: [] in mount function
+- ✅ Updated update_agent_card event to work with agent memberships
+- 🚧 **REMAINING**: Fix assign_agent_to_room and template UI sections
+- 🚧 **REMAINING**: Update template to show multiple agents instead of single agent
+
+### Next Steps (Future Session)
+- Complete Turn 4: Fix remaining agent_card_id references in UI
+- Turn 5: Design pass for cleaner interface and better UX
+- Architecture cleanup and high-level reflection
 
 #### Turn 2 Issues:
 - **Preloading needed**: May need to preload AgentMembership relationships for efficiency
