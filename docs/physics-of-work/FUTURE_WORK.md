@@ -1,5 +1,43 @@
 # Future Work Ideas
 
+## Real-Time Purpose Alignment Dashboard
+
+**Vision**: A live dashboard showing a triangle visualization of David Allen's altitude levels, connected to current activity data from the event bus.
+
+### Core Concept
+- **Current activity detection** from sensor data (keyboard, mouse, app focus, git commits, etc.)
+- **Real-time triangle visualization** showing 5 altitude levels (Ground → 50,000 feet)
+- **Connection tracing** from current action up through purpose hierarchy
+- **Red indicators** when connections can't be established or are unclear
+- **Live feedback loop** to ensure actions align with higher purpose
+
+### Technical Architecture
+```
+Sensors → Event Bus → Purpose Tracer → Triangle Dashboard
+   ↓           ↓            ↓              ↓
+Keyboard   Activity     Connection    Visual Triangle
+Mouse      Events       Analysis      Red/Green Status
+Git        Stream       Engine        Purpose Chain
+Apps       Processing   Logic         Display
+```
+
+### Dashboard Features
+- **Triangle visualization** with 5 levels clearly labeled
+- **Activity display**: "Currently: Writing Character.ex"
+- **Connection chain**: Ground → 10k → 20k → 30k → 40k → 50k
+- **Status indicators**: Green (connected), Red (disconnected), Yellow (unclear)
+- **Purpose statement**: Show the traced connection to life purpose
+
+### Data Sources
+- File system events (what you're editing)
+- Git activity (commits, branches) 
+- Application focus (what app/window)
+- Terminal commands
+- Chat/communication activity
+- Calendar/meeting data
+
+This creates a **continuous purpose awareness system** - helping ensure you're not just productive, but purposefully productive.
+
 ## Dynamic Insight Harvesting System
 
 **Vision**: Tag text, conversations, media with tags that include content in an index or bump it up in a vector store to harvest learnings frequently and automatically - "growing insights by the heat of friction between our psyches and problems."
