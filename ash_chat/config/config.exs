@@ -9,7 +9,14 @@ import Config
 
 # Load environment variables from .env file in development and test
 if Mix.env() in [:dev, :test] do
-  Dotenv.load()
+  try do
+    Code.ensure_loaded(Dotenv)
+    if function_exported?(Dotenv, :load, 0) do
+      Dotenv.load()
+    end
+  rescue
+    _ -> :ok
+  end
 end
 
 config :ash_chat,

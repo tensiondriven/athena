@@ -27,6 +27,7 @@ defmodule AshChatWeb.SystemDashboardLive do
     |> assign(:data_flows, get_data_flows())
     |> assign(:external_deps, get_external_dependencies())
     |> assign(:event_stats, get_event_statistics())
+    |> assign(:ollama_status, get_ollama_status())
   end
 
   defp get_component_status() do
@@ -34,44 +35,44 @@ defmodule AshChatWeb.SystemDashboardLive do
       %{
         name: "Phoenix LiveView Server",
         status: :running,
-        details: "http://127.0.0.1:4000",
+        details: "http://127.0.0.1:4000 - Core web interface working",
         events: "HTTP requests, LiveView connections"
       },
       %{
         name: "Ash Resources (Room, Message)",
         status: :active,
-        details: "ETS data layer, no persistence",
-        events: "CRUD operations, no events consumed yet"
+        details: "ETS in-memory storage - Working but not persistent",
+        events: "Chat CRUD operations (basic functionality)"
       },
       %{
-        name: "Room Agent (AI)",
-        status: :configured,
-        details: "LangChain + OpenAI GPT-4o integration",
-        events: "Message processing, tool calls"
+        name: "Chat Agent (AI Integration)",
+        status: :working,
+        details: "LangChain + OpenAI/Ollama - Basic chat works",
+        events: "Message processing, simple responses"
       },
       %{
         name: "Image Processor",
-        status: :idle,
-        details: "GenServer ready, no sources configured",
-        events: "File system monitoring, URL fetching"
+        status: :placeholder,
+        details: "GenServer skeleton exists, no real processing yet",
+        events: "Future: file monitoring, URL fetching"
       },
       %{
         name: "Tool Framework",
-        status: :stubbed,
-        details: "Basic tools defined, AshAI integration disabled",
-        events: "Tool calls from AI agent"
+        status: :minimal,
+        details: "Basic structure, no real tools implemented",
+        events: "Future: tool calls from AI agent"
       },
       %{
-        name: "Vector Store (Semantic Search)",
+        name: "Vector Store & Search",
         status: :disabled,
-        details: "AshAI vectorization commented out",
-        events: "Embedding creation, similarity search"
+        details: "AshAI integration exists but disabled",
+        events: "Future: embeddings, semantic search"
       },
       %{
-        name: "PubSub System",
-        status: :running,
-        details: "Phoenix.PubSub for real-time updates",
-        events: "Chat message broadcasts"
+        name: "Event Processing Pipeline",
+        status: :missing,
+        details: "No event consumption/processing active",
+        events: "Future: cross-system event processing"
       }
     ]
   end
@@ -126,22 +127,28 @@ defmodule AshChatWeb.SystemDashboardLive do
         purpose: "GPT-4o chat completions"
       },
       %{
+        name: "Ollama Server",
+        status: check_ollama_status(),
+        endpoint: ollama_url(),
+        purpose: "Local LLM hosting (#{get_ollama_model_count()} models)"
+      },
+      %{
         name: "Neo4j Database", 
-        status: :unavailable,
+        status: :planned,
         endpoint: "10.1.2.200:7474",
-        purpose: "Graph storage (if needed)"
+        purpose: "Graph storage (future plans, not implemented yet)"
       },
       %{
         name: "HTTPoison",
-        status: :missing,
-        endpoint: "N/A",
-        purpose: "HTTP requests for image fetching"
+        status: :available,
+        endpoint: "Built-in dependency",
+        purpose: "HTTP requests (available but not actively used)"
       },
       %{
         name: "MCP Server",
-        status: :configured,
+        status: :experimental,
         endpoint: "Local process",
-        purpose: "Question display functionality"
+        purpose: "Question display (prototype phase)"
       }
     ]
   end
@@ -186,6 +193,108 @@ defmodule AshChatWeb.SystemDashboardLive do
       _ -> 0
     end
   end
+
+  defp ollama_url() do
+    Application.get_env(:langchain, :ollama_url, "http://10.1.2.200:11434")
+  end
+
+  defp check_ollama_status() do
+    try do
+      case HTTPoison.get("#{ollama_url()}/api/tags", [], timeout: 3000) do
+        {:ok, %HTTPoison.Response{status_code: 200}} -> :running
+        _ -> :unavailable
+      end
+    rescue
+      _ -> :unavailable
+    end
+  end
+
+  defp get_ollama_model_count() do
+    try do
+      case HTTPoison.get("#{ollama_url()}/api/tags", [], timeout: 3000) do
+        {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+          case Jason.decode(body) do
+            {:ok, %{"models" => models}} -> length(models)
+            _ -> 0
+          end
+        _ -> 0
+      end
+    rescue
+      _ -> 0
+    end
+  end
+
+  defp get_ollama_status() do
+    try do
+      running_models = get_ollama_running_models()
+      recent_models = get_ollama_recent_models()
+      
+      %{
+        running_models: running_models,
+        recent_models: recent_models,
+        total_models: get_ollama_model_count()
+      }
+    rescue
+      _ -> %{running_models: [], recent_models: [], total_models: 0}
+    end
+  end
+
+  defp get_ollama_running_models() do
+    try do
+      case HTTPoison.get("#{ollama_url()}/api/ps", [], timeout: 3000) do
+        {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+          case Jason.decode(body) do
+            {:ok, %{"models" => models}} ->
+              Enum.map(models, fn model ->
+                %{
+                  name: model["name"],
+                  size_vram: format_bytes(model["size_vram"] || 0),
+                  expires_at: model["expires_at"]
+                }
+              end)
+            _ -> []
+          end
+        _ -> []
+      end
+    rescue
+      _ -> []
+    end
+  end
+
+  defp get_ollama_recent_models() do
+    try do
+      case HTTPoison.get("#{ollama_url()}/api/tags", [], timeout: 3000) do
+        {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+          case Jason.decode(body) do
+            {:ok, %{"models" => models}} ->
+              models
+              |> Enum.sort_by(& &1["modified_at"], :desc)
+              |> Enum.take(5)
+              |> Enum.map(fn model ->
+                %{
+                  name: model["name"],
+                  size: format_bytes(model["size"] || 0),
+                  family: get_in(model, ["details", "family"]) || "unknown"
+                }
+              end)
+            _ -> []
+          end
+        _ -> []
+      end
+    rescue
+      _ -> []
+    end
+  end
+
+  defp format_bytes(bytes) when is_integer(bytes) do
+    cond do
+      bytes >= 1_000_000_000 -> "#{Float.round(bytes / 1_000_000_000, 1)}GB"
+      bytes >= 1_000_000 -> "#{Float.round(bytes / 1_000_000, 1)}MB"
+      bytes >= 1_000 -> "#{Float.round(bytes / 1_000, 1)}KB"
+      true -> "#{bytes}B"
+    end
+  end
+  defp format_bytes(_), do: "0B"
 
   @impl true
   def render(assigns) do
@@ -331,6 +440,66 @@ defmodule AshChatWeb.SystemDashboardLive do
         </ul>
       </div>
 
+      <!-- Ollama Status -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-6 py-4 border-b border-gray-200">
+          <h2 class="text-lg font-medium text-gray-900">Ollama Server Status</h2>
+        </div>
+        <div class="p-6 space-y-6">
+          <!-- Running Models -->
+          <div>
+            <h3 class="text-sm font-medium text-gray-700 mb-3">Running Models (<%= length(@ollama_status.running_models) %>)</h3>
+            <%= if @ollama_status.running_models == [] do %>
+              <p class="text-sm text-gray-500 italic">No models currently loaded in memory</p>
+            <% else %>
+              <div class="space-y-2">
+                <%= for model <- @ollama_status.running_models do %>
+                  <div class="flex justify-between items-center bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div>
+                      <div class="font-medium text-green-800"><%= model.name %></div>
+                      <div class="text-sm text-green-600">VRAM: <%= model.size_vram %></div>
+                    </div>
+                    <div class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">
+                      LOADED
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+
+          <!-- Recent Models -->
+          <div>
+            <h3 class="text-sm font-medium text-gray-700 mb-3">Recent Models (Top 5)</h3>
+            <div class="space-y-2">
+              <%= for model <- @ollama_status.recent_models do %>
+                <div class="flex justify-between items-center bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <div>
+                    <div class="font-medium text-gray-800"><%= model.name %></div>
+                    <div class="text-sm text-gray-600"><%= model.family %> • <%= model.size %></div>
+                  </div>
+                  <div class="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-semibold">
+                    AVAILABLE
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <!-- Summary Stats -->
+          <div class="border-t pt-4">
+            <div class="flex justify-between text-sm">
+              <span class="text-gray-600">Total Models:</span>
+              <span class="font-medium"><%= @ollama_status.total_models %></span>
+            </div>
+            <div class="flex justify-between text-sm mt-1">
+              <span class="text-gray-600">Server:</span>
+              <span class="font-medium">http://10.1.2.200:11434</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Quick Actions -->
       <div class="bg-white shadow rounded-lg p-6">
         <h2 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
@@ -355,7 +524,13 @@ defmodule AshChatWeb.SystemDashboardLive do
 
   defp status_color(:running), do: "bg-green-400"
   defp status_color(:active), do: "bg-green-400" 
+  defp status_color(:working), do: "bg-green-400"
+  defp status_color(:available), do: "bg-blue-400"
   defp status_color(:configured), do: "bg-blue-400"
+  defp status_color(:experimental), do: "bg-purple-400"
+  defp status_color(:planned), do: "bg-indigo-400"
+  defp status_color(:minimal), do: "bg-yellow-400"
+  defp status_color(:placeholder), do: "bg-gray-400"
   defp status_color(:idle), do: "bg-yellow-400"
   defp status_color(:stubbed), do: "bg-gray-400"
   defp status_color(:disabled), do: "bg-red-400"
@@ -364,7 +539,13 @@ defmodule AshChatWeb.SystemDashboardLive do
 
   defp status_badge_color(:running), do: "bg-green-100 text-green-800"
   defp status_badge_color(:active), do: "bg-green-100 text-green-800"
+  defp status_badge_color(:working), do: "bg-green-100 text-green-800"
+  defp status_badge_color(:available), do: "bg-blue-100 text-blue-800"
   defp status_badge_color(:configured), do: "bg-blue-100 text-blue-800"
+  defp status_badge_color(:experimental), do: "bg-purple-100 text-purple-800"
+  defp status_badge_color(:planned), do: "bg-indigo-100 text-indigo-800"
+  defp status_badge_color(:minimal), do: "bg-yellow-100 text-yellow-800"
+  defp status_badge_color(:placeholder), do: "bg-gray-100 text-gray-800"
   defp status_badge_color(:idle), do: "bg-yellow-100 text-yellow-800"
   defp status_badge_color(:stubbed), do: "bg-gray-100 text-gray-800"
   defp status_badge_color(:disabled), do: "bg-red-100 text-red-800"
