@@ -22,10 +22,14 @@ mix phx.server
 
 ## Access Points
 
-- **Event Inspector**: http://localhost:4000/events (main interface)
-- **API Health**: http://localhost:4000/api/events/health
-- **API Stats**: http://localhost:4000/api/events/stats
-- **Event Ingestion**: `POST http://localhost:4000/webhook/test`
+When running locally (default: localhost:4000):
+
+- **Event Inspector**: `/events` (main interface)
+- **API Health**: `/api/events/health`
+- **API Stats**: `/api/events/stats`
+- **Event Ingestion**: `POST /webhook/test`
+
+Full URLs: `http://localhost:4000{path}` when running in development mode.
 
 ## Quick Test
 
