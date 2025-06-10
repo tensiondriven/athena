@@ -252,6 +252,79 @@ Main Thread    Branch A       Branch B
 - Could start with simple two-column prototype
 - Full implementation would be a significant UX innovation
 
+## Fractal Work Decomposition MCP
+
+**Vision**: Lightweight list-making MCP that recursively breaks down complex work into agent-sized pieces and orchestrates parallel execution.
+
+### Core Concept
+- **Recursive decomposition**: Break down work until each piece is small enough for a single agent
+- **Agent spawning**: Automatically create agents to tackle individual work items
+- **Parallel orchestration**: Coordinate multiple agents working on decomposed tasks
+- **Result reassembly**: Intelligently merge agent outputs back into coherent deliverables
+- **Fractal scaling**: Works at any level - from simple todos to complex multi-week projects
+
+### Work Decomposition Engine
+- **Size estimation**: Automatically assess if work item is "agent-sized" (< 30 minutes)
+- **Smart breaking**: Use domain knowledge to decompose work logically
+- **Dependency tracking**: Identify which pieces can run in parallel vs sequentially
+- **Context preservation**: Ensure each agent gets sufficient context for their piece
+- **Quality gates**: Define completion criteria for each decomposed item
+
+### Agent Orchestration
+```
+Complex Task
+├── Subtask A (agent-sized) → Agent 1
+├── Subtask B (too big)
+│   ├── B.1 (agent-sized) → Agent 2
+│   └── B.2 (agent-sized) → Agent 3
+└── Subtask C (agent-sized) → Agent 4
+```
+
+### Technical Implementation
+- **Work queue management**: Track decomposed items and their status
+- **Agent lifecycle**: Spawn, monitor, and retire agents as needed
+- **Result aggregation**: Intelligent merging of agent outputs
+- **Progress tracking**: Real-time visibility into parallel work streams
+- **Failure handling**: Retry mechanisms and graceful degradation
+
+### Example Workflow
+```
+decompose_work "Build authentication system"
+  ├── "Design user schema" → Agent A
+  ├── "Implement login API" → Agent B  
+  ├── "Create registration flow" → Agent C
+  └── "Add password reset" → Agent D
+
+reassemble_results → Complete authentication system
+```
+
+### Advanced Features
+- **Dynamic rebalancing**: Redistribute work if agents finish early
+- **Cross-agent communication**: Enable agents to coordinate when needed
+- **Learning optimization**: Improve decomposition quality based on results
+- **Human oversight**: Optional approval gates for critical decomposition decisions
+- **Resource awareness**: Balance agent load based on available compute/API limits
+
+### Use Cases
+- **Complex feature development**: Break down large features into parallel workstreams
+- **Research projects**: Decompose investigation topics and run parallel research
+- **Code refactoring**: Split large refactors into independent, safe pieces
+- **Documentation generation**: Parallel creation of different doc sections
+- **Testing suites**: Decompose test coverage into parallel implementation tasks
+
+### Benefits
+- **Massive parallelization**: Turn sequential work into concurrent execution
+- **Optimal agent utilization**: Each agent works on appropriately-sized tasks
+- **Reduced human coordination overhead**: Automatic work distribution and tracking
+- **Faster completion**: Parallel execution dramatically reduces total time
+- **Quality through focus**: Agents can focus deeply on single, well-defined pieces
+
+### Implementation Priority
+- High - addresses fundamental bottleneck of sequential AI work
+- Could start with simple decomposition rules and single-agent testing
+- Massive potential for productivity multiplication once mature
+- Represents paradigm shift from single-agent to multi-agent collaboration
+
 ## Checklist Maker MCP
 
 **Concept**: Simple checklist/list management MCP tool for Claude Code sessions
