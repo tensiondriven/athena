@@ -192,6 +192,66 @@ expected_devices:
 - Best added after core collection and processing pipelines are solid
 - Could start with simple YAML config and basic health checks
 
+## Branching Chat Interface
+
+**Vision**: Multi-column chat interface inspired by iMessage + Logseq + git branching paradigms for exploring conversation threads with merge capabilities.
+
+### Core Interface Concept
+- **Click-to-branch**: Click on any message to spawn a new vertical column branching from that point
+- **Multiple choice suggestions**: Present branching options as selectable UI elements
+- **Column-based layout**: Each branch becomes a new column (like Logseq's block references)
+- **Merge back functionality**: Summarize branch conversations and merge insights back to main thread
+- **Git-like UI**: Visual representation of conversation branches and merge points
+
+### Branching Mechanics
+- **Temporal branching**: Branch from any point in conversation history
+- **Contextual inheritance**: New branches inherit full context up to branch point
+- **Independent evolution**: Each branch develops separately with its own conversation flow
+- **Cross-branch awareness**: Optional visibility of parallel branch developments
+
+### Technical Implementation
+- **Column persistence**: Branches persist across sessions for deep exploration
+- **API/MCP exposure**: Full branch contents accessible programmatically
+- **Merge algorithms**: Intelligent summarization of branch insights
+- **Context management**: Efficient handling of shared vs branch-specific context
+- **Real-time sync**: Live updates across branches and merge operations
+
+### UI/UX Design
+```
+Main Thread    Branch A       Branch B
+[msg 1]       [msg 1]        [msg 1] 
+[msg 2] ──────[msg 2]        [msg 2]
+[msg 3]       [branch A1]    [branch B1]
+[msg 4]       [branch A2]    [branch B2]
+[msg 5]       [merge back]   [exploring...]
+```
+
+### Use Cases
+- **Parallel exploration**: Test different approaches to same problem
+- **What-if scenarios**: Explore alternative conversation directions
+- **Deep dives**: Branch off for detailed investigation without losing main thread
+- **Collaborative thinking**: Multiple perspectives on same decision point
+- **Research organization**: Organize investigation branches by topic
+
+### API Integration
+- **Branch export**: Full conversation trees available via MCP
+- **Automated merging**: AI-powered summarization of branch insights
+- **Search across branches**: Query all conversation branches simultaneously
+- **Metadata tracking**: Branch creation time, depth, merge status
+
+### Benefits
+- **Non-linear thinking**: Support for exploratory conversation patterns
+- **Context preservation**: Never lose important discussion threads
+- **Parallel processing**: Multiple conversation threads without confusion
+- **Merge intelligence**: Systematic integration of scattered insights
+- **Research efficiency**: Organized exploration with return paths to main discussion
+
+### Implementation Priority
+- High - aligns with natural conversation exploration patterns
+- Requires sophisticated UI framework and state management
+- Could start with simple two-column prototype
+- Full implementation would be a significant UX innovation
+
 ## Checklist Maker MCP
 
 **Concept**: Simple checklist/list management MCP tool for Claude Code sessions
