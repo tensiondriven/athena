@@ -41,3 +41,7 @@ npm-debug.log
 # Development tools and temporary scripts
 send_to_claude.applescript
 
+# Personal configuration files (use .example as template)
+config/jonathan_setup.yaml
+config/*_setup.yaml
+

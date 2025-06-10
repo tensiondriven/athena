@@ -11,7 +11,50 @@ defmodule AshChat.AI.ChatAgent do
   alias AshChat.ContextManager
 
   def create_room() do
-    Room.create!(%{title: "New Multimodal Room"})
+    # Get default agent card (helpful assistant) or create one if none exists
+    agent_card = get_or_create_default_agent_card()
+    
+    Room.create!(%{
+      title: "New Chat Room",
+      agent_card_id: agent_card.id
+    })
+  end
+  
+  defp get_or_create_default_agent_card() do
+    case AshChat.Resources.AgentCard.read() do
+      {:ok, []} ->
+        # No agent cards exist, create a default one
+        {:ok, agent_card} = AshChat.Resources.AgentCard.create(%{
+          name: "Helpful Assistant",
+          description: "A friendly and helpful AI assistant",
+          system_message: "You are a helpful, friendly assistant. Always respond with enthusiasm and try to be as helpful as possible. Keep responses concise but informative.",
+          model_preferences: %{
+            temperature: 0.7,
+            max_tokens: 500
+          },
+          available_tools: [],
+          context_settings: %{
+            history_limit: 20,
+            include_room_metadata: true
+          },
+          is_default: true
+        })
+        agent_card
+      
+      {:ok, agent_cards} ->
+        # Use default agent card if available, otherwise use first one
+        Enum.find(agent_cards, & &1.is_default) || List.first(agent_cards)
+      
+      {:error, _} ->
+        # Fallback: create a simple default
+        {:ok, agent_card} = AshChat.Resources.AgentCard.create(%{
+          name: "Helpful Assistant",
+          description: "A friendly and helpful AI assistant", 
+          system_message: "You are a helpful AI assistant.",
+          is_default: true
+        })
+        agent_card
+    end
   end
 
   def send_text_message(room_id, content, user_id, role \\ :user) do

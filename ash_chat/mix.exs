@@ -63,7 +63,8 @@ defmodule AshChat.MixProject do
       {:igniter, "~> 0.6.4", only: :dev},
       {:logger_file_backend, "~> 0.0.13"},
       {:httpoison, "~> 2.0"},
-      {:dotenv, "~> 3.1", only: [:dev, :test]}
+      {:dotenv, "~> 3.1", only: [:dev, :test]},
+      {:yaml_elixir, "~> 2.10"}
     ]
   end
 

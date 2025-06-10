@@ -3,37 +3,39 @@ defmodule AshChatWeb.ChatLive do
   require Logger
 
   alias AshChat.AI.ChatAgent
-  alias AshChat.Resources.{Room, User, RoomMembership}
+  alias AshChat.Resources.{Room, User}
 
   @impl true
   def mount(_params, _session, socket) do
     # Load available users for demo - in production this would come from authentication
     users = load_available_users()
-    current_user = List.first(users) # Default to first user for demo
-    
-    # Create a new room session
-    room = ChatAgent.create_room()
+    current_user = case users do
+      [] -> 
+        # Auto-create Jonathan user if no users exist
+        case create_default_user() do
+          {:ok, user} -> user
+          {:error, _} -> nil
+        end
+      [user | _] -> user # Use first available user
+    end
     
     socket = 
       socket
-      |> assign(:room, room)
+      |> assign(:room, nil) # No room by default - user must create explicitly
       |> assign(:messages, [])
       |> assign(:current_message, "")
       |> assign(:system_prompt, "You are a helpful AI assistant.")
       |> assign(:processing, false)
-      |> assign(:page_title, "Ollama Room")
+      |> assign(:page_title, "AshChat")
       |> assign(:sidebar_expanded, true)
       |> assign(:rooms, load_rooms())
       |> assign(:show_hidden_rooms, false)
-      |> assign(:available_models, ["qwen2.5:latest", "llama3.2:latest", "mistral:latest"])
-      |> assign(:current_model, Map.get(room, :current_model, "qwen2.5:latest"))
+      |> assign(:loading_models, false)
+      |> assign(:current_loaded_model, AshChat.AI.InferenceConfig.get_current_ollama_model())
+      |> assign(:available_models, AshChat.AI.InferenceConfig.get_available_models("ollama"))
+      |> assign(:current_model, "current")
       |> assign(:available_users, users)
       |> assign(:current_user, current_user)
-
-    # Subscribe to room updates
-    if connected?(socket) do
-      Phoenix.PubSub.subscribe(AshChat.PubSub, "room:#{room.id}")
-    end
 
     {:ok, socket}
   end
@@ -44,11 +46,19 @@ defmodule AshChatWeb.ChatLive do
       {:ok, room} ->
         messages = ChatAgent.get_room_messages(room_id)
         
+        # Check if current user is a member of this room
+        is_member = if socket.assigns.current_user do
+          check_room_membership(socket.assigns.current_user.id, room_id)
+        else
+          false
+        end
+        
         socket = 
           socket
           |> assign(:room, room)
           |> assign(:messages, messages)
-          |> assign(:current_model, Map.get(room, :current_model, "qwen2.5:latest"))
+          |> assign(:current_model, "current")
+          |> assign(:is_room_member, is_member)
 
         {:noreply, socket}
       
@@ -63,52 +73,66 @@ defmodule AshChatWeb.ChatLive do
 
   @impl true
   def handle_event("send_message", %{"message" => %{"content" => content}}, socket) do
-    if String.trim(content) != "" do
-      socket = assign(socket, :processing, true)
-      
-      # Simple Ollama config with system prompt
-      config = %{
-        provider: "ollama",
-        model: socket.assigns.current_model,
-        temperature: 0.7,
-        stream: false,  # Disable streaming for now
-        system_prompt: socket.assigns.system_prompt
-      }
-      
-      # Send the message asynchronously
-      Task.start(fn ->
-        case ChatAgent.process_message_with_system_prompt(
-          socket.assigns.room.id, 
-          content,
-          socket.assigns.current_user.id,
-          config
-        ) do
-          {:ok, _ai_message} ->
-            Logger.info("Broadcasting message_processed for room #{socket.assigns.room.id}")
-            Phoenix.PubSub.broadcast(
-              AshChat.PubSub, 
-              "room:#{socket.assigns.room.id}", 
-              {:message_processed}
-            )
-          
-          {:error, error} ->
-            Logger.error("Broadcasting error for room #{socket.assigns.room.id}: #{error}")
-            Phoenix.PubSub.broadcast(
-              AshChat.PubSub, 
-              "room:#{socket.assigns.room.id}", 
-              {:error, error}
-            )
+    # Guard: Don't process messages if no room is selected, no user, or not a member
+    cond do
+      socket.assigns.room == nil ->
+        {:noreply, put_flash(socket, :error, "Please select a room first")}
+      socket.assigns.current_user == nil ->
+        {:noreply, put_flash(socket, :error, "No user selected - please refresh the page")}
+      !socket.assigns.is_room_member ->
+        {:noreply, put_flash(socket, :error, "You must join the room before sending messages")}
+      String.trim(content) == "" ->
+        {:noreply, socket}
+      true ->
+        socket = assign(socket, :processing, true)
+        
+        # Simple Ollama config with system prompt
+        default_config = AshChat.AI.InferenceConfig.default_config()
+        selected_model = case socket.assigns.current_model do
+          "current" -> socket.assigns.current_loaded_model || default_config.model
+          model -> model
         end
-      end)
+        
+        config = %{
+          provider: default_config.provider,
+          model: selected_model,
+          temperature: default_config.temperature,
+          stream: false,  # Disable streaming for now
+          system_prompt: socket.assigns.system_prompt
+        }
+        
+        # Send the message asynchronously
+        Task.start(fn ->
+          case ChatAgent.process_message_with_system_prompt(
+            socket.assigns.room.id, 
+            content,
+            socket.assigns.current_user.id,
+            config
+          ) do
+            {:ok, _ai_message} ->
+              Logger.info("Broadcasting message_processed for room #{socket.assigns.room.id}")
+              Phoenix.PubSub.broadcast(
+                AshChat.PubSub, 
+                "room:#{socket.assigns.room.id}", 
+                {:message_processed}
+              )
+            
+            {:error, error} ->
+              Logger.error("Broadcasting error for room #{socket.assigns.room.id}: #{error}")
+              Phoenix.PubSub.broadcast(
+                AshChat.PubSub, 
+                "room:#{socket.assigns.room.id}", 
+                {:error, error}
+              )
+          end
+        end)
 
-      socket = 
-        socket
-        |> assign(:current_message, "")
-        |> update_messages()
+        socket = 
+          socket
+          |> assign(:current_message, "")
+          |> update_messages()
 
-      {:noreply, socket}
-    else
-      {:noreply, socket}
+        {:noreply, socket}
     end
   end
 
@@ -127,11 +151,26 @@ defmodule AshChatWeb.ChatLive do
   
   def handle_event("create_room", _params, socket) do
     room = ChatAgent.create_room()
+    
+    # Auto-join the current user to the room as admin
+    if socket.assigns.current_user do
+      case AshChat.Resources.RoomMembership.create(%{
+        user_id: socket.assigns.current_user.id,
+        room_id: room.id,
+        role: "admin"
+      }) do
+        {:ok, _membership} -> :ok
+        {:error, error} -> 
+          Logger.warning("Failed to auto-join user to room: #{inspect(error)}")
+      end
+    end
+    
     socket = 
       socket
       |> assign(:room, room)
       |> assign(:messages, [])
       |> assign(:rooms, load_rooms())
+      |> assign(:is_room_member, true)  # User just joined as admin
       |> push_navigate(to: ~p"/chat/#{room.id}")
     
     {:noreply, socket}
@@ -151,22 +190,130 @@ defmodule AshChatWeb.ChatLive do
     end
   end
   
+  def handle_event("delete_room", %{"room-id" => room_id}, socket) do
+    case Room.destroy(room_id) do
+      {:ok, _} ->
+        # If we're currently in the deleted room, redirect to chat home
+        socket = if socket.assigns.room && socket.assigns.room.id == room_id do
+          socket
+          |> assign(:room, nil)
+          |> assign(:messages, [])
+          |> assign(:is_room_member, false)
+          |> push_navigate(to: ~p"/chat")
+        else
+          socket
+        end
+        
+        socket = assign(socket, :rooms, load_rooms())
+        {:noreply, put_flash(socket, :info, "Room deleted successfully")}
+      {:error, error} ->
+        {:noreply, put_flash(socket, :error, "Failed to delete room: #{inspect(error)}")}
+    end
+  end
+  
   def handle_event("toggle_hidden_rooms", _params, socket) do
     {:noreply, assign(socket, :show_hidden_rooms, !socket.assigns.show_hidden_rooms)}
   end
   
   def handle_event("change_model", %{"model" => model}, socket) do
-    # Update the room's model
-    case Room.update(socket.assigns.room.id, %{current_model: model}) do
-      {:ok, room} ->
-        socket = 
-          socket
-          |> assign(:room, room)
-          |> assign(:current_model, model)
-        {:noreply, socket}
-      _ ->
+    {:noreply, assign(socket, :current_model, model)}
+  end
+
+  def handle_event("refresh_models", _params, socket) do
+    socket = assign(socket, :loading_models, true)
+    
+    # Start async task to fetch models
+    Task.start(fn ->
+      current_loaded = AshChat.AI.InferenceConfig.get_current_ollama_model()
+      available_models = AshChat.AI.InferenceConfig.get_available_models("ollama")
+      
+      send(self(), {:models_refreshed, current_loaded, available_models})
+    end)
+    
+    {:noreply, socket}
+  end
+  
+  def handle_event("reset_demo_data", _params, socket) do
+    try do
+      # Reset all demo data
+      AshChat.Setup.reset_demo_data()
+      
+      # Reload everything
+      users = load_available_users()
+      current_user = case users do
+        [] -> nil
+        [user | _] -> user
+      end
+      
+      socket = 
+        socket
+        |> assign(:room, nil)
+        |> assign(:messages, [])
+        |> assign(:rooms, load_rooms())
+        |> assign(:available_users, users)
+        |> assign(:current_user, current_user)
+        |> assign(:is_room_member, false)
+        |> push_navigate(to: ~p"/chat")
+        |> put_flash(:info, "Demo data reset successfully! New rooms and users created.")
+      
+      {:noreply, socket}
+    rescue
+      error ->
+        {:noreply, put_flash(socket, :error, "Failed to reset demo data: #{inspect(error)}")}
+    end
+  end
+
+  def handle_event("add_user_to_room", %{"user-id" => user_id}, socket) do
+    if socket.assigns.room do
+      case AshChat.Resources.RoomMembership.create(%{user_id: user_id, room_id: socket.assigns.room.id, role: "member"}) do
+        {:ok, _membership} ->
+          {:noreply, put_flash(socket, :info, "User added to room successfully")}
+        {:error, _} ->
+          {:noreply, put_flash(socket, :error, "Failed to add user to room")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "No room selected")}
+    end
+  end
+
+  def handle_event("join_room", _params, socket) do
+    if socket.assigns.room && socket.assigns.current_user do
+      case AshChat.Resources.RoomMembership.create(%{
+        user_id: socket.assigns.current_user.id, 
+        room_id: socket.assigns.room.id, 
+        role: "member"
+      }) do
+        {:ok, _membership} ->
+          socket = 
+            socket
+            |> assign(:is_room_member, true)
+            |> put_flash(:info, "Welcome to the room! You can now send messages.")
+          {:noreply, socket}
+        {:error, _} ->
+          {:noreply, put_flash(socket, :error, "Failed to join room (you may already be a member)")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "No room or user selected")}
+    end
+  end
+
+  def handle_event("add_myself_to_room", _params, socket) do
+    # Redirect to join_room for consistency
+    handle_event("join_room", %{}, socket)
+  end
+
+  def handle_event("switch_user", %{"user-id" => user_id}, socket) do
+    case User.get(user_id) do
+      {:ok, user} ->
+        {:noreply, assign(socket, :current_user, user)}
+      {:error, _} ->
         {:noreply, socket}
     end
+  end
+
+  # Catch-all for unhandled events
+  def handle_event(_event, _params, socket) do
+    {:noreply, socket}
   end
 
   @impl true
@@ -176,6 +323,17 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:processing, false)
       |> update_messages()
 
+    {:noreply, socket}
+  end
+
+  def handle_info({:models_refreshed, current_loaded, available_models}, socket) do
+    socket = 
+      socket
+      |> assign(:loading_models, false)
+      |> assign(:current_loaded_model, current_loaded)
+      |> assign(:available_models, available_models)
+      |> assign(:current_model, "current")  # Reset to current model option
+    
     {:noreply, socket}
   end
 
@@ -189,8 +347,12 @@ defmodule AshChatWeb.ChatLive do
   end
 
   defp update_messages(socket) do
-    messages = ChatAgent.get_room_messages(socket.assigns.room.id)
-    assign(socket, :messages, messages)
+    if socket.assigns.room == nil do
+      assign(socket, :messages, [])
+    else
+      messages = ChatAgent.get_room_messages(socket.assigns.room.id)
+      assign(socket, :messages, messages)
+    end
   end
   
   # Helper functions
@@ -225,24 +387,26 @@ defmodule AshChatWeb.ChatLive do
     end
   end
 
-  # Add user switching event handler
-  def handle_event("switch_user", %{"user-id" => user_id}, socket) do
-    case User.get(user_id) do
-      {:ok, user} ->
-        {:noreply, assign(socket, :current_user, user)}
-      {:error, _} ->
-        {:noreply, socket}
+  defp create_default_user do
+    User.create(%{
+      name: "Jonathan",
+      display_name: "Jonathan", 
+      email: "jonathan@athena.local",
+      is_active: true,
+      preferences: %{
+        "theme" => "system",
+        "notification_level" => "all"
+      }
+    })
+  end
+
+  defp check_room_membership(user_id, room_id) do
+    case AshChat.Resources.RoomMembership.for_user_and_room(%{user_id: user_id, room_id: room_id}) do
+      {:ok, [_membership | _]} -> true
+      _ -> false
     end
   end
 
-  # Add room membership validation helper
-  defp validate_user_room_access(user_id, room_id) do
-    case RoomMembership.for_user_and_room(%{user_id: user_id, room_id: room_id}) do
-      {:ok, [_membership | _]} -> :ok
-      {:ok, []} -> {:error, :not_member}
-      {:error, error} -> {:error, error}
-    end
-  end
 
   @impl true
   def render(assigns) do
@@ -298,38 +462,75 @@ defmodule AshChatWeb.ChatLive do
           </button>
           
           <!-- Room List Items -->
-          <%= for room <- filter_rooms(@rooms, @show_hidden_rooms) do %>
-            <div 
-              phx-click="select_room" 
-              phx-value-room-id={room.id}
-              class={[
-                "p-3 mb-1 rounded-lg cursor-pointer transition-colors group",
-                if(@room && @room.id == room.id, 
-                   do: "bg-blue-50 border border-blue-200",
-                   else: "hover:bg-gray-50")
-              ]}
-            >
-              <div class="flex justify-between items-center">
-                <span class={[
-                  "text-sm font-medium",
-                  if(@room && @room.id == room.id, do: "text-blue-700", else: "text-gray-700")
-                ]}>
-                  <%= room.title %>
-                </span>
-                <button 
-                  phx-click="hide_room" 
-                  phx-value-room-id={room.id}
-                  class="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-all"
-                >
-                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
-                  </svg>
-                </button>
+          <% filtered_rooms = filter_rooms(@rooms, @show_hidden_rooms) %>
+          <%= if Enum.empty?(filtered_rooms) do %>
+            <!-- No Rooms Billboard -->
+            <div class="text-center py-8 px-4">
+              <div class="mb-4">
+                <svg class="w-16 h-16 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z"></path>
+                </svg>
               </div>
-              <span class="text-xs text-gray-500">
-                <%= Calendar.strftime(room.created_at, "%b %d, %I:%M %p") %>
-              </span>
+              <h3 class="text-sm font-medium text-gray-700 mb-2">No rooms yet</h3>
+              <p class="text-xs text-gray-500 mb-4">Create your first room to start chatting with AI characters</p>
+              <button 
+                phx-click="create_room"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Create Your First Room
+              </button>
             </div>
+          <% else %>
+            <%= for room <- filtered_rooms do %>
+              <div 
+                phx-click="select_room" 
+                phx-value-room-id={room.id}
+                class={[
+                  "p-3 mb-1 rounded-lg cursor-pointer transition-colors group",
+                  if(@room && @room.id == room.id, 
+                     do: "bg-blue-50 border border-blue-200",
+                     else: "hover:bg-gray-50")
+                ]}
+              >
+                <div class="flex justify-between items-center">
+                  <span class={[
+                    "text-sm font-medium flex-1",
+                    if(@room && @room.id == room.id, do: "text-blue-700", else: "text-gray-700")
+                  ]}>
+                    <%= room.title %>
+                  </span>
+                  <div class="opacity-0 group-hover:opacity-100 flex gap-1">
+                    <button 
+                      phx-click="hide_room" 
+                      phx-value-room-id={room.id}
+                      class="p-1 hover:bg-gray-200 rounded transition-all"
+                      title="Hide room"
+                    >
+                      <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                      </svg>
+                    </button>
+                    <button 
+                      phx-click="delete_room" 
+                      phx-value-room-id={room.id}
+                      class="p-1 hover:bg-red-100 rounded transition-all"
+                      title="Delete room"
+                      onclick="return confirm('Are you sure you want to delete this room? This action cannot be undone.')"
+                    >
+                      <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                <span class="text-xs text-gray-500">
+                  <%= Calendar.strftime(room.created_at, "%b %d, %I:%M %p") %>
+                </span>
+              </div>
+            <% end %>
           <% end %>
           
           <!-- Show Hidden Toggle -->
@@ -349,18 +550,87 @@ defmodule AshChatWeb.ChatLive do
         
         <!-- Model Selector Panel -->
         <div class="p-4 border-t border-gray-200">
-          <label class="block text-sm font-medium text-gray-700 mb-2">AI Model</label>
+          <div class="flex justify-between items-center mb-2">
+            <label class="block text-sm font-medium text-gray-700">AI Model</label>
+            <button 
+              phx-click="refresh_models"
+              class={"text-xs hover:text-blue-800 #{if @loading_models, do: "text-gray-400 cursor-not-allowed", else: "text-blue-600"}"}
+              title="Refresh model list"
+              disabled={@loading_models}
+            >
+              <%= if @loading_models do %>
+                ⏳ Loading...
+              <% else %>
+                🔄 Refresh
+              <% end %>
+            </button>
+          </div>
           <select 
             phx-change="change_model"
             name="model"
             class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={@loading_models}
           >
+            <!-- Current Model Option (always first) -->
+            <option value="current" selected={@current_model == "current"}>
+              Current Model (<%= @current_loaded_model || "None" %>)
+            </option>
+            
+            <!-- Available Models -->
             <%= for model <- @available_models do %>
               <option value={model} selected={model == @current_model}>
                 <%= model %>
               </option>
             <% end %>
           </select>
+        </div>
+
+        <!-- User Management Panel -->
+        <%= if @room do %>
+          <div class="p-4 border-t border-gray-200">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Room Membership</label>
+            
+            <!-- Add yourself to room button -->
+            <%= if @current_user do %>
+              <div class="mb-3">
+                <button 
+                  phx-click="add_myself_to_room"
+                  class="w-full text-sm bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600"
+                >
+                  ➕ Add Myself to Room
+                </button>
+              </div>
+            <% end %>
+            
+            <!-- Add other users -->
+            <div class="space-y-2">
+              <label class="block text-xs font-medium text-gray-600">Add Other Users:</label>
+              <%= for user <- @available_users do %>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm"><%= user.display_name %></span>
+                  <button 
+                    phx-click="add_user_to_room"
+                    phx-value-user-id={user.id}
+                    class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
+                  >
+                    Add
+                  </button>
+                </div>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+        
+        <!-- Reset Panel -->
+        <div class="p-4 border-t border-gray-200">
+          <button 
+            phx-click="reset_demo_data"
+            class="w-full text-sm bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600 transition-colors"
+            onclick="return confirm('Are you sure you want to reset all data? This will delete all rooms, messages, and users and create fresh demo data.')"
+            title="Reset all data and create fresh demo setup"
+          >
+            🔄 Reset Demo Data
+          </button>
         </div>
       </div>
       
@@ -378,90 +648,122 @@ defmodule AshChatWeb.ChatLive do
       
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col">
-        <!-- Room Header -->
-        <div class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-          <div>
-            <h1 class="text-xl font-semibold text-gray-900"><%= @room.title %></h1>
-            <p class="text-sm text-gray-500">Using <%= @current_model %></p>
+        <%= if @room do %>
+          <!-- Room Header -->
+          <div class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+            <div>
+              <h1 class="text-xl font-semibold text-gray-900"><%= @room.title %></h1>
+              <p class="text-sm text-gray-500">Using <%= @current_model %></p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button 
+                phx-click="show_system_prompt"
+                class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                title="System Prompt"
+              >
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+              </button>
+            </div>
           </div>
-          <div class="flex items-center gap-2">
-            <button 
-              phx-click="show_system_prompt"
-              class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              title="System Prompt"
-            >
-              <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              </svg>
-            </button>
+        <% else %>
+          <!-- No Room Selected Header -->
+          <div class="bg-white border-b border-gray-200 px-6 py-4">
+            <h1 class="text-xl font-semibold text-gray-900">Welcome to AshChat</h1>
+            <p class="text-sm text-gray-500">Select or create a room to start chatting</p>
           </div>
-        </div>
+        <% end %>
 
-        <!-- Messages Area -->
-        <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
-          <%= for message <- @messages do %>
-            <div class={[
-              "flex",
-              if(message.role == :user, do: "justify-end", else: "justify-start")
-            ]}>
+        <%= if @room do %>
+          <!-- Messages Area -->
+          <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+            <%= for message <- @messages do %>
               <div class={[
-                "max-w-xs lg:max-w-md px-4 py-2 rounded-lg",
-                if(message.role == :user, 
-                   do: "bg-blue-500 text-white", 
-                   else: "bg-white text-gray-900 border border-gray-200")
+                "flex",
+                if(message.role == :user, do: "justify-end", else: "justify-start")
               ]}>
-                <p class="text-sm whitespace-pre-wrap"><%= message.content %></p>
                 <div class={[
-                  "text-xs mt-1",
-                  if(message.role == :user, do: "text-blue-100", else: "text-gray-500")
+                  "max-w-xs lg:max-w-md px-4 py-2 rounded-lg",
+                  if(message.role == :user, 
+                     do: "bg-blue-500 text-white", 
+                     else: "bg-white text-gray-900 border border-gray-200")
                 ]}>
-                  <%= Calendar.strftime(message.created_at, "%I:%M %p") %>
+                  <p class="text-sm whitespace-pre-wrap"><%= message.content %></p>
+                  <div class={[
+                    "text-xs mt-1",
+                    if(message.role == :user, do: "text-blue-100", else: "text-gray-500")
+                  ]}>
+                    <%= Calendar.strftime(message.created_at, "%I:%M %p") %>
+                  </div>
                 </div>
               </div>
-            </div>
-          <% end %>
+            <% end %>
 
-          <%= if @processing do %>
-            <div class="flex justify-start">
-              <div class="bg-white text-gray-900 border border-gray-200 max-w-xs lg:max-w-md px-4 py-2 rounded-lg">
-                <div class="flex items-center space-x-2">
-                  <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                  <span class="text-sm">AI is thinking...</span>
+            <%= if @processing do %>
+              <div class="flex justify-start">
+                <div class="bg-white text-gray-900 border border-gray-200 max-w-xs lg:max-w-md px-4 py-2 rounded-lg">
+                  <div class="flex items-center space-x-2">
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                    <span class="text-sm">AI is thinking...</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          <% end %>
-        </div>
+            <% end %>
+          </div>
 
-        <!-- Message Input -->
-        <div class="bg-white border-t border-gray-200 px-6 py-4">
-          <.form 
-            for={%{}}
-            as={:message}
-            id="message-form"
-            phx-submit="send_message"
-            phx-change="validate_message"
-            class="flex space-x-2"
-          >
-            <.input
-              type="text"
-              name="message[content]"
-              value={@current_message}
-              placeholder="Type your message..."
-              class="flex-1"
-              disabled={@processing}
-            />
-            
-            <button
-              type="submit"
-              disabled={@processing or String.trim(@current_message) == ""}
-              class="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition-colors"
+          <!-- Message Input -->
+          <div class="bg-white border-t border-gray-200 px-6 py-4">
+            <.form 
+              for={%{}}
+              as={:message}
+              id="message-form"
+              phx-submit="send_message"
+              phx-change="validate_message"
+              class="flex space-x-2"
             >
-              Send
-            </button>
-          </.form>
-        </div>
+              <.input
+                type="text"
+                name="message[content]"
+                value={@current_message}
+                placeholder="Type your message..."
+                class="flex-1"
+                disabled={@processing}
+              />
+              
+              <button
+                type="submit"
+                disabled={@processing or String.trim(@current_message) == ""}
+                class="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition-colors"
+              >
+                Send
+              </button>
+            </.form>
+          </div>
+        <% else %>
+          <!-- No Room Selected Content -->
+          <div class="flex-1 flex items-center justify-center bg-gray-50">
+            <div class="text-center max-w-md">
+              <div class="mb-6">
+                <svg class="w-20 h-20 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+              </div>
+              <h2 class="text-xl font-semibold text-gray-700 mb-3">Ready to start chatting?</h2>
+              <p class="text-gray-500 mb-6">Create a new room or select an existing one from the sidebar to begin your conversation with AI characters.</p>
+              <button 
+                phx-click="create_room"
+                class="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                Create New Room
+              </button>
+            </div>
+          </div>
+        <% end %>
       </div>
     </div>
     """

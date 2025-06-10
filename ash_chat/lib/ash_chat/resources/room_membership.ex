@@ -66,6 +66,12 @@ defmodule AshChat.Resources.RoomMembership do
       filter expr(room_id == ^arg(:room_id) and is_active == true)
     end
 
+    read :for_user_and_room do
+      argument :user_id, :uuid, allow_nil?: false
+      argument :room_id, :uuid, allow_nil?: false
+      filter expr(user_id == ^arg(:user_id) and room_id == ^arg(:room_id) and is_active == true)
+    end
+
     update :update_last_seen do
       accept []
       change set_attribute(:last_seen_at, &DateTime.utc_now/0)
@@ -101,6 +107,7 @@ defmodule AshChat.Resources.RoomMembership do
     define :destroy
     define :for_user
     define :for_room
+    define :for_user_and_room
     define :update_last_seen
     define :promote_to_moderator
     define :promote_to_admin

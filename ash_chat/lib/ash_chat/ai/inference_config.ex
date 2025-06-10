@@ -27,10 +27,52 @@ defmodule AshChat.AI.InferenceConfig do
   end
 
   def get_available_models(provider_id) do
-    case get_provider_config(provider_id) do
-      %{models: models} -> models
-      _ -> []
+    case provider_id do
+      "ollama" -> fetch_ollama_models()
+      _ ->
+        case get_provider_config(provider_id) do
+          %{models: models} -> models
+          _ -> []
+        end
     end
+  end
+
+  def fetch_ollama_models do
+    base_url = Application.get_env(:langchain, :ollama_url, "http://10.1.2.200:11434")
+    url = "#{base_url}/api/tags"
+    
+    case HTTPoison.get(url, [], timeout: 5000, recv_timeout: 5000) do
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+        case Jason.decode(body) do
+          {:ok, %{"models" => models}} ->
+            Enum.map(models, fn model -> model["name"] end)
+          _ -> [@default_config.model]
+        end
+      _ -> 
+        [@default_config.model]
+    end
+  rescue
+    _ -> [@default_config.model]
+  end
+
+  def get_current_ollama_model do
+    base_url = Application.get_env(:langchain, :ollama_url, "http://10.1.2.200:11434")
+    url = "#{base_url}/api/ps"
+    
+    case HTTPoison.get(url, [], timeout: 5000, recv_timeout: 5000) do
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+        case Jason.decode(body) do
+          {:ok, %{"models" => []}} -> nil
+          {:ok, %{"models" => [model | _]}} -> model["name"]
+          {:ok, %{"models" => models}} when is_list(models) and length(models) > 0 ->
+            # Get the most recently used model (first in list)
+            List.first(models)["name"]
+          _ -> nil
+        end
+      _ -> nil
+    end
+  rescue
+    _ -> nil
   end
 
   def validate_config(config) do

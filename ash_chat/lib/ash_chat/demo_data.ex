@@ -3,11 +3,12 @@ defmodule AshChat.DemoData do
   Creates demo data for Characters and PromptTemplates to showcase the system.
   """
   
-  alias AshChat.Resources.{Character, PromptTemplate}
+  alias AshChat.Resources.{Character, PromptTemplate, User, Room, RoomMembership}
   
   def seed_all do
     seed_prompt_templates()
     seed_characters()
+    seed_jonathan_setup()
   end
   
   def seed_prompt_templates do
@@ -213,8 +214,135 @@ defmodule AshChat.DemoData do
     end)
   end
   
+  def seed_jonathan_setup do
+    # Load configuration from YAML
+    config_path = Path.join([Application.app_dir(:ash_chat), "priv", "config", "jonathan_setup.yaml"])
+    config = case YamlElixir.read_from_file(config_path) do
+      {:ok, data} -> data
+      {:error, _} -> 
+        # Fallback to local config path if priv doesn't exist
+        local_path = Path.join(["config", "jonathan_setup.yaml"])
+        case YamlElixir.read_from_file(local_path) do
+          {:ok, data} -> data
+          {:error, error} -> 
+            IO.puts("Failed to load YAML config: #{inspect(error)}")
+            raise "Could not load jonathan_setup.yaml"
+        end
+    end
+    
+    # Find or create Jonathan as a User (idempotent)
+    user_config = config["user"]
+    jonathan_user = case User.read!() |> Enum.find(&(&1.email == user_config["email"])) do
+      nil ->
+        jonathan_user_data = %{
+          name: user_config["name"],
+          display_name: user_config["display_name"],
+          email: user_config["email"],
+          preferences: user_config["preferences"],
+          is_active: user_config["is_active"]
+        }
+        
+        case User.create(jonathan_user_data) do
+          {:ok, user} -> 
+            IO.puts("Created user: #{user.display_name}")
+            user
+          {:error, error} -> 
+            IO.puts("Failed to create user #{user_config["name"]}: #{inspect(error)}")
+            nil
+        end
+      
+      existing_user ->
+        IO.puts("Found existing user: #{existing_user.display_name}")
+        existing_user
+    end
+    
+    # Create characters from config (idempotent)
+    _characters = Enum.map(config["characters"], fn char_config ->
+      case Character.read!() |> Enum.find(&(&1.name == char_config["name"])) do
+        nil ->
+          character_data = %{
+            sillytavern_data: char_config["sillytavern_data"],
+            name: char_config["name"],
+            description: char_config["description"],
+            personality: char_config["personality"],
+            first_message: char_config["first_message"],
+            scenario: char_config["scenario"],
+            tags: char_config["tags"],
+            is_active: char_config["is_active"]
+          }
+          
+          case Character.create(character_data) do
+            {:ok, character} -> 
+              IO.puts("Created character: #{character.name}")
+              character
+            {:error, error} -> 
+              IO.puts("Failed to create character #{char_config["name"]}: #{inspect(error)}")
+              nil
+          end
+        
+        existing_character ->
+          IO.puts("Found existing character: #{existing_character.name}")
+          existing_character
+      end
+    end)
+    
+    # Optionally create room if configured (idempotent)
+    case config["room"] do
+      nil ->
+        IO.puts("No room configured - rooms will be created explicitly by user")
+      
+      room_config ->
+        room = case Room.read!() |> Enum.find(&(&1.title == room_config["title"])) do
+          nil ->
+            room_data = %{
+              title: room_config["title"],
+              starting_message: room_config["starting_message"],
+              hidden: room_config["hidden"]
+            }
+            
+            case Room.create(room_data) do
+              {:ok, room} -> 
+                IO.puts("Created room: #{room.title}")
+                room
+              {:error, error} -> 
+                IO.puts("Failed to create room: #{inspect(error)}")
+                nil
+            end
+          
+          existing_room ->
+            IO.puts("Found existing room: #{existing_room.title}")
+            existing_room
+        end
+        
+        # Add user to the room if not already a member
+        if jonathan_user && room && config["membership"] do
+          existing_membership = RoomMembership.read!() 
+            |> Enum.find(&(&1.user_id == jonathan_user.id && &1.room_id == room.id && &1.is_active))
+          
+          case existing_membership do
+            nil ->
+              membership_config = config["membership"]
+              case RoomMembership.create(%{user_id: jonathan_user.id, room_id: room.id, role: membership_config["role"]}) do
+                {:ok, _membership} -> 
+                  IO.puts("Added #{user_config["name"]} to the room as #{membership_config["role"]}")
+                {:error, error} -> 
+                  IO.puts("Failed to add #{user_config["name"]} to room: #{inspect(error)}")
+              end
+            
+            _existing ->
+              IO.puts("#{user_config["name"]} is already a member of the room")
+          end
+        end
+    end
+    
+    IO.puts("Setup complete! User created, characters defined, and collaborative room established.")
+  end
+  
   def clear_all do
     # Clear existing demo data (useful for development)
+    RoomMembership.read!() |> Enum.each(&RoomMembership.destroy/1)
+    Room.read!() |> Enum.each(&Room.destroy/1)
+    User.read!() |> Enum.each(&User.destroy/1)
     PromptTemplate.read!() |> Enum.each(&PromptTemplate.destroy/1)
     Character.read!() |> Enum.each(&Character.destroy/1)
     IO.puts("Cleared all demo data")

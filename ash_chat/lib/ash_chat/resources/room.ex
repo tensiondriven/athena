@@ -13,7 +13,9 @@ defmodule AshChat.Resources.Room do
     attribute :hidden, :boolean, default: false
     attribute :parent_room_id, :uuid
     attribute :agent_card_id, :uuid
-    attribute :current_model, :string, default: "qwen2.5:latest"
+    attribute :starting_message, :string do
+      description "Optional context or introductory message that appears at the beginning of the room"
+    end
     create_timestamp :created_at
     update_timestamp :updated_at
   end
@@ -52,7 +54,7 @@ defmodule AshChat.Resources.Room do
     defaults [:read, :update, :destroy]
 
     create :create do
-      accept [:title, :parent_room_id, :agent_card_id, :current_model]
+      accept [:title, :parent_room_id, :agent_card_id, :starting_message, :hidden]
     end
     
     read :get do
