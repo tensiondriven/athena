@@ -388,6 +388,73 @@ defmodule AshChatWeb.ChatLive do
     {:noreply, assign(socket, :selected_template, template_name)}
   end
 
+  def handle_event("export_agent", %{"agent_id" => agent_id}, socket) do
+    case Ash.get(AshChat.Resources.AgentCard, agent_id) do
+      {:ok, agent_card} ->
+        export_data = %{
+          name: agent_card.name,
+          description: agent_card.description,
+          system_message: agent_card.system_message,
+          model_preferences: agent_card.model_preferences,
+          context_settings: agent_card.context_settings,
+          available_tools: agent_card.available_tools,
+          exported_at: DateTime.utc_now() |> DateTime.to_iso8601(),
+          version: "1.0"
+        }
+        
+        json_data = Jason.encode!(export_data, pretty: true)
+        filename = "#{String.downcase(String.replace(agent_card.name, ~r/[^a-zA-Z0-9]/, "_"))}_agent.json"
+        
+        socket = 
+          socket
+          |> push_event("download", %{filename: filename, content: json_data, type: "application/json"})
+          |> put_flash(:info, "Agent configuration exported successfully!")
+        
+        {:noreply, socket}
+      
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, "Failed to export agent")}
+    end
+  end
+
+  def handle_event("import_agent", %{"file_content" => file_content}, socket) do
+    try do
+      import_data = Jason.decode!(file_content)
+      
+      # Validate required fields
+      required_fields = ["name", "system_message"]
+      missing_fields = Enum.filter(required_fields, &(!Map.has_key?(import_data, &1)))
+      
+      if Enum.empty?(missing_fields) do
+        case AshChat.Resources.AgentCard.create(%{
+          name: import_data["name"],
+          description: import_data["description"] || "",
+          system_message: import_data["system_message"],
+          model_preferences: import_data["model_preferences"] || %{temperature: 0.7, max_tokens: 500},
+          context_settings: import_data["context_settings"] || %{history_limit: 20, include_room_metadata: true},
+          available_tools: import_data["available_tools"] || []
+        }) do
+          {:ok, new_agent} ->
+            socket = 
+              socket
+              |> put_flash(:info, "Agent \"#{new_agent.name}\" imported successfully!")
+            
+            {:noreply, socket}
+          
+          {:error, _error} ->
+            {:noreply, put_flash(socket, :error, "Failed to create imported agent")}
+        end
+      else
+        {:noreply, put_flash(socket, :error, "Invalid agent file: missing #{Enum.join(missing_fields, ", ")}")}
+      end
+    rescue
+      Jason.DecodeError ->
+        {:noreply, put_flash(socket, :error, "Invalid JSON file format")}
+      error ->
+        {:noreply, put_flash(socket, :error, "Import failed: #{inspect(error)}")}
+    end
+  end
+
   def handle_event("create_new_agent", %{"agent" => agent_params}, socket) do
     case AshChat.Resources.AgentCard.create(%{
       name: agent_params["name"],
@@ -1169,9 +1236,20 @@ defmodule AshChatWeb.ChatLive do
                           Temp: <%= Map.get(agent_card.model_preferences || %{}, "temperature", "0.7") %>
                         </div>
                         
-                        <%= if agent_card.is_default do %>
-                          <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Default</span>
-                        <% end %>
+                        <div class="flex items-center gap-2">
+                          <button 
+                            phx-click="export_agent"
+                            phx-value-agent_id={agent_card.id}
+                            class="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded transition-colors"
+                            title="Export agent configuration"
+                          >
+                            📤 Export
+                          </button>
+                          
+                          <%= if agent_card.is_default do %>
+                            <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Default</span>
+                          <% end %>
+                        </div>
                       </div>
                     </div>
                   <% end %>
