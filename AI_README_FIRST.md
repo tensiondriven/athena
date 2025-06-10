@@ -11,12 +11,13 @@ cat AI_COLLABORATION_PROTOCOL.md
 
 ## Project Overview
 
-**Athena** is an AI-assisted development archaeology project featuring:
+**Athena** is an AI collaboration research platform that demonstrates **conversation archaeology** - the complete preservation of AI development consciousness alongside code:
 
 - **Multi-user chat system** with agent cards and room hierarchy
-- **Conversation archaeology** - complete development decision preservation  
-- **Real-time event processing** with LiveView interfaces
-- **Hardware integration** for cameras and sensors
+- **Conversation archaeology** - every decision traceable to its original context
+- **Complete development consciousness** preserved in 90 conversation files (50MB)
+- **Proven collaboration patterns** for effective AI-human partnerships
+- **Hardware integration** (cameras, sensors) as practical testbed
 
 ## Immediate Context
 
