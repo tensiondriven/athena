@@ -17,6 +17,9 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "USAGE:"
     echo "  $0              Start continuous monitoring (default)"
     echo "  $0 --once       Check once and exit"
+    echo "  $0 --disable    Disable error notifications"
+    echo "  $0 --enable     Enable error notifications"
+    echo "  $0 --status     Check if notifications are enabled"
     echo "  $0 --help       Show this help"
     echo ""
     echo "DESCRIPTION:"
@@ -26,9 +29,14 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "  room current_model accordingly. Notifications include error context"
     echo "  like module and line numbers when available."
     echo ""
+    echo "  The watchdog can be disabled by creating a lockfile (watchdog_disabled.lock)"
+    echo "  in the current directory. Use --disable and --enable commands to manage this."
+    echo ""
     echo "EXAMPLES:"
     echo "  $0              # Start watching in background"
     echo "  $0 --once       # Check current log once"
+    echo "  $0 --disable    # Disable notifications"
+    echo "  $0 --enable     # Re-enable notifications"
     echo ""
     echo "RATE LIMITING:"
     echo "  Max ${MAX_NOTIFICATIONS_PER_MINUTE} notifications per minute"
@@ -40,6 +48,7 @@ fi
 ERROR_LOG="tmp/error.log"
 LAST_LINE_FILE=".error_watchdog_last"
 RECENT_MESSAGES_FILE=".error_watchdog_recent"
+LOCKFILE="watchdog_disabled.lock"
 MAX_NOTIFICATIONS_PER_MINUTE=5
 DUPLICATE_WINDOW=30  # seconds
 OLLAMA_API_URL="http://localhost:11434"
@@ -49,6 +58,32 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
+
+# Handle command line arguments
+if [[ "$1" == "--disable" ]]; then
+    touch "$LOCKFILE"
+    echo -e "${YELLOW}🔒 Error watchdog disabled${NC}"
+    echo "Lockfile created: $LOCKFILE"
+    exit 0
+elif [[ "$1" == "--enable" ]]; then
+    if [ -f "$LOCKFILE" ]; then
+        rm "$LOCKFILE"
+        echo -e "${GREEN}🔓 Error watchdog enabled${NC}"
+        echo "Lockfile removed: $LOCKFILE"
+    else
+        echo -e "${GREEN}✅ Error watchdog is already enabled${NC}"
+    fi
+    exit 0
+elif [[ "$1" == "--status" ]]; then
+    if [ -f "$LOCKFILE" ]; then
+        echo -e "${YELLOW}🔒 Error watchdog is DISABLED${NC}"
+        echo "Lockfile exists: $LOCKFILE"
+    else
+        echo -e "${GREEN}🔓 Error watchdog is ENABLED${NC}"
+        echo "No lockfile found"
+    fi
+    exit 0
+fi
 
 # Parse command line arguments
 ONCE_MODE=false
@@ -173,6 +208,12 @@ record_notification() {
 notify_claude() {
     local message="$1"
     
+    # Check if watchdog is disabled
+    if [ -f "$LOCKFILE" ]; then
+        echo -e "${YELLOW}🔒 Watchdog is disabled, skipping notification${NC}"
+        return 1
+    fi
+    
     # Clean old entries and check rate limits
     if clean_and_check_rate_limit; then
         echo -e "${YELLOW}⏳ Rate limiting: too many notifications in the last minute${NC}"
@@ -238,8 +279,10 @@ check_for_errors() {
             # Extract new content
             NEW_CONTENT=$(tail -c +$((LAST_POSITION + 1)) "$ERROR_LOG")
             
-            # Check for error patterns (but skip the cleared marker)
-            if echo "$NEW_CONTENT" | grep -E "(error]|Error|Exception|undefined function|cannot compile)" > /dev/null && ! echo "$NEW_CONTENT" | grep -q "Errors cleared at commit"; then
+            # Check for real error patterns (Elixir/Erlang specific errors)
+            # Look for: ** (SomeError), [error], compilation errors, etc.
+            if echo "$NEW_CONTENT" | grep -E "(\*\* \(|^\[error\]|cannot compile module|undefined function|CompileError|RuntimeError|ArgumentError|KeyError|MatchError)" > /dev/null && \
+               ! echo "$NEW_CONTENT" | grep -q "Errors cleared at commit"; then
                 echo -e "${RED}⚠️  Error detected!${NC}"
                 
                 # Extract the actual error message from the NEW content only
