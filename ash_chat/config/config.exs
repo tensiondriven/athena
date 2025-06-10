@@ -7,6 +7,11 @@
 # General application configuration
 import Config
 
+# Load environment variables from .env file in development and test
+if Mix.env() in [:dev, :test] do
+  Dotenv.load()
+end
+
 config :ash_chat,
   generators: [timestamp_type: :utc_datetime]
 

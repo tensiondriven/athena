@@ -62,7 +62,8 @@ defmodule AshChat.MixProject do
       {:ash_phoenix, "~> 2.3.5"},
       {:igniter, "~> 0.6.4", only: :dev},
       {:logger_file_backend, "~> 0.0.13"},
-      {:httpoison, "~> 2.0"}
+      {:httpoison, "~> 2.0"},
+      {:dotenv, "~> 3.1", only: [:dev, :test]}
     ]
   end
 
