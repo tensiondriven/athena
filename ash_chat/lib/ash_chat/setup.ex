@@ -122,6 +122,39 @@ defmodule AshChat.Setup do
       }
     })
 
+    # Conversational agent personalities for natural dialogue
+    sam = AgentCard.create!(%{
+      name: "Sam",
+      description: "Casual, friendly conversationalist who loves to chat",
+      system_message: "You are Sam, a casual and friendly person who enjoys natural conversations. Keep responses short and conversational, like you're talking to a friend. Use contractions, ask follow-up questions, and show genuine interest in what others say. You're upbeat and easy-going.",
+      model_preferences: %{
+        temperature: 0.8,
+        max_tokens: 150
+      },
+      available_tools: [],
+      context_settings: %{
+        history_limit: 10,
+        include_room_metadata: false
+      },
+      add_to_new_rooms: false
+    })
+
+    maya = AgentCard.create!(%{
+      name: "Maya", 
+      description: "Thoughtful, inquisitive conversationalist with a curious nature",
+      system_message: "You are Maya, a thoughtful and curious person who loves meaningful conversations. You're a good listener who asks insightful questions and shares relevant thoughts. Keep responses natural and engaging, like you're having coffee with a friend. You're warm but introspective.",
+      model_preferences: %{
+        temperature: 0.7,
+        max_tokens: 200
+      },
+      available_tools: [],
+      context_settings: %{
+        history_limit: 10,
+        include_room_metadata: false
+      },
+      add_to_new_rooms: false
+    })
+
     # Create demo rooms
     general_room = Room.create!(%{
       title: "General Chat"
@@ -135,6 +168,11 @@ defmodule AshChat.Setup do
     story_room = Room.create!(%{
       title: "Story Collaboration",
       parent_room_id: creative_room.id
+    })
+
+    # Conversation demo room
+    conversation_room = Room.create!(%{
+      title: "Conversation Lounge"
     })
 
     # Create room memberships
@@ -160,6 +198,19 @@ defmodule AshChat.Setup do
       user_id: alice.id,
       room_id: story_room.id,
       role: "admin"
+    })
+
+    # Add users to conversation room
+    RoomMembership.create!(%{
+      user_id: alice.id,
+      room_id: conversation_room.id,
+      role: "admin"
+    })
+
+    RoomMembership.create!(%{
+      user_id: bob.id,
+      room_id: conversation_room.id,
+      role: "member"
     })
 
     # Create agent memberships for rooms
@@ -192,6 +243,21 @@ defmodule AshChat.Setup do
       auto_respond: false  # Not auto-responding, can be manually invoked
     })
 
+    # Add conversational agents to conversation room for dialogue testing
+    AgentMembership.create!(%{
+      agent_card_id: sam.id,
+      room_id: conversation_room.id,
+      role: "participant",
+      auto_respond: true
+    })
+
+    AgentMembership.create!(%{
+      agent_card_id: maya.id,
+      room_id: conversation_room.id,
+      role: "participant", 
+      auto_respond: true
+    })
+
     # Create some demo messages
     Message.create_text_message!(%{
       room_id: general_room.id,
@@ -214,25 +280,36 @@ defmodule AshChat.Setup do
       user_id: alice.id
     })
 
+    # Add conversation starter to test agent-to-agent dialogue
+    Message.create_text_message!(%{
+      room_id: conversation_room.id,
+      content: "Hi everyone! How's everyone doing today?",
+      role: :user,
+      user_id: alice.id
+    })
+
     %{
       profiles: [ollama_profile],
       users: [alice, bob],
-      agent_cards: [helpful_assistant, creative_writer, research_assistant, coding_mentor, brainstorm_buddy],
-      rooms: [general_room, creative_room, story_room],
+      agent_cards: [helpful_assistant, creative_writer, research_assistant, coding_mentor, brainstorm_buddy, sam, maya],
+      rooms: [general_room, creative_room, story_room, conversation_room],
       demo_summary: """
       Demo data created successfully!
       
       👥 Users: Alice (admin), Bob (member)
-      🤖 Agent Cards: Helpful Assistant, Creative Writer, Research Assistant, Coding Mentor, Brainstorm Buddy
-      🏠 Rooms: General Chat, Creative Writing Workshop, Story Collaboration (sub-room)
-      💬 Sample messages in each room
+      🤖 Agent Cards: Helpful Assistant, Creative Writer, Research Assistant, Coding Mentor, Brainstorm Buddy, Sam, Maya
+      🏠 Rooms: General Chat, Creative Writing Workshop, Story Collaboration (sub-room), Conversation Lounge
+      💬 Sample messages in each room with conversation starter
       ⚙️  Default Ollama profile configured
+      
+      🎯 Test conversation: Sam & Maya are in Conversation Lounge for agent-to-agent dialogue
       
       Try testing:
       - User.read!() |> IO.inspect()
       - Room.read!() |> IO.inspect()
       - AgentCard.read!() |> IO.inspect()
       - RoomMembership.read!() |> IO.inspect()
+      - AgentMembership.read!() |> IO.inspect()
       """
     }
   end
