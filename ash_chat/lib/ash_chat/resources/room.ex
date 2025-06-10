@@ -52,7 +52,6 @@ defmodule AshChat.Resources.Room do
 
     create :create do
       accept [:title, :parent_room_id, :agent_card_id]
-      change set_attribute(:title, "New Multimodal Room")
     end
     
     read :get do
@@ -86,6 +85,7 @@ defmodule AshChat.Resources.Room do
     define :list_visible, action: :visible
     define :list_all, action: :all
     define :update
+    define :destroy
     define :hide
     define :unhide
   end

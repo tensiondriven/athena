@@ -98,6 +98,7 @@ defmodule AshChat.Resources.Message do
     domain AshChat.Domain
     define :create
     define :read
+    define :destroy
     define :create_text_message
     define :create_image_message
     define :for_room

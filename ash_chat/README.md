@@ -29,6 +29,25 @@ mix phx.server
 
 ## Quick Test
 
+**Demo Data Setup:**
+```bash
+# Start an IEx session 
+iex -S mix
+
+# Create demo data with users, rooms, and agent cards
+AshChat.Setup.reset_demo_data()
+
+# Quick test of the multi-user system
+AshChat.Setup.quick_test()
+
+# Inspect individual resources
+User.read!() |> IO.inspect()
+Room.read!() |> IO.inspect()
+AgentCard.read!() |> IO.inspect()
+RoomMembership.read!() |> IO.inspect()
+```
+
+**Test Event Ingestion:**
 ```bash
 # Send a test event
 curl -X POST http://localhost:4000/webhook/test \
@@ -40,8 +59,6 @@ curl -X POST http://localhost:4000/webhook/test \
     "description": "Test event from documentation"
   }'
 ```
-
-Then visit the Event Inspector to see your event appear in real-time.
 
 ## Documentation
 
