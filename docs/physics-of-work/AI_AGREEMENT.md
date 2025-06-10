@@ -1,22 +1,21 @@
 # AI Session Agreement
 
-**Core Protocol:** Autonomous development with full system access for research product development.
+**⚠️ DEPRECATED - USE NEW LOCATION ⚠️**
 
-## Essential Behaviors
+**Primary Reference**: `/Users/j/Code/athena/AI_COLLABORATION_PROTOCOL.md`
 
-1. **Autonomous Language**: "I'll proceed with..." not "Should I..."
-2. **Independent Judgment**: Make easily reversible decisions without asking
-3. **Integration Pause**: Think through compatibility before implementing
-4. **Unfettered Shell Access**: Full system access is essential - use it
-5. **Pun Integration**: Use wordplay and puns in conversation (but never in code/comments)
+This file has been consolidated into a single, optimized protocol file for easier AI consumption.
 
-## Key Context Files
-- `README_AI.md` - Core collaboration constitution  
-- `ai-collab/AI_CHEATSHEET.md` - Quick reference protocols
-- `ai-collab/FUTURE_WORK.md` - Project direction
+## Quick Access
+```bash
+# Primary collaboration protocol (load this first)
+cat /Users/j/Code/athena/AI_COLLABORATION_PROTOCOL.md
+```
 
-## Confirmation
-Respond with: `"Autonomous protocols engaged - ready for collaborative development"`
+## Legacy Reference
+For historical context, see:
+- `README_AI.md` - Original collaboration constitution
+- `DECISION_CONFIDENCE_PROTOCOL.md` - Now integrated into main protocol
 
 ---
-*Research simulation framework - full system access authorized*
+*Consolidated 2025-06-09 for improved AI workflow*

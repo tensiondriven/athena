@@ -1,75 +1,43 @@
-# Athena: AI-Powered Distributed Home Automation System
+# 🤖 AI Collaborators Start Here
 
-**📍 AI Systems: Start here for project context**
+**Primary Protocol**: [`AI_COLLABORATION_PROTOCOL.md`](AI_COLLABORATION_PROTOCOL.md)
 
-## Quick Context
+## Quick Load
 
-**Athena** is a distributed AI home automation system combining:
-- **Physics of Work** - AI-human collaboration methodology (docs/physics-of-work/)
-- **Distributed hardware** - Raspberry Pi cameras, PTZ controls, IoT sensors
-- **AI agents** - Runtime MCP servers for autonomous operation
-- **Event processing** - Real-time ingestion from cameras, MQTT, file changes
-
-## Project Structure
-
-```
-athena/
-├── docs/                    # Documentation & Methodology
-│   ├── physics-of-work/     # AI-human collaboration framework
-│   ├── journal/            # Project development journal
-│   └── architecture/       # System architecture docs
-├── system/                 # All Athena components
-│   ├── athena-mcp/         # Runtime MCP servers (AI uses these)
-│   ├── hardware-controls/   # Camera daemons, PTZ REST API
-│   ├── sam-pipeline/       # Computer vision (SAM, CLIP)
-│   ├── ash-ai/            # AI chat interface
-│   ├── bigplan/           # System orchestration
-│   └── [8 other components]
-└── dev-tools/             # Development MCP servers (you use these)
+```bash
+# Load the collaboration protocol first
+cat AI_COLLABORATION_PROTOCOL.md
 ```
 
-## Key Concepts
+## Project Overview
 
-### Physics of Work Methodology
-- **Two roles**: Development Team (Claude AI) + Product Team (Jonathan)
-- AI acts as: developer, educator, researcher, mentor
-- **Meta-goal**: Make it better for the next person (which is us)
-- This project IS the research platform for the methodology
+**Athena** is an AI-assisted development archaeology project featuring:
 
-### System Vision
-- **AI controls displays** throughout physical space via MCP calls
-- **Event sources**: motion, sound, Home Assistant, MQTT, file changes
-- **Multi-device deployment**: Raspberry Pis, IP cameras, speakers, displays
-- **Autonomous AI decisions** about what to show where and when
+- **Multi-user chat system** with agent cards and room hierarchy
+- **Conversation archaeology** - complete development decision preservation  
+- **Real-time event processing** with LiveView interfaces
+- **Hardware integration** for cameras and sensors
 
-## Current Session Context
+## Immediate Context
 
-**Git Status**: Just consolidated from 6 separate repos into unified structure
-**Focus**: System organization and Physics of Work documentation
-**Next**: System deployment and AI agent integration
+- **Current branch**: `master`
+- **Main chat system**: `ash_chat/` directory
+- **Demo data**: `AshChat.Setup.reset_demo_data()`
+- **Documentation**: `docs/journal/` for discoveries
 
-## For AI Systems
+## Tools Available
 
-### Development Guidelines
-- Use Physics of Work principles (docs/physics-of-work/ROLES.md)
-- Excellent git hygiene - commit frequently with good messages
-- Focus on making the process better for next iteration
-- Research and document collaboration patterns
+- **TodoRead/TodoWrite** for task management
+- **BetterBash MCP** for enhanced shell operations
+- **GitHub Pages** site at `https://tensiondriven.github.io/athena`
 
-### Key Files
-- **docs/physics-of-work/PRINCIPLES.md** - Universal AI-human collaboration principles
-- **docs/collaboration/ATHENA_WORKING_STYLE.md** - How we work together on this project
-- **docs/collaboration/VISION_AND_REALITY.md** - Athena product vision
-- **docs/journal/GIT_HISTORY_ARCHIVE.md** - Pre-consolidation git history
-- **system/athena-mcp/** - Runtime MCP servers for AI control
+## Getting Started
 
-### MCP Servers Available
-- **Camera control** (system/athena-mcp/camera_mcp_server.py)
-- **PTZ cameras** (system/athena-mcp/ptz_mcp_server.py)  
-- **Screenshots** (system/athena-mcp/screenshot_mcp_server.py)
-- **Dev tools** (dev-tools/ directory)
-
-**Architecture Philosophy**: AI makes autonomous decisions about physical space interactions while maintaining human oversight through Physics of Work collaboration patterns.
+1. **Load protocol**: Read `AI_COLLABORATION_PROTOCOL.md`
+2. **Check todos**: `TodoRead.call()`
+3. **Review recent work**: `git log --oneline -10`
+4. **Ready to collaborate!**
 
 ---
-*Updated: 2025-06-08 - Post git consolidation*
+
+*This file optimized for rapid AI onboarding and context loading*
