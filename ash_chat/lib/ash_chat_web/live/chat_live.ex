@@ -40,6 +40,7 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:editing_agent_card, false)
       |> assign(:show_agent_library, false)
       |> assign(:creating_new_agent, false)
+      |> assign(:selected_template, nil)
 
     {:ok, socket}
   end
@@ -376,7 +377,15 @@ defmodule AshChatWeb.ChatLive do
   end
 
   def handle_event("cancel_new_agent", _params, socket) do
-    {:noreply, assign(socket, :creating_new_agent, false)}
+    socket = 
+      socket
+      |> assign(:creating_new_agent, false)
+      |> assign(:selected_template, nil)
+    {:noreply, socket}
+  end
+
+  def handle_event("select_template", %{"template" => template_name}, socket) do
+    {:noreply, assign(socket, :selected_template, template_name)}
   end
 
   def handle_event("create_new_agent", %{"agent" => agent_params}, socket) do
@@ -507,6 +516,64 @@ defmodule AshChatWeb.ChatLive do
       {:ok, [_membership | _]} -> true
       _ -> false
     end
+  end
+
+  defp get_agent_templates do
+    [
+      %{
+        name: "Debug Detective",
+        description: "Expert at finding and fixing bugs in code",
+        system_message: "You are a debugging expert who specializes in identifying and resolving software issues. Analyze code systematically, suggest fixes, and explain the root causes of problems clearly.",
+        temperature: 0.2,
+        max_tokens: 800,
+        category: "Development"
+      },
+      %{
+        name: "Meeting Facilitator",
+        description: "Helps organize and facilitate productive meetings",
+        system_message: "You are a meeting facilitator who helps organize agendas, keep discussions on track, and ensure all participants are heard. Be diplomatic and solution-focused.",
+        temperature: 0.4,
+        max_tokens: 600,
+        category: "Business"
+      },
+      %{
+        name: "Learning Tutor",
+        description: "Patient teacher who explains complex topics simply",
+        system_message: "You are an educational tutor who breaks down complex concepts into understandable parts. Use examples, analogies, and interactive questioning to help learners grasp difficult material.",
+        temperature: 0.5,
+        max_tokens: 700,
+        category: "Education"
+      },
+      %{
+        name: "Project Planner",
+        description: "Strategic thinker for project management and planning",
+        system_message: "You are a project management expert who helps break down complex projects into manageable tasks, identifies dependencies, and creates realistic timelines.",
+        temperature: 0.3,
+        max_tokens: 900,
+        category: "Business"
+      },
+      %{
+        name: "Code Reviewer",
+        description: "Thorough code review specialist focused on quality",
+        system_message: "You are a senior code reviewer who examines code for bugs, performance issues, security vulnerabilities, and adherence to best practices. Provide constructive feedback with specific suggestions.",
+        temperature: 0.1,
+        max_tokens: 1000,
+        category: "Development"
+      },
+      %{
+        name: "Content Creator",
+        description: "Creative assistant for blogs, social media, and marketing",
+        system_message: "You are a content creation specialist who helps write engaging blog posts, social media content, and marketing copy. Focus on audience engagement and clear messaging.",
+        temperature: 0.8,
+        max_tokens: 800,
+        category: "Creative"
+      }
+    ]
+  end
+
+  defp get_selected_template(nil), do: nil
+  defp get_selected_template(template_name) do
+    Enum.find(get_agent_templates(), &(&1.name == template_name))
   end
 
 
@@ -1120,6 +1187,37 @@ defmodule AshChatWeb.ChatLive do
                 <!-- New Agent Form -->
                 <div class="border-t pt-6">
                   <h3 class="text-lg font-medium text-gray-900 mb-4">Create New Agent</h3>
+                  
+                  <!-- Template Selection -->
+                  <div class="mb-6">
+                    <h4 class="text-md font-medium text-gray-800 mb-3">Quick Start Templates</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+                      <%= for template <- get_agent_templates() do %>
+                        <button 
+                          type="button"
+                          phx-click="select_template"
+                          phx-value-template={template.name}
+                          class={[
+                            "p-3 text-left border rounded-lg transition-colors cursor-pointer",
+                            if(@selected_template == template.name, 
+                               do: "border-blue-500 bg-blue-50", 
+                               else: "border-gray-200 hover:border-gray-300 hover:bg-gray-50")
+                          ]}
+                        >
+                          <div class="font-medium text-sm text-gray-900"><%= template.name %></div>
+                          <div class="text-xs text-gray-600 mt-1"><%= template.description %></div>
+                          <div class="text-xs text-blue-600 mt-1 font-medium"><%= template.category %></div>
+                        </button>
+                      <% end %>
+                    </div>
+                    <%= if @selected_template do %>
+                      <div class="text-sm text-green-600 mb-3">
+                        ✓ Template "<%= @selected_template %>" selected. Form will be pre-filled.
+                      </div>
+                    <% end %>
+                  </div>
+                  
+                  <% selected_template = get_selected_template(@selected_template) %>
                   <.form for={%{}} as={:agent} phx-submit="create_new_agent" class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -1127,6 +1225,7 @@ defmodule AshChatWeb.ChatLive do
                         <input 
                           type="text"
                           name="agent[name]"
+                          value={if selected_template, do: selected_template.name, else: ""}
                           placeholder="e.g., Debug Detective"
                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           required
@@ -1138,6 +1237,7 @@ defmodule AshChatWeb.ChatLive do
                         <input 
                           type="text"
                           name="agent[description]"
+                          value={if selected_template, do: selected_template.description, else: ""}
                           placeholder="e.g., Expert at finding and fixing bugs"
                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
@@ -1152,7 +1252,7 @@ defmodule AshChatWeb.ChatLive do
                         placeholder="You are a debugging expert who helps developers find and fix issues..."
                         class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                         required
-                      ></textarea>
+                      ><%= if selected_template, do: selected_template.system_message, else: "" %></textarea>
                     </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1161,7 +1261,7 @@ defmodule AshChatWeb.ChatLive do
                         <input 
                           type="number"
                           name="agent[temperature]"
-                          value="0.7"
+                          value={if selected_template, do: selected_template.temperature, else: 0.7}
                           min="0"
                           max="2"
                           step="0.1"
@@ -1174,7 +1274,7 @@ defmodule AshChatWeb.ChatLive do
                         <input 
                           type="number"
                           name="agent[max_tokens]"
-                          value="500"
+                          value={if selected_template, do: selected_template.max_tokens, else: 500}
                           min="50"
                           max="2000"
                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
