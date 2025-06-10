@@ -28,12 +28,23 @@
 - **Relationship complexity**: Many-to-many through join table requires careful setup
 - **Breaking change**: Existing demo data will need migration
 - **UI dependencies**: LiveView currently expects `room.agent_card_id`
+- **GitHub secrets**: Push blocked due to token in chat-history files (needs cleanup)
+- **Atomic actions**: Had to add `require_atomic? false` to toggle_auto_respond
+
+### Turn 2: Update ChatAgent to handle multiple agents ✅
+- ✅ Updated `create_room()` to auto-add agents with `add_to_new_rooms` flag
+- ✅ Fixed `get_agent_card_for_room()` to use AgentMembership instead of room.agent_card_id
+- ✅ Added `add_default_agents_to_room()` function for auto-joining logic
+- ✅ Updated agent card creation to set `add_to_new_rooms: true` for defaults
 
 ### Next Steps
-- Turn 2: Update ChatAgent to handle multiple agents per room
 - Turn 3: Fix room creation to auto-add default agents  
 - Turn 4: Update UI to show agent members instead of single agent
 - Turn 5: Update demo data and test full integration
+
+#### Turn 2 Issues:
+- **Preloading needed**: May need to preload AgentMembership relationships for efficiency
+- **Multiple agents**: Currently only uses first auto-responder - may need smarter selection logic
 
 ## Technical Notes
 - `AgentMembership.auto_respond` controls which agents respond automatically

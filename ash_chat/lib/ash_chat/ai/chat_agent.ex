@@ -11,13 +11,40 @@ defmodule AshChat.AI.ChatAgent do
   alias AshChat.AI.ContextAssembler
 
   def create_room() do
-    # Get default agent card (helpful assistant) or create one if none exists
-    agent_card = get_or_create_default_agent_card()
-    
-    Room.create!(%{
-      title: "New Chat Room",
-      agent_card_id: agent_card.id
+    # Create room first
+    room = Room.create!(%{
+      title: "New Chat Room"
     })
+    
+    # Auto-add agents that are flagged for new rooms
+    add_default_agents_to_room(room)
+    
+    room
+  end
+  
+  defp add_default_agents_to_room(room) do
+    # Get all agents that should be auto-added to new rooms
+    case AshChat.Resources.AgentCard.get_auto_join_agents() do
+      {:ok, auto_join_agents} ->
+        for agent_card <- auto_join_agents do
+          AshChat.Resources.AgentMembership.create!(%{
+            room_id: room.id,
+            agent_card_id: agent_card.id,
+            role: "participant",
+            auto_respond: true
+          })
+        end
+      
+      {:error, _} ->
+        # If no auto-join agents exist, create and add a default one
+        agent_card = get_or_create_default_agent_card()
+        AshChat.Resources.AgentMembership.create!(%{
+          room_id: room.id,
+          agent_card_id: agent_card.id,
+          role: "participant", 
+          auto_respond: true
+        })
+    end
   end
   
   defp get_or_create_default_agent_card() do
@@ -37,7 +64,8 @@ defmodule AshChat.AI.ChatAgent do
             history_limit: 20,
             include_room_metadata: true
           },
-          is_default: true
+          is_default: true,
+          add_to_new_rooms: true
         })
         agent_card
       
@@ -51,7 +79,8 @@ defmodule AshChat.AI.ChatAgent do
           name: "Helpful Assistant",
           description: "A friendly and helpful AI assistant", 
           system_message: "You are a helpful AI assistant.",
-          is_default: true
+          is_default: true,
+          add_to_new_rooms: true
         })
         agent_card
     end
@@ -498,10 +527,16 @@ defmodule AshChat.AI.ChatAgent do
   # Helper functions for Agent Card system
 
   defp get_agent_card_for_room(room) do
-    case room.agent_card_id do
-      nil -> {:error, "Room has no agent card assigned"}
-      agent_card_id ->
-        Ash.get(AshChat.Resources.AgentCard, agent_card_id)
+    # Get the first auto-responding agent for this room
+    case AshChat.Resources.AgentMembership.auto_responders_for_room(%{room_id: room.id}) do
+      {:ok, [agent_membership | _]} ->
+        Ash.get(AshChat.Resources.AgentCard, agent_membership.agent_card_id)
+      
+      {:ok, []} ->
+        {:error, "Room has no auto-responding agents"}
+      
+      {:error, reason} ->
+        {:error, "Failed to get agents for room: #{inspect(reason)}"}
     end
   end
 
