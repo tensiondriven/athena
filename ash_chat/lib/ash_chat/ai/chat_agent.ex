@@ -127,12 +127,12 @@ defmodule AshChat.AI.ChatAgent do
     end
   end
 
-  def process_message_with_system_prompt(room_id, message_content, config \\ %{}) do
+  def process_message_with_system_prompt(room_id, message_content, user_id, config \\ %{}) do
     require Logger
     
     try do
       # Create user message
-      _user_message = send_text_message(room_id, message_content, :user)
+      _user_message = send_text_message(room_id, message_content, user_id, :user)
       
       # Get conversation history
       messages = get_room_messages(room_id)

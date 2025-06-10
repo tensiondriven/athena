@@ -3,10 +3,14 @@ defmodule AshChatWeb.ChatLive do
   require Logger
 
   alias AshChat.AI.ChatAgent
-  alias AshChat.Resources.Room
+  alias AshChat.Resources.{Room, User, RoomMembership}
 
   @impl true
   def mount(_params, _session, socket) do
+    # Load available users for demo - in production this would come from authentication
+    users = load_available_users()
+    current_user = List.first(users) # Default to first user for demo
+    
     # Create a new room session
     room = ChatAgent.create_room()
     
@@ -23,6 +27,8 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:show_hidden_rooms, false)
       |> assign(:available_models, ["qwen2.5:latest", "llama3.2:latest", "mistral:latest"])
       |> assign(:current_model, room.current_model || "qwen2.5:latest")
+      |> assign(:available_users, users)
+      |> assign(:current_user, current_user)
 
     # Subscribe to room updates
     if connected?(socket) do
@@ -73,7 +79,8 @@ defmodule AshChatWeb.ChatLive do
       Task.start(fn ->
         case ChatAgent.process_message_with_system_prompt(
           socket.assigns.room.id, 
-          content, 
+          content,
+          socket.assigns.current_user.id,
           config
         ) do
           {:ok, _ai_message} ->
@@ -210,6 +217,33 @@ defmodule AshChatWeb.ChatLive do
     Enum.count(rooms, & &1.hidden)
   end
 
+  defp load_available_users do
+    # Load all users for demo purposes - in production this would be filtered by permissions
+    case User.read() do
+      {:ok, users} -> users
+      {:error, _} -> []
+    end
+  end
+
+  # Add user switching event handler
+  def handle_event("switch_user", %{"user-id" => user_id}, socket) do
+    case User.get(user_id) do
+      {:ok, user} ->
+        {:noreply, assign(socket, :current_user, user)}
+      {:error, _} ->
+        {:noreply, socket}
+    end
+  end
+
+  # Add room membership validation helper
+  defp validate_user_room_access(user_id, room_id) do
+    case RoomMembership.for_user_and_room(%{user_id: user_id, room_id: room_id}) do
+      {:ok, [_membership | _]} -> :ok
+      {:ok, []} -> {:error, :not_member}
+      {:error, error} -> {:error, error}
+    end
+  end
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -220,16 +254,34 @@ defmodule AshChatWeb.ChatLive do
         if(@sidebar_expanded, do: "w-64", else: "w-0 overflow-hidden")
       ]}>
         <!-- Sidebar Header -->
-        <div class="h-16 border-b border-gray-200 flex items-center justify-between px-4">
-          <h2 class="font-semibold text-gray-800">Rooms</h2>
-          <button 
-            phx-click="toggle_sidebar"
-            class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
+        <div class="h-20 border-b border-gray-200 px-4 py-2">
+          <!-- User Selector -->
+          <div class="mb-2">
+            <label class="block text-xs font-medium text-gray-700 mb-1">Current User</label>
+            <select 
+              phx-change="switch_user"
+              name="user_id"
+              class="w-full text-sm px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+            >
+              <%= for user <- @available_users do %>
+                <option value={user.id} selected={user.id == @current_user.id}>
+                  <%= user.display_name || user.name %>
+                </option>
+              <% end %>
+            </select>
+          </div>
+          <!-- Rooms Header -->
+          <div class="flex items-center justify-between">
+            <h2 class="font-semibold text-gray-800">Rooms</h2>
+            <button 
+              phx-click="toggle_sidebar"
+              class="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
         </div>
         
         <!-- Room List -->
