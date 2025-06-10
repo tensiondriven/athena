@@ -34,7 +34,7 @@ defmodule AshChatWeb.ChatLive do
 
   @impl true
   def handle_params(%{"room_id" => room_id}, _url, socket) do
-    case Room.get(room_id) do
+    case Ash.get(Room, room_id) do
       {:ok, room} ->
         messages = ChatAgent.get_room_messages(room_id)
         
