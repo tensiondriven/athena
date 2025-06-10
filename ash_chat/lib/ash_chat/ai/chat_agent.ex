@@ -215,14 +215,14 @@ defmodule AshChat.AI.ChatAgent do
         LLMChain.run(agent_with_messages)
       end)
       
-      result = case Task.yield(task, 10_000) || Task.shutdown(task) do
+      result = case Task.yield(task, 60_000) || Task.shutdown(task) do
         {:ok, result} ->
           Logger.info("LLMChain.run returned: #{inspect(result)}")
           result
           
         nil ->
-          Logger.error("LLMChain.run timed out after 10 seconds")
-          {:error, "Request to Ollama timed out after 10 seconds"}
+          Logger.error("LLMChain.run timed out after 60 seconds")
+          {:error, "Request to Ollama timed out after 60 seconds"}
       end
       
       case result do

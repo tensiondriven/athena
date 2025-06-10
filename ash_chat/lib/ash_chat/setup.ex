@@ -23,8 +23,8 @@ defmodule AshChat.Setup do
     ollama_profile = Profile.create!(%{
       name: "Local Ollama",
       provider: "ollama",
-      url: System.get_env("OLLAMA_URL", "http://localhost:11434"),
-      model: "llama3.2:latest",
+      url: System.get_env("OLLAMA_URL", "http://10.1.2.200:11434"),
+      model: "qwen2.5:latest",
       is_default: true
     })
 
