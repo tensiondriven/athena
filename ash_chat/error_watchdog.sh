@@ -22,8 +22,9 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     echo "DESCRIPTION:"
     echo "  Monitors tmp/error.log for new errors and automatically sends"
     echo "  notifications to the Claude Code session in iTerm when errors"
-    echo "  are detected. Notifications include error context like module"
-    echo "  and line numbers when available."
+    echo "  are detected. Also checks for running Ollama models and updates"
+    echo "  room current_model accordingly. Notifications include error context"
+    echo "  like module and line numbers when available."
     echo ""
     echo "EXAMPLES:"
     echo "  $0              # Start watching in background"
@@ -41,6 +42,7 @@ LAST_LINE_FILE=".error_watchdog_last"
 RECENT_MESSAGES_FILE=".error_watchdog_recent"
 MAX_NOTIFICATIONS_PER_MINUTE=5
 DUPLICATE_WINDOW=30  # seconds
+OLLAMA_API_URL="http://localhost:11434"
 
 # Color codes
 RED='\033[0;31m'
@@ -126,6 +128,38 @@ is_duplicate_message() {
         done < "$RECENT_MESSAGES_FILE"
     fi
     return 1  # Not a duplicate
+}
+
+# Function to get current Ollama model
+get_current_ollama_model() {
+    # Check if Ollama is running and get the current model
+    if curl -s "${OLLAMA_API_URL}/api/ps" >/dev/null 2>&1; then
+        # Get the first running model from the process list
+        local model=$(curl -s "${OLLAMA_API_URL}/api/ps" | grep -o '"name":"[^"]*"' | head -1 | cut -d'"' -f4)
+        if [ -n "$model" ]; then
+            echo "$model"
+            return 0
+        fi
+    fi
+    return 1
+}
+
+# Function to update room model via mix task
+update_room_model() {
+    local model="$1"
+    
+    # Use mix to update the current room's model
+    # This is a simple approach - could be enhanced to target specific rooms
+    mix run -e "
+    rooms = AshChat.Resources.Room.list_visible()
+    case rooms do
+      [room | _] -> 
+        AshChat.Resources.Room.update(room, %{current_model: \"$model\"})
+        IO.puts(\"Updated room #{room.id} model to: $model\")
+      [] -> 
+        IO.puts(\"No visible rooms found to update\")
+    end
+    " 2>/dev/null
 }
 
 # Function to record notification
@@ -237,9 +271,22 @@ check_for_errors() {
     return 1  # No error found
 }
 
+# Function to check and update model if needed
+check_and_update_model() {
+    if current_model=$(get_current_ollama_model); then
+        echo -e "${GREEN}🤖 Detected Ollama model: ${current_model}${NC}"
+        if update_room_model "$current_model"; then
+            echo -e "${GREEN}✅ Updated room model to: ${current_model}${NC}"
+        fi
+    else
+        echo -e "${YELLOW}⚠️  No running Ollama models detected${NC}"
+    fi
+}
+
 # Main execution
 if [[ "$ONCE_MODE" == "true" ]]; then
     # One-time check mode
+    check_and_update_model
     check_for_errors
     if [ $? -eq 1 ]; then
         echo -e "${GREEN}✅ No new errors found${NC}"
@@ -247,8 +294,17 @@ if [[ "$ONCE_MODE" == "true" ]]; then
     exit 0
 else
     # Continuous monitoring loop
+    echo -e "${GREEN}🔍 Checking current Ollama model...${NC}"
+    check_and_update_model
+    
     while true; do
         check_for_errors
+        
+        # Check for model changes every 30 seconds (15 cycles)
+        if [ $(($(date +%s) % 30)) -eq 0 ]; then
+            check_and_update_model
+        fi
+        
         sleep 2
     done
 fi
