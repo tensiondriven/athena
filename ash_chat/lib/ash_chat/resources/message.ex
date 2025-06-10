@@ -22,6 +22,7 @@ defmodule AshChat.Resources.Message do
     attribute :image_url, :string
     attribute :image_data, :binary
     attribute :metadata, :map, default: %{}
+    attribute :user_id, :uuid  # Which user sent this message (for user messages)
     attribute :profile_id, :uuid  # Which profile generated this message (for assistant messages)
     create_timestamp :created_at
     update_timestamp :updated_at
@@ -29,6 +30,10 @@ defmodule AshChat.Resources.Message do
 
   relationships do
     belongs_to :room, AshChat.Resources.Room
+    belongs_to :user, AshChat.Resources.User do
+      source_attribute :user_id
+      destination_attribute :id
+    end
     belongs_to :profile, AshChat.Resources.Profile do
       source_attribute :profile_id
       destination_attribute :id
@@ -58,11 +63,15 @@ defmodule AshChat.Resources.Message do
       argument :room_id, :uuid, allow_nil?: false
       argument :content, :string, allow_nil?: false
       argument :role, :atom, default: :user
+      argument :user_id, :uuid
+      argument :profile_id, :uuid
 
       change set_attribute(:room_id, arg(:room_id))
       change set_attribute(:content, arg(:content))
       change set_attribute(:role, arg(:role))
       change set_attribute(:message_type, :text)
+      change set_attribute(:user_id, arg(:user_id))
+      change set_attribute(:profile_id, arg(:profile_id))
     end
 
     create :create_image_message do
@@ -71,6 +80,8 @@ defmodule AshChat.Resources.Message do
       argument :image_url, :string
       argument :image_data, :binary
       argument :role, :atom, default: :user
+      argument :user_id, :uuid
+      argument :profile_id, :uuid
 
       change set_attribute(:room_id, arg(:room_id))
       change set_attribute(:content, arg(:content))
@@ -78,6 +89,8 @@ defmodule AshChat.Resources.Message do
       change set_attribute(:message_type, :image)
       change set_attribute(:image_url, arg(:image_url))
       change set_attribute(:image_data, arg(:image_data))
+      change set_attribute(:user_id, arg(:user_id))
+      change set_attribute(:profile_id, arg(:profile_id))
     end
   end
 

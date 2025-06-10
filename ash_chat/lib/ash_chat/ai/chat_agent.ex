@@ -5,9 +5,10 @@ defmodule AshChat.AI.ChatAgent do
 
   alias LangChain.Chains.LLMChain
   alias LangChain.Message, as: LangChainMessage
-  alias AshChat.Resources.{Room, Message}
+  alias AshChat.Resources.{Room, Message, Profile}
   alias AshChat.Tools
   alias AshChat.AI.InferenceConfig
+  alias AshChat.ContextManager
 
   def create_room() do
     Room.create!(%{title: "New Multimodal Room"})
@@ -35,6 +36,26 @@ defmodule AshChat.AI.ChatAgent do
     Message.for_room!(%{room_id: room_id})
   end
 
+  def create_ai_agent_with_agent_card(_room, agent_card, _context_opts \\ []) do
+    # Get the profile to use (from agent card or default)
+    profile = get_profile_for_agent_card(agent_card)
+    
+    # Merge agent card model preferences with defaults
+    inference_params = Map.merge(%{}, agent_card.model_preferences)
+    
+    chat_model = InferenceConfig.create_chat_model_from_profile(profile, inference_params)
+    
+    # Filter tools based on agent card's available_tools
+    available_tools = filter_tools_for_agent(agent_card.available_tools)
+    
+    %{
+      llm: chat_model,
+      tools: available_tools,
+      verbose: true
+    }
+    |> LLMChain.new!()
+  end
+
   def create_ai_agent_with_profile(profile, inference_params \\ %{}) do
     chat_model = InferenceConfig.create_chat_model_from_profile(profile, inference_params)
     
@@ -56,6 +77,42 @@ defmodule AshChat.AI.ChatAgent do
       verbose: true
     }
     |> LLMChain.new!()
+  end
+
+  def process_message_with_agent_card(room, message_content, agent_card, context_opts \\ []) do
+    require Logger
+    
+    # Build context using the Context Manager
+    context_messages = ContextManager.build_context(room, agent_card, context_opts)
+    
+    # Add the new user message
+    user_message = LangChainMessage.new_user!(message_content)
+    all_messages = context_messages ++ [user_message]
+    
+    # Create agent with agent card settings
+    agent = create_ai_agent_with_agent_card(room, agent_card, context_opts)
+    
+    try do
+      case LLMChain.run(agent, all_messages) do
+        {:ok, updated_chain} ->
+          # Get the assistant's response
+          [assistant_response | _] = updated_chain.messages
+          
+          # Store both user and assistant messages
+          send_text_message(room.id, message_content, :user)
+          send_text_message(room.id, assistant_response.content, :assistant)
+          
+          {:ok, assistant_response.content}
+          
+        {:error, reason} ->
+          Logger.error("LLM chain execution failed: #{inspect(reason)}")
+          {:error, reason}
+      end
+    rescue
+      error ->
+        Logger.error("Exception in message processing: #{inspect(error)}")
+        {:error, error}
+    end
   end
 
   def process_message_with_system_prompt(room_id, message_content, config \\ %{}) do
@@ -294,5 +351,52 @@ defmodule AshChat.AI.ChatAgent do
 
   defp format_tool_result(tool_call) do
     "Tool executed: #{inspect(tool_call)}"
+  end
+
+  # Helper functions for Agent Card system
+
+  defp get_profile_for_agent_card(agent_card) do
+    case agent_card.default_profile_id do
+      nil ->
+        # Use default profile
+        case AshChat.Setup.get_default_profile() do
+          {:ok, profile} -> profile
+          _ -> 
+            # Fallback to first available profile
+            case Profile.read() do
+              {:ok, [profile | _]} -> profile
+              _ -> raise "No profiles available"
+            end
+        end
+      profile_id ->
+        case Profile.get(profile_id) do
+          {:ok, profile} -> profile
+          _ -> get_profile_for_agent_card(%{agent_card | default_profile_id: nil})
+        end
+    end
+  end
+
+  defp filter_tools_for_agent(available_tool_names) do
+    all_tools = Tools.list()
+    
+    if Enum.empty?(available_tool_names) do
+      # If no specific tools listed, use all tools
+      all_tools
+    else
+      # Filter tools based on available_tool_names
+      Enum.filter(all_tools, fn tool ->
+        tool_name = get_tool_name(tool)
+        tool_name in available_tool_names
+      end)
+    end
+  end
+
+  defp get_tool_name(tool) do
+    # Extract tool name from LangChain tool structure
+    case tool do
+      %{name: name} -> name
+      %{function: %{name: name}} -> name
+      _ -> "unknown_tool"
+    end
   end
 end
