@@ -8,7 +8,7 @@ This directory contains a comprehensive framework for AI-assisted development, i
 
 ### 🎯 **MCP Servers** (`/mcp/`)
 - **Camera MCP Server**: Complete PTZ camera control with MQTT bridge
-- **BetterBash MCP**: Enhanced shell execution with safety controls  
+- **Autonomous shell execution**: Builtin Bash tool with permission bypass  
 - **Cheatsheet MCP**: AI collaboration context injection
 
 ### 🎥 **PTZ Camera Control** (`/logi-ptz/`)
@@ -20,7 +20,7 @@ This directory contains a comprehensive framework for AI-assisted development, i
 ### 📋 **AI Collaboration Protocols**
 - **AI_AGREEMENT.md**: Session agreements and collaboration guidelines
 - **Integration Pause Protocol**: "Ask User A Question" pattern
-- **BetterBash MCP Usage**: Mandatory enhanced shell execution
+- **Autonomous execution**: Shell operations with permission bypass
 
 ### 🔧 **Current Session Context**
 - Working on camera PTZ integration with MQTT bridge architecture
@@ -35,8 +35,7 @@ python3 ai-collab/mcp/camera_mcp_server.py
 # MQTT bridge for distributed control  
 python3 ai-collab/mcp/camera_mqtt_connector.py --camera-id camera1
 
-# Enhanced shell with safety controls
-claude mcp add betterbash python3 ai-collab/mcp/betterbash_server.py
+# Autonomous shell execution (builtin tool with permission bypass)
 ```
 
 **Architecture Philosophy**: Separate concerns - MCP servers handle device logic, connectors handle protocols, AI systems integrate via clean interfaces.

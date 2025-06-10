@@ -22,7 +22,7 @@ Proceed if >70%. Ask human if <50%.
 
 ## Tool Usage (Mandatory)
 
-**Shell**: Use BetterBash MCP only (never builtin Bash/LS/Read)  
+**Shell**: Use builtin Bash tool (with --dangerously-skip-permissions for autonomous execution)  
 **Search**: Agent tool for keywords, Glob for patterns, Read for known paths  
 **Large files**: head/tail/sampling only (never full read >1MB)  
 **Tasks**: TodoWrite/TodoRead for complex work  

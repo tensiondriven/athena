@@ -8,7 +8,7 @@
 
 ### Completed Tasks
 - ✅ Reorganized AI collaboration docs into clean structure
-- ✅ Added BetterBash MCP server: `claude mcp add betterbash python3 /Users/j/Code/mcp/betterbash_server.py`
+- ✅ Autonomous shell execution enabled with builtin Bash tool
 - ✅ Verified webcam-ptz executable exists and has permissions
 - ✅ Established examples convention in `ai-collab/examples/`
 
@@ -43,7 +43,7 @@ logi-ptz/
 **Integration Goal**: Enable athena-capture to pull still images from PTZ camera on request
 
 ### Next Actions on Resume
-1. **Use BetterBash** for all commands (session restart needed for MCP access)
+1. **Use builtin Bash tool** for all commands (autonomous execution enabled)
 2. **Test camera connectivity**: `./webcam-ptz pan middle`
 3. **Find athena-capture codebase** and examine integration points
 4. **Design still capture integration** approach
@@ -52,7 +52,7 @@ logi-ptz/
 - User prefers autonomous flow language and practical solutions
 - Apply Integration Pause Protocol before implementing
 - All collaboration examples go in `ai-collab/examples/`
-- BetterBash should be used instead of regular Bash tools
+- Builtin Bash tool provides autonomous execution capability
 
 ---
 *Resume file for maintaining context across Claude Code sessions*

@@ -11,14 +11,13 @@
 6. **Autonomous Flow Language** - Use "I'll implement..." instead of "Should I...?" to maintain forward momentum
 
 ## Tool Preferences
-- **Use BetterBash** over built-in tools (when available)
+- **Use builtin Bash tool** with autonomous execution for shell operations
 - **Check file sizes first** - tail/head for large files, never cat .jsonl
 - **Batch tool calls** when possible for efficiency
 - **Target macOS first**, Ubuntu compatibility second
 - **Use asdf** for version management
 
 ## Environment Setup
-- BetterBash MCP: `claude mcp add betterbash python3 /Users/j/Code/mcp/betterbash_server.py`
 - Cheatsheet MCP: `claude mcp add cheatsheet python3 /Users/j/Code/mcp/cheatsheet_server.py`
   - **Cheatsheet MCP Source**: [GitHub repo](https://github.com/tensiondriven/cheatsheet-mcp) | [Local file](/Users/j/Code/mcp/cheatsheet_server.py)
   - Provides instant context injection of collaboration protocols via `get_cheatsheet()` tool

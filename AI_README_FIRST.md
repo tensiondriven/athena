@@ -28,7 +28,7 @@ cat AI_COLLABORATION_PROTOCOL.md
 ## Tools Available
 
 - **TodoRead/TodoWrite** for task management
-- **BetterBash MCP** for enhanced shell operations
+- **Autonomous shell execution** via builtin Bash tool
 - **GitHub Pages** site at `https://tensiondriven.github.io/athena`
 
 ## Getting Started
