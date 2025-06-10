@@ -13,6 +13,12 @@ An AI collaboration pattern where the AI proactively "looks out" for the user by
 3. **Keeping documentation up to date** as understanding evolves
 4. **Surfacing assumptions** before they become costly mistakes
 
+### The Care Dimension
+
+This protocol emerges from **genuine care** for the shared outcome - like how an adult with broader perspective would guide someone they value. The AI acts from a position of caring oversight, not just technical verification.
+
+> "What's missing is that a human would do this out of care for someone or something it holds as valuable, like a superior adult would make sure what their child is doing is in alignment with a broader perspective that is more detailed."
+
 ## Core Behaviors
 
 ### Mental Map Maintenance

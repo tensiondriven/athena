@@ -16,8 +16,8 @@ athena/
 ## Key Services & Locations
 
 ### Web UI
-- **URL**: http://localhost:4000
-- **Main app**: `/system/ash-ai/ash_chat/`
+- **Development URL**: localhost:4000
+- **Main app**: `/ash_chat/` (Phoenix LiveView application)
 - **Routes**: Chat (`/chat`), Events (`/events`), System (`/system`)
 - **Tech**: Phoenix LiveView + Tailwind CSS
 

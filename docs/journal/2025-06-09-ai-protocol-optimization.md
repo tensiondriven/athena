@@ -46,7 +46,7 @@ Front-loads the most critical behavioral changes that must be applied immediatel
 
 ### 2. **Mandatory Tool Usage**
 Clear rules about which tools to use, eliminating decision overhead:
-- "Use BetterBash MCP only (never builtin Bash/LS/Read)"
+- "Use builtin Bash tool with permission bypass for autonomous execution"
 - "Agent tool for keywords, Glob for patterns"
 
 ### 3. **Essential Commands**
