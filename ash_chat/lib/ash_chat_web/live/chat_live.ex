@@ -38,6 +38,7 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:current_user, current_user)
       |> assign(:show_system_modal, false)
       |> assign(:editing_agent_card, false)
+      |> assign(:show_agent_library, false)
 
     {:ok, socket}
   end
@@ -339,6 +340,33 @@ defmodule AshChatWeb.ChatLive do
       end
     else
       {:noreply, put_flash(socket, :error, "No agent card to update")}
+    end
+  end
+
+  def handle_event("show_agent_library", _params, socket) do
+    {:noreply, assign(socket, :show_agent_library, true)}
+  end
+
+  def handle_event("hide_agent_library", _params, socket) do
+    {:noreply, assign(socket, :show_agent_library, false)}
+  end
+
+  def handle_event("assign_agent_to_room", %{"agent_id" => agent_id}, socket) do
+    if socket.assigns.room do
+      case AshChat.Resources.Room.update(socket.assigns.room, %{agent_card_id: agent_id}) do
+        {:ok, updated_room} ->
+          socket = 
+            socket
+            |> assign(:room, updated_room)
+            |> assign(:show_agent_library, false)
+            |> put_flash(:info, "Agent assigned to room successfully")
+          {:noreply, socket}
+        
+        {:error, _error} ->
+          {:noreply, put_flash(socket, :error, "Failed to assign agent to room")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "No room selected")}
     end
   end
 
@@ -963,10 +991,96 @@ defmodule AshChatWeb.ChatLive do
               </div>
             <% else %>
               <div class="border-t pt-6">
-                <h3 class="text-lg font-medium text-gray-900 mb-2">No Agent Card</h3>
-                <p class="text-sm text-gray-600">This room doesn't have an agent card assigned. Create a room to get an AI agent.</p>
+                <div class="flex justify-between items-center mb-2">
+                  <h3 class="text-lg font-medium text-gray-900">No Agent Card</h3>
+                  <button 
+                    phx-click="show_agent_library"
+                    class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-md transition-colors"
+                  >
+                    Choose Agent
+                  </button>
+                </div>
+                <p class="text-sm text-gray-600">This room doesn't have an agent card assigned. Choose from the agent library to add AI capabilities.</p>
               </div>
             <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+    
+    <!-- Agent Library Modal -->
+    <%= if @show_agent_library do %>
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" phx-click="hide_agent_library">
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto" phx-click="stop_propagation">
+          <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-semibold text-gray-900">Agent Library</h2>
+              <button 
+                phx-click="hide_agent_library"
+                class="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            
+            <p class="text-sm text-gray-600 mb-6">Choose an agent to assign to this room. Each agent has its own personality and capabilities.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <%= case AshChat.Resources.AgentCard.read() do %>
+                <% {:ok, agent_cards} -> %>
+                  <%= for agent_card <- agent_cards do %>
+                    <div class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div class="flex justify-between items-start mb-3">
+                        <div>
+                          <h3 class="font-medium text-gray-900"><%= agent_card.name %></h3>
+                          <p class="text-sm text-gray-600"><%= agent_card.description || "No description" %></p>
+                        </div>
+                        
+                        <button 
+                          phx-click="assign_agent_to_room"
+                          phx-value-agent_id={agent_card.id}
+                          class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-md transition-colors"
+                        >
+                          Select
+                        </button>
+                      </div>
+                      
+                      <div class="text-xs text-gray-500 mb-2">
+                        <strong>System Message:</strong>
+                      </div>
+                      <div class="text-xs text-gray-700 bg-gray-100 p-2 rounded max-h-20 overflow-y-auto">
+                        <%= agent_card.system_message %>
+                      </div>
+                      
+                      <div class="mt-2 flex justify-between items-center">
+                        <div class="text-xs text-gray-500">
+                          Temp: <%= Map.get(agent_card.model_preferences || %{}, "temperature", "0.7") %>
+                        </div>
+                        
+                        <%= if agent_card.is_default do %>
+                          <span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Default</span>
+                        <% end %>
+                      </div>
+                    </div>
+                  <% end %>
+                <% {:error, _} -> %>
+                  <div class="col-span-2 text-center text-gray-500">
+                    <p>Unable to load agent cards</p>
+                  </div>
+                <% end %>
+            </div>
+            
+            <div class="mt-6 text-center">
+              <p class="text-sm text-gray-500 mb-3">Don't see the agent you need?</p>
+              <button 
+                phx-click="hide_agent_library"
+                class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md transition-colors"
+              >
+                Create New Agent (coming soon)
+              </button>
+            </div>
           </div>
         </div>
       </div>
