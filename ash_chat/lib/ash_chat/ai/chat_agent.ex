@@ -14,21 +14,29 @@ defmodule AshChat.AI.ChatAgent do
     Room.create!(%{title: "New Multimodal Room"})
   end
 
-  def send_text_message(room_id, content, role \\ :user) do
+  def send_text_message(room_id, content, user_id, role \\ :user) do
+    # Validate user has membership in room
+    validate_room_membership!(room_id, user_id)
+    
     Message.create_text_message!(%{
       room_id: room_id,
       content: content,
-      role: role
+      role: role,
+      user_id: user_id
     })
   end
 
-  def send_image_message(room_id, content, image_url, role \\ :user) do
+  def send_image_message(room_id, content, image_url, user_id, role \\ :user) do
+    # Validate user has membership in room
+    validate_room_membership!(room_id, user_id)
+    
     # For now, we'll store the image URL. Later we can add image processing
     Message.create_image_message!(%{
       room_id: room_id,
       content: content,
       image_url: image_url,
-      role: role
+      role: role,
+      user_id: user_id
     })
   end
 
@@ -98,9 +106,13 @@ defmodule AshChat.AI.ChatAgent do
           # Get the assistant's response
           [assistant_response | _] = updated_chain.messages
           
-          # Store both user and assistant messages
-          send_text_message(room.id, message_content, :user)
-          send_text_message(room.id, assistant_response.content, :assistant)
+          # Store both user and assistant messages  
+          # Note: User message handled by caller, only store assistant response
+          Message.create_text_message!(%{
+            room_id: room.id,
+            content: assistant_response.content,
+            role: :assistant
+          })
           
           {:ok, assistant_response.content}
           
@@ -174,7 +186,11 @@ defmodule AshChat.AI.ChatAgent do
         {:ok, %LLMChain{last_message: %{content: content}}} when is_binary(content) ->
           Logger.info("Successfully extracted content from Ollama: #{content}")
           # Create AI response message
-          ai_message = send_text_message(room_id, content, :assistant)
+          ai_message = Message.create_text_message!(%{
+            room_id: room_id,
+            content: content,
+            role: :assistant
+          })
           Logger.info("Created AI message: #{inspect(ai_message)}")
           {:ok, ai_message}
           
@@ -228,12 +244,12 @@ defmodule AshChat.AI.ChatAgent do
     end
   end
 
-  def process_multimodal_message(room_id, message_content, image_url \\ nil, inference_config \\ %{}) do
+  def process_multimodal_message(room_id, message_content, user_id, image_url \\ nil, inference_config \\ %{}) do
     # Create user message
     _user_message = if image_url do
-      send_image_message(room_id, message_content, image_url, :user)
+      send_image_message(room_id, message_content, image_url, user_id, :user)
     else
-      send_text_message(room_id, message_content, :user)
+      send_text_message(room_id, message_content, user_id, :user)
     end
 
     # Get conversation history
@@ -277,8 +293,12 @@ defmodule AshChat.AI.ChatAgent do
             _ -> "AI response processed"
           end
           
-          # Create AI response message
-          ai_message = send_text_message(room_id, content, :assistant)
+          # Create AI response message (AI assistant doesn't need user_id validation)
+          ai_message = Message.create_text_message!(%{
+            room_id: room_id,
+            content: content,
+            role: :assistant
+          })
           
           {:ok, ai_message}
         
@@ -397,6 +417,21 @@ defmodule AshChat.AI.ChatAgent do
       %{name: name} -> name
       %{function: %{name: name}} -> name
       _ -> "unknown_tool"
+    end
+  end
+
+  # Validation functions for user/room integration
+  
+  defp validate_room_membership!(room_id, user_id) do
+    alias AshChat.Resources.RoomMembership
+    
+    case RoomMembership.for_user_and_room(%{user_id: user_id, room_id: room_id}) do
+      {:ok, [_membership | _]} -> 
+        :ok
+      {:ok, []} -> 
+        raise ArgumentError, "User #{user_id} is not a member of room #{room_id}"
+      {:error, error} ->
+        raise ArgumentError, "Failed to validate room membership: #{inspect(error)}"
     end
   end
 end
