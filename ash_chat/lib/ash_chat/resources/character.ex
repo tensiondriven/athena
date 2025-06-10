@@ -64,13 +64,15 @@ defmodule AshChat.Resources.Character do
   end
 
   relationships do
-    belongs_to :personality, AshChat.Resources.Personality do
-      description "Optional personality template this character uses"
-    end
+    # Note: Personality resource not yet implemented - this is stubbed for future use
+    # belongs_to :personality, AshChat.Resources.Personality do
+    #   description "Optional personality template this character uses"
+    # end
     
-    has_many :messages, AshChat.Resources.Message do
-      description "Messages sent by this character"
-    end
+    # Note: Character-Message relationship not yet implemented
+    # has_many :messages, AshChat.Resources.Message do
+    #   description "Messages sent by this character"
+    # end
   end
 
   actions do
@@ -78,7 +80,7 @@ defmodule AshChat.Resources.Character do
     
     create :create do
       accept [:sillytavern_data, :name, :description, :personality, :first_message, 
-              :scenario, :is_active, :tags, :personality_id]
+              :scenario, :is_active, :tags]
       
       change fn changeset, _context ->
         # Auto-extract fields from sillytavern_data if not provided
@@ -98,7 +100,7 @@ defmodule AshChat.Resources.Character do
     
     update :update do
       accept [:sillytavern_data, :name, :description, :personality, :first_message,
-              :scenario, :is_active, :tags, :personality_id]
+              :scenario, :is_active, :tags]
     end
     
     read :active do
@@ -114,29 +116,29 @@ defmodule AshChat.Resources.Character do
       argument :tags, {:array, :string}, allow_nil?: false
       filter expr(fragment("? && ?", tags, ^arg(:tags)))
     end
+    
+    # Stubbed semantic search (ready for AshAI)
+    read :semantic_search do
+      argument :query, :string, allow_nil?: false
+      argument :limit, :integer, default: 10
+      
+      # This will be handled by AshAI's semantic search when enabled
+      # For now, simple text search
+      filter expr(ilike(name, ^("%query%")) or ilike(description, ^("%query%")))
+      pagination offset?: true, default_limit: 10
+    end
   end
 
   calculations do
-    calculate :sillytavern_export, :map, expr("Export SillyTavern compatible JSON") do
+    calculate :sillytavern_export, :map do
       calculation fn records, _context ->
         Enum.map(records, &(&1.sillytavern_data))
       end
     end
   end
 
-  # Stubbed semantic search (ready for AshAI)
-  read :semantic_search do
-    argument :query, :string, allow_nil?: false
-    argument :limit, :integer, default: 10
-    
-    # This will be handled by AshAI's semantic search when enabled
-    # For now, simple text search
-    filter expr(ilike(name, ^("%#{arg(:query)}%")) or ilike(description, ^("%#{arg(:query)}%")))
-    limit expr(^arg(:limit))
-  end
-
   code_interface do
-    define_for AshChat.Domain
+    domain AshChat.Domain
     define :create
     define :read
     define :update
@@ -159,12 +161,12 @@ defmodule AshChat.Resources.Character do
     })
   end
 
-  def to_sillytavern_json(%__MODULE__{} = character) do
+  def to_sillytavern_json(character) do
     character.sillytavern_data
   end
 
   # JSON-LD export (for future Neo4j integration)
-  def to_json_ld(%__MODULE__{} = character) do
+  def to_json_ld(character) do
     %{
       "@context" => %{
         "schema" => "https://schema.org/",

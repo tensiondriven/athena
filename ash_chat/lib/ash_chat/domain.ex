@@ -10,5 +10,7 @@ defmodule AshChat.Domain do
     resource AshChat.Resources.AgentCard
     resource AshChat.Resources.User
     resource AshChat.Resources.RoomMembership
+    resource AshChat.Resources.Character
+    resource AshChat.Resources.PromptTemplate
   end
 end

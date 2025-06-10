@@ -23,6 +23,7 @@ defmodule AshChatWeb.Router do
     live "/events", EventDashboardLive
     # live "/live-events", LiveEventsLive  # TODO: Implement live events view
     live "/system", SystemDashboardLive
+    live "/prompt-visualizer", PromptVisualizerLive
   end
 
   # API routes for event collection

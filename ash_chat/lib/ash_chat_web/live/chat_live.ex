@@ -26,7 +26,7 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:rooms, load_rooms())
       |> assign(:show_hidden_rooms, false)
       |> assign(:available_models, ["qwen2.5:latest", "llama3.2:latest", "mistral:latest"])
-      |> assign(:current_model, room.current_model || "qwen2.5:latest")
+      |> assign(:current_model, Map.get(room, :current_model, "qwen2.5:latest"))
       |> assign(:available_users, users)
       |> assign(:current_user, current_user)
 
@@ -48,7 +48,7 @@ defmodule AshChatWeb.ChatLive do
           socket
           |> assign(:room, room)
           |> assign(:messages, messages)
-          |> assign(:current_model, room.current_model || "qwen2.5:latest")
+          |> assign(:current_model, Map.get(room, :current_model, "qwen2.5:latest"))
 
         {:noreply, socket}
       

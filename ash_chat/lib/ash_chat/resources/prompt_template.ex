@@ -90,9 +90,10 @@ defmodule AshChat.Resources.PromptTemplate do
   end
 
   relationships do
-    has_many :profiles, AshChat.Resources.Profile do
-      description "Profiles configured to use this template"
-    end
+    # Note: Profile-PromptTemplate relationship not yet implemented
+    # has_many :profiles, AshChat.Resources.Profile do
+    #   description "Profiles configured to use this template"
+    # end
   end
 
   actions do
@@ -128,7 +129,7 @@ defmodule AshChat.Resources.PromptTemplate do
   end
 
   code_interface do
-    define_for AshChat.Domain
+    domain AshChat.Domain
     define :create
     define :read
     define :update
@@ -139,19 +140,19 @@ defmodule AshChat.Resources.PromptTemplate do
   end
 
   # Prompt formatting functions
-  def format_system_message(%__MODULE__{} = template, content) do
+  def format_system_message(template, content) do
     apply_template(template.system_template, content, template.special_tokens)
   end
 
-  def format_user_message(%__MODULE__{} = template, content) do
+  def format_user_message(template, content) do
     apply_template(template.user_template, content, template.special_tokens)
   end
 
-  def format_assistant_message(%__MODULE__{} = template, content) do
+  def format_assistant_message(template, content) do
     apply_template(template.assistant_template, content, template.special_tokens)
   end
 
-  def format_conversation(%__MODULE__{} = template, messages) do
+  def format_conversation(template, messages) do
     formatted_messages = Enum.map(messages, fn msg ->
       case msg.role do
         :system -> format_system_message(template, msg.content)
@@ -177,7 +178,7 @@ defmodule AshChat.Resources.PromptTemplate do
   end
 
   # SillyTavern template compatibility helpers
-  def to_sillytavern_format(%__MODULE__{} = template) do
+  def to_sillytavern_format(template) do
     %{
       "name" => template.name,
       "system_sequence" => template.system_template,

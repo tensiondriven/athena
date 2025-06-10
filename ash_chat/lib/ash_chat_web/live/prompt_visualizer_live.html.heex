@@ -1,0 +1,264 @@
+<div class="prompt-visualizer-container">
+  <div class="header-section mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+      Prompt Template Visualizer
+    </h1>
+    <p class="text-gray-600 dark:text-gray-300">
+      Visualize how prompt templates format conversations for different models
+    </p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Configuration Panel -->
+    <div class="lg:col-span-1 space-y-6">
+      <!-- Template Selection -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
+        <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Template</h3>
+        <select 
+          phx-change="select_template" 
+          name="template_id"
+          class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+        >
+          <%= for template <- @templates do %>
+            <option value={template.id} selected={@selected_template && @selected_template.id == template.id}>
+              <%= template.name %> (<%= template.model_family %>)
+            </option>
+          <% end %>
+        </select>
+        
+        <%= if @selected_template do %>
+          <div class="mt-3 text-sm text-gray-600 dark:text-gray-300">
+            <p><strong>Family:</strong> <%= @selected_template.model_family %></p>
+            <%= if @selected_template.description do %>
+              <p class="mt-1"><%= @selected_template.description %></p>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+
+      <!-- Character Selection -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
+        <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Character</h3>
+        <select 
+          phx-change="select_character" 
+          name="character_id"
+          class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+        >
+          <option value="">None (Custom System Prompt)</option>
+          <%= for character <- @characters do %>
+            <option value={character.id} selected={@selected_character && @selected_character.id == character.id}>
+              <%= character.name %>
+            </option>
+          <% end %>
+        </select>
+      </div>
+
+      <!-- Custom Inputs -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
+        <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Custom Messages</h3>
+        
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              System Prompt Override
+            </label>
+            <textarea 
+              phx-change="update_custom_system"
+              name="value"
+              value={@custom_system}
+              placeholder="Enter custom system prompt (overrides character)"
+              rows="3"
+              class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+            ></textarea>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Additional User Message
+            </label>
+            <textarea 
+              phx-change="update_custom_user"
+              name="value"
+              value={@custom_user}
+              placeholder="Enter additional user message"
+              rows="2"
+              class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
+        <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Quick Actions</h3>
+        <div class="space-y-2">
+          <button 
+            phx-click="use_sample_conversation"
+            class="w-full px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+          >
+            Use Sample Conversation
+          </button>
+          
+          <button 
+            phx-click="reset_to_default"
+            class="w-full px-3 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm"
+          >
+            Reset to Default
+          </button>
+        </div>
+      </div>
+
+      <!-- Display Options -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
+        <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Display Options</h3>
+        <div class="space-y-2">
+          <label class="flex items-center">
+            <input 
+              type="checkbox" 
+              phx-click="toggle_tokens"
+              checked={@show_tokens}
+              class="mr-2"
+            >
+            <span class="text-sm text-gray-700 dark:text-gray-300">Show Special Tokens</span>
+          </label>
+          
+          <label class="flex items-center">
+            <input 
+              type="checkbox" 
+              phx-click="toggle_formatting"
+              checked={@show_formatting}
+              class="mr-2"
+            >
+            <span class="text-sm text-gray-700 dark:text-gray-300">Show Template Formatting</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visualization Panel -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Message Parts Breakdown -->
+      <%= if @show_formatting do %>
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
+          <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Message Parts Breakdown</h3>
+          
+          <div class="space-y-4">
+            <%= for part <- @message_parts do %>
+              <div class="border border-gray-200 dark:border-gray-600 rounded-md p-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class={"px-2 py-1 rounded text-xs font-semibold " <> role_color_class(part.role)}>
+                    <%= String.upcase(to_string(part.role)) %>
+                  </span>
+                  <%= if part.template_used do %>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                      Template: <%= String.slice(part.template_used, 0, 30) %><%= if String.length(part.template_used) > 30, do: "..." %>
+                    </span>
+                  <% end %>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Original Content</label>
+                    <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded border text-sm font-mono">
+                      <%= part.content %>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Formatted Output</label>
+                    <div class="bg-gray-50 dark:bg-gray-700 p-2 rounded border text-sm font-mono whitespace-pre-wrap">
+                      <%= if @show_tokens do %>
+                        <%= render_with_visible_tokens(part.formatted) %>
+                      <% else %>
+                        <%= part.formatted %>
+                      <% end %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- Final Formatted Prompt -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
+        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Final Formatted Prompt</h3>
+        
+        <div class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+          <pre class="whitespace-pre-wrap"><%= if @show_tokens do %><%= render_with_visible_tokens(@formatted_prompt) %><% else %><%= @formatted_prompt %><% end %></pre>
+        </div>
+        
+        <div class="mt-3 flex justify-between items-center text-sm text-gray-600 dark:text-gray-300">
+          <span>Length: <%= String.length(@formatted_prompt) %> characters</span>
+          <button 
+            onclick="navigator.clipboard.writeText(this.previousElementSibling.previousElementSibling.querySelector('pre').textContent)"
+            class="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
+          >
+            Copy
+          </button>
+        </div>
+      </div>
+
+      <!-- Template Details -->
+      <%= if @selected_template do %>
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow">
+          <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Template Details</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Configuration</h4>
+              <ul class="space-y-1 text-gray-600 dark:text-gray-400">
+                <li><strong>Requires System:</strong> <%= @selected_template.requires_system_message %></li>
+                <li><strong>Multi-turn:</strong> <%= @selected_template.supports_multi_turn %></li>
+                <%= if @selected_template.max_context_tokens do %>
+                  <li><strong>Max Context:</strong> <%= @selected_template.max_context_tokens %> tokens</li>
+                <% end %>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Special Tokens</h4>
+              <%= if map_size(@selected_template.special_tokens) > 0 do %>
+                <ul class="space-y-1 text-gray-600 dark:text-gray-400 font-mono text-xs">
+                  <%= for {key, value} <- @selected_template.special_tokens do %>
+                    <li><strong><%= key %>:</strong> <%= value %></li>
+                  <% end %>
+                </ul>
+              <% else %>
+                <p class="text-gray-500 dark:text-gray-400 italic">No special tokens defined</p>
+              <% end %>
+            </div>
+          </div>
+          
+          <%= if length(@selected_template.stop_sequences) > 0 do %>
+            <div class="mt-4">
+              <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Stop Sequences</h4>
+              <div class="flex flex-wrap gap-2">
+                <%= for stop <- @selected_template.stop_sequences do %>
+                  <span class="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded text-xs font-mono">
+                    <%= stop %>
+                  </span>
+                <% end %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<style>
+  .prompt-visualizer-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+  
+  @media (min-width: 1024px) {
+    .prompt-visualizer-container {
+      padding: 2rem;
+    }
+  }
+</style>
