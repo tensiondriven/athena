@@ -37,6 +37,7 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:available_users, users)
       |> assign(:current_user, current_user)
       |> assign(:show_system_modal, false)
+      |> assign(:editing_agent_card, false)
 
     {:ok, socket}
   end
@@ -303,6 +304,42 @@ defmodule AshChatWeb.ChatLive do
       |> put_flash(:info, "System prompt updated")
     
     {:noreply, socket}
+  end
+
+  def handle_event("edit_agent_card", _params, socket) do
+    {:noreply, assign(socket, :editing_agent_card, true)}
+  end
+
+  def handle_event("cancel_agent_edit", _params, socket) do
+    {:noreply, assign(socket, :editing_agent_card, false)}
+  end
+
+  def handle_event("update_agent_card", %{"agent" => agent_params}, socket) do
+    if socket.assigns.room && socket.assigns.room.agent_card_id do
+      case Ash.get(AshChat.Resources.AgentCard, socket.assigns.room.agent_card_id) do
+        {:ok, agent_card} ->
+          case AshChat.Resources.AgentCard.update(agent_card, %{
+            name: agent_params["name"],
+            description: agent_params["description"],
+            system_message: agent_params["system_message"]
+          }) do
+            {:ok, _updated_card} ->
+              socket = 
+                socket
+                |> assign(:editing_agent_card, false)
+                |> put_flash(:info, "Agent card updated successfully")
+              {:noreply, socket}
+            
+            {:error, _error} ->
+              {:noreply, put_flash(socket, :error, "Failed to update agent card")}
+          end
+        
+        {:error, _} ->
+          {:noreply, put_flash(socket, :error, "Agent card not found")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "No agent card to update")}
+    end
   end
 
   # Catch-all for unhandled events
@@ -818,43 +855,108 @@ defmodule AshChatWeb.ChatLive do
                 
                 <%= case Ash.get(AshChat.Resources.AgentCard, @room.agent_card_id) do %>
                   <% {:ok, agent_card} -> %>
-                    <div class="bg-gray-50 rounded-lg p-4 space-y-3">
-                      <div>
-                        <span class="font-medium text-gray-900">Name:</span>
-                        <span class="ml-2 text-gray-700"><%= agent_card.name %></span>
-                      </div>
-                      
-                      <div>
-                        <span class="font-medium text-gray-900">Description:</span>
-                        <span class="ml-2 text-gray-700"><%= agent_card.description || "No description" %></span>
-                      </div>
-                      
-                      <div>
-                        <span class="font-medium text-gray-900">Agent System Message:</span>
-                        <div class="mt-1 p-2 bg-white rounded border text-sm text-gray-700">
-                          <%= agent_card.system_message %>
+                    <%= if @editing_agent_card do %>
+                      <!-- Edit Mode -->
+                      <.form for={%{}} as={:agent} phx-submit="update_agent_card" class="space-y-4">
+                        <div>
+                          <label class="block text-sm font-medium text-gray-700 mb-1">Agent Name:</label>
+                          <input 
+                            type="text"
+                            name="agent[name]"
+                            value={agent_card.name}
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label class="block text-sm font-medium text-gray-700 mb-1">Description:</label>
+                          <input 
+                            type="text"
+                            name="agent[description]"
+                            value={agent_card.description || ""}
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label class="block text-sm font-medium text-gray-700 mb-1">Agent System Message:</label>
+                          <textarea 
+                            name="agent[system_message]"
+                            rows="4"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          ><%= agent_card.system_message %></textarea>
+                        </div>
+                        
+                        <div class="flex justify-end gap-2">
+                          <button 
+                            type="button"
+                            phx-click="cancel_agent_edit"
+                            class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                          >
+                            Cancel
+                          </button>
+                          <button 
+                            type="submit"
+                            class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
+                          >
+                            Save Changes
+                          </button>
+                        </div>
+                      </.form>
+                    <% else %>
+                      <!-- View Mode -->
+                      <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                        <div class="flex justify-between items-start">
+                          <div class="flex-1 space-y-3">
+                            <div>
+                              <span class="font-medium text-gray-900">Name:</span>
+                              <span class="ml-2 text-gray-700"><%= agent_card.name %></span>
+                            </div>
+                            
+                            <div>
+                              <span class="font-medium text-gray-900">Description:</span>
+                              <span class="ml-2 text-gray-700"><%= agent_card.description || "No description" %></span>
+                            </div>
+                            
+                            <div>
+                              <span class="font-medium text-gray-900">Agent System Message:</span>
+                              <div class="mt-1 p-2 bg-white rounded border text-sm text-gray-700">
+                                <%= agent_card.system_message %>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <span class="font-medium text-gray-900">Model Preferences:</span>
+                              <div class="mt-1 text-sm text-gray-600">
+                                Temperature: <%= Map.get(agent_card.model_preferences || %{}, "temperature", "default") %>,
+                                Max Tokens: <%= Map.get(agent_card.model_preferences || %{}, "max_tokens", "default") %>
+                              </div>
+                            </div>
+                            
+                            <div>
+                              <span class="font-medium text-gray-900">Available Tools:</span>
+                              <span class="ml-2 text-gray-700">
+                                <%= if Enum.empty?(agent_card.available_tools || []) do %>
+                                  All tools available
+                                <% else %>
+                                  <%= Enum.join(agent_card.available_tools, ", ") %>
+                                <% end %>
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <button 
+                            phx-click="edit_agent_card"
+                            class="ml-4 p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                            title="Edit agent card"
+                          >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                            </svg>
+                          </button>
                         </div>
                       </div>
-                      
-                      <div>
-                        <span class="font-medium text-gray-900">Model Preferences:</span>
-                        <div class="mt-1 text-sm text-gray-600">
-                          Temperature: <%= Map.get(agent_card.model_preferences || %{}, "temperature", "default") %>,
-                          Max Tokens: <%= Map.get(agent_card.model_preferences || %{}, "max_tokens", "default") %>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <span class="font-medium text-gray-900">Available Tools:</span>
-                        <span class="ml-2 text-gray-700">
-                          <%= if Enum.empty?(agent_card.available_tools || []) do %>
-                            All tools available
-                          <% else %>
-                            <%= Enum.join(agent_card.available_tools, ", ") %>
-                          <% end %>
-                        </span>
-                      </div>
-                    </div>
+                    <% end %>
                   <% _ -> %>
                     <div class="text-sm text-gray-500">Agent card not found or error loading</div>
                 <% end %>
