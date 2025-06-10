@@ -36,6 +36,7 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:current_model, "current")
       |> assign(:available_users, users)
       |> assign(:current_user, current_user)
+      |> assign(:show_system_modal, false)
 
     {:ok, socket}
   end
@@ -86,45 +87,20 @@ defmodule AshChatWeb.ChatLive do
       true ->
         socket = assign(socket, :processing, true)
         
-        # Simple Ollama config with system prompt
-        default_config = AshChat.AI.InferenceConfig.default_config()
-        selected_model = case socket.assigns.current_model do
-          "current" -> socket.assigns.current_loaded_model || default_config.model
-          model -> model
-        end
-        
-        config = %{
-          provider: default_config.provider,
-          model: selected_model,
-          temperature: default_config.temperature,
-          stream: false,  # Disable streaming for now
-          system_prompt: socket.assigns.system_prompt
-        }
-        
-        # Send the message asynchronously
+        # Temporarily disable automatic AI response to fix CaseClauseError
         Task.start(fn ->
-          case ChatAgent.process_message_with_system_prompt(
-            socket.assigns.room.id, 
+          # Just send user message without AI response for now
+          ChatAgent.send_text_message(
+            socket.assigns.room.id,
             content,
-            socket.assigns.current_user.id,
-            config
-          ) do
-            {:ok, _ai_message} ->
-              Logger.info("Broadcasting message_processed for room #{socket.assigns.room.id}")
-              Phoenix.PubSub.broadcast(
-                AshChat.PubSub, 
-                "room:#{socket.assigns.room.id}", 
-                {:message_processed}
-              )
-            
-            {:error, error} ->
-              Logger.error("Broadcasting error for room #{socket.assigns.room.id}: #{error}")
-              Phoenix.PubSub.broadcast(
-                AshChat.PubSub, 
-                "room:#{socket.assigns.room.id}", 
-                {:error, error}
-              )
-          end
+            socket.assigns.current_user.id
+          )
+          
+          Phoenix.PubSub.broadcast(
+            AshChat.PubSub, 
+            "room:#{socket.assigns.room.id}", 
+            {:message_processed}
+          )
         end)
 
         socket = 
@@ -309,6 +285,24 @@ defmodule AshChatWeb.ChatLive do
       {:error, _} ->
         {:noreply, socket}
     end
+  end
+
+  def handle_event("show_system_prompt", _params, socket) do
+    {:noreply, assign(socket, :show_system_modal, true)}
+  end
+
+  def handle_event("hide_system_modal", _params, socket) do
+    {:noreply, assign(socket, :show_system_modal, false)}
+  end
+
+  def handle_event("update_system_prompt", %{"system_prompt" => new_prompt}, socket) do
+    socket = 
+      socket
+      |> assign(:system_prompt, new_prompt)
+      |> assign(:show_system_modal, false)
+      |> put_flash(:info, "System prompt updated")
+    
+    {:noreply, socket}
   end
 
   # Catch-all for unhandled events
@@ -766,6 +760,115 @@ defmodule AshChatWeb.ChatLive do
         <% end %>
       </div>
     </div>
+    
+    <!-- System Prompt Modal -->
+    <%= if @show_system_modal do %>
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" phx-click="hide_system_modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" phx-click="stop_propagation">
+          <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-semibold text-gray-900">System Configuration</h2>
+              <button 
+                phx-click="hide_system_modal"
+                class="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            
+            <!-- System Prompt Section -->
+            <div class="mb-6">
+              <h3 class="text-lg font-medium text-gray-900 mb-2">System Prompt</h3>
+              <p class="text-sm text-gray-600 mb-3">This prompt defines how the AI should behave and respond.</p>
+              <.form for={%{}} as={:system} phx-submit="update_system_prompt" class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-1">Current System Prompt:</label>
+                  <textarea 
+                    name="system_prompt"
+                    rows="6"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter system prompt..."
+                  ><%= @system_prompt %></textarea>
+                </div>
+                <div class="flex justify-end gap-2">
+                  <button 
+                    type="button"
+                    phx-click="hide_system_modal"
+                    class="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
+                  >
+                    Update Prompt
+                  </button>
+                </div>
+              </.form>
+            </div>
+            
+            <!-- Agent Card Section -->
+            <%= if @room && @room.agent_card_id do %>
+              <div class="border-t pt-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Current Agent Card</h3>
+                <p class="text-sm text-gray-600 mb-3">This room uses an AI agent with the following configuration:</p>
+                
+                <%= case Ash.get(AshChat.Resources.AgentCard, @room.agent_card_id) do %>
+                  <% {:ok, agent_card} -> %>
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                      <div>
+                        <span class="font-medium text-gray-900">Name:</span>
+                        <span class="ml-2 text-gray-700"><%= agent_card.name %></span>
+                      </div>
+                      
+                      <div>
+                        <span class="font-medium text-gray-900">Description:</span>
+                        <span class="ml-2 text-gray-700"><%= agent_card.description || "No description" %></span>
+                      </div>
+                      
+                      <div>
+                        <span class="font-medium text-gray-900">Agent System Message:</span>
+                        <div class="mt-1 p-2 bg-white rounded border text-sm text-gray-700">
+                          <%= agent_card.system_message %>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <span class="font-medium text-gray-900">Model Preferences:</span>
+                        <div class="mt-1 text-sm text-gray-600">
+                          Temperature: <%= Map.get(agent_card.model_preferences || %{}, "temperature", "default") %>,
+                          Max Tokens: <%= Map.get(agent_card.model_preferences || %{}, "max_tokens", "default") %>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <span class="font-medium text-gray-900">Available Tools:</span>
+                        <span class="ml-2 text-gray-700">
+                          <%= if Enum.empty?(agent_card.available_tools || []) do %>
+                            All tools available
+                          <% else %>
+                            <%= Enum.join(agent_card.available_tools, ", ") %>
+                          <% end %>
+                        </span>
+                      </div>
+                    </div>
+                  <% _ -> %>
+                    <div class="text-sm text-gray-500">Agent card not found or error loading</div>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="border-t pt-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No Agent Card</h3>
+                <p class="text-sm text-gray-600">This room doesn't have an agent card assigned. Create a room to get an AI agent.</p>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
     """
   end
 end
