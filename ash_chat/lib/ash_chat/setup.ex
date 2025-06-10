@@ -3,7 +3,7 @@ defmodule AshChat.Setup do
   Demo data setup and reset functionality for quick iteration
   """
 
-  alias AshChat.Resources.{User, Room, AgentCard, Profile, Message, RoomMembership}
+  alias AshChat.Resources.{User, Room, AgentCard, Profile, Message, RoomMembership, AgentMembership}
 
   def reset_demo_data() do
     # Clear all data by destroying all resources
@@ -13,6 +13,7 @@ defmodule AshChat.Setup do
     Profile.read!() |> Enum.each(&Profile.destroy!/1)
     Message.read!() |> Enum.each(&Message.destroy!/1)
     RoomMembership.read!() |> Enum.each(&RoomMembership.destroy!/1)
+    AgentMembership.read!() |> Enum.each(&AgentMembership.destroy!/1)
     
     # Create demo data
     create_demo_data()
@@ -46,6 +47,7 @@ defmodule AshChat.Setup do
     # Create demo agent cards
     helpful_assistant = AgentCard.create!(%{
       name: "Helpful Assistant",
+      description: "A friendly and helpful AI assistant for general conversations",
       system_message: "You are a helpful, friendly assistant. Always respond with enthusiasm and try to be as helpful as possible. Keep responses concise but informative.",
       model_preferences: %{
         temperature: 0.7,
@@ -55,7 +57,9 @@ defmodule AshChat.Setup do
       context_settings: %{
         history_limit: 20,
         include_room_metadata: true
-      }
+      },
+      is_default: true,
+      add_to_new_rooms: true
     })
 
     creative_writer = AgentCard.create!(%{
@@ -120,20 +124,17 @@ defmodule AshChat.Setup do
 
     # Create demo rooms
     general_room = Room.create!(%{
-      title: "General Chat",
-      agent_card_id: helpful_assistant.id
+      title: "General Chat"
     })
 
     creative_room = Room.create!(%{
-      title: "Creative Writing Workshop",
-      agent_card_id: creative_writer.id
+      title: "Creative Writing Workshop"
     })
 
     # Sub-room example
     story_room = Room.create!(%{
       title: "Story Collaboration",
-      parent_room_id: creative_room.id,
-      agent_card_id: creative_writer.id
+      parent_room_id: creative_room.id
     })
 
     # Create room memberships
@@ -159,6 +160,36 @@ defmodule AshChat.Setup do
       user_id: alice.id,
       room_id: story_room.id,
       role: "admin"
+    })
+
+    # Create agent memberships for rooms
+    AgentMembership.create!(%{
+      agent_card_id: helpful_assistant.id,
+      room_id: general_room.id,
+      role: "participant",
+      auto_respond: true
+    })
+
+    AgentMembership.create!(%{
+      agent_card_id: creative_writer.id,
+      room_id: creative_room.id,
+      role: "participant", 
+      auto_respond: true
+    })
+
+    AgentMembership.create!(%{
+      agent_card_id: creative_writer.id,
+      room_id: story_room.id,
+      role: "participant",
+      auto_respond: true
+    })
+
+    # Add research assistant to general room too (multiple agents example)
+    AgentMembership.create!(%{
+      agent_card_id: research_assistant.id,
+      room_id: general_room.id,
+      role: "participant",
+      auto_respond: false  # Not auto-responding, can be manually invoked
     })
 
     # Create some demo messages

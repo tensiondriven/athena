@@ -37,8 +37,14 @@
 - ✅ Added `add_default_agents_to_room()` function for auto-joining logic
 - ✅ Updated agent card creation to set `add_to_new_rooms: true` for defaults
 
+### Turn 3: Update demo data for new architecture ✅
+- ✅ Added `add_to_new_rooms: true` to helpful_assistant in demo data
+- ✅ Removed `agent_card_id` from Room.create! calls in setup
+- ✅ Added AgentMembership import and cleanup in reset_demo_data
+- ✅ Created AgentMembership records for all demo rooms
+- ✅ Set up multi-agent example: General Chat has both Helpful Assistant (auto) and Research Assistant (manual)
+
 ### Next Steps
-- Turn 3: Fix room creation to auto-add default agents  
 - Turn 4: Update UI to show agent members instead of single agent
 - Turn 5: Update demo data and test full integration
 
