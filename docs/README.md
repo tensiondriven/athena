@@ -1,47 +1,49 @@
 # Athena Documentation
 
-Welcome to the comprehensive documentation for the Athena AI-assisted development archaeology project.
+Comprehensive documentation for the AI collaboration research platform with conversation archaeology.
 
 ## 📁 Documentation Structure
 
-### Core Documentation
-- **[AI Collaboration Framework](physics-of-work/)** - Principles and patterns for AI-human collaboration
-- **[Project Journal](journal/)** - Development discoveries and insights
-- **[Architecture Guides](architecture/)** - System design and technical architecture
-- **[Collaboration Examples](collaboration/)** - Working examples of AI-human partnerships
+### Research & Methodology
+- **[Physics of Work](physics-of-work/)** - AI-human collaboration methodology
+- **[Collaboration Patterns](collaboration/)** - Proven working examples
+- **[Development Journal](journal/)** - Real-time discoveries and insights
 
-### Quick References
-- **[AI README First](../AI_README_FIRST.md)** - Quick start guide for AI collaborators
-- **[AI Collaboration Protocol](../AI_COLLABORATION_PROTOCOL.md)** - Core AI working agreements
+### Technical Implementation  
+- **[Architecture Guides](architecture/)** - System design and technical details
+- **[AI Quick Reference](AI_QUICK_REFERENCE.md)** - Key patterns and commands
 
-## 🎯 Key Concepts
+### AI Onboarding
+- **[AI README First](../AI_README_FIRST.md)** - Entry point for AI collaborators
+- **[AI Collaboration Protocol](../AI_COLLABORATION_PROTOCOL.md)** - Core working agreements
 
-### Development Archaeology
-Athena demonstrates automatic preservation of AI conversation consciousness alongside code. Every architectural decision, debugging step, and design choice is captured with complete context and rationale.
+## 🔍 Key Research Contributions
 
-### Physics of Work
-A methodology for effective AI-human collaboration featuring:
-- **Autonomous Judgment Protocol** - Clear boundaries for AI decision-making
-- **Decision Confidence Protocol** - Systematic approach to high-stakes changes
+### Conversation Archaeology
+Complete preservation of AI development consciousness - every architectural decision is traceable to its original conversation context with full reasoning preserved in structured JSONL format.
+
+### Proven Collaboration Patterns
+- **Autonomous Judgment Protocol** - AI decision-making boundaries
+- **Decision Confidence Protocol** - Risk assessment for high-stakes changes  
 - **Mental Map Synchronization** - Proactive understanding alignment
-
-### Multi-User Chat System
-Built a sophisticated chat system featuring:
-- **Agent Cards** - Character-driven AI interactions
-- **Room Hierarchy** - Parent-child room relationships
-- **Context Manager** - Plug-like architecture for conversation context
+- **Vision Alignment Risk Factor** - Identifying misalignment before implementation
 
 ## 🚀 Getting Started
 
-### For AI Systems
-1. Read **[AI Collaboration Protocol](../AI_COLLABORATION_PROTOCOL.md)** first
-2. Review **[Physics of Work Principles](physics-of-work/PRINCIPLES.md)**
-3. Check the **[Development Journal](journal/)** for recent discoveries
+### New Users
+1. **[Quick Start](QUICK_START.md)** - Get running in 5 minutes
+2. **[Main Project Overview](../README.md)** - Understand the vision
+3. **[Collaboration Methodology](COLLABORATION_METHODOLOGY.md)** - Learn the patterns
 
-### For Developers
-1. Start with **[Project Overview](../README.md)**
-2. Review **[Architecture Documentation](architecture/)**
-3. Follow **[Setup Instructions](../ash_chat/README.md)** for the chat system
+### AI Systems  
+1. **[AI Collaboration Protocol](../AI_COLLABORATION_PROTOCOL.md)** - Core working agreements
+2. **[AI Quick Reference](AI_QUICK_REFERENCE.md)** - Commands and patterns
+3. **[Development Journal](journal/)** - Recent discoveries and insights
+
+### Researchers
+1. **[Conversation Archaeology Discovery](journal/2025-06-09-conversation-archaeology-discovery.md)** - The key breakthrough
+2. **[Vision Alignment Risk Factor](journal/2025-06-09-vision-alignment-risk-factor.md)** - Collaboration insights
+3. **[Collaboration Methodology](COLLABORATION_METHODOLOGY.md)** - Complete methodology
 
 ## 📚 Documentation Philosophy
 
