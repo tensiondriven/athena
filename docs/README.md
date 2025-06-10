@@ -9,8 +9,9 @@ Comprehensive documentation for the AI collaboration research platform with conv
 - **[Collaboration Patterns](collaboration/)** - Proven working examples
 - **[Development Journal](journal/)** - Real-time discoveries and insights
 
-### Technical Implementation  
-- **[Architecture Guides](architecture/)** - System design and technical details
+### Technical Implementation
+- **[System Architecture](SYSTEM_ARCHITECTURE.md)** - Complete distributed AI system design
+- **[Architecture Guides](architecture/)** - Detailed technical documentation
 - **[AI Quick Reference](AI_QUICK_REFERENCE.md)** - Key patterns and commands
 
 ### AI Onboarding

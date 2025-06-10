@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-Get Athena running in under 5 minutes and see the conversation archaeology in action.
+Get the Athena distributed AI system running in under 5 minutes and see research through practice in action.
 
 ## Prerequisites
 
@@ -43,28 +43,47 @@ AshChat.Setup.reset_demo_data()
 AshChat.Setup.quick_test()
 ```
 
-## 4. Explore Conversation Archaeology
+## 4. Explore the Dual Purpose System
 
-The magic happens in `chat-history/`:
+### A. Practical System: Distributed AI
 
+**Event Processing:**
 ```bash
-# See the complete development history
+# Send a test event to the system
+curl -X POST http://localhost:4000/webhook/test \
+  -H "Content-Type: application/json" \
+  -d '{
+    "timestamp": "'$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")'",
+    "type": "motion.detected", 
+    "source": "camera_01",
+    "description": "Motion detected in living room"
+  }'
+
+# Watch it appear in real-time on the Events dashboard
+# Visit http://localhost:4000/events
+```
+
+**AI Decision Making:**
+- System receives events from cameras, sensors, file changes
+- AI processes events and makes intelligent decisions
+- Triggers actions through MCP tools (camera control, displays)
+
+### B. Research Output: Methodology Development
+
+**Conversation Archaeology:**
+```bash
+# See methodology development preserved in real-time
 ls chat-history/ | wc -l
-# Shows: 90+ conversation files
+# Shows: 90+ conversation files documenting collaboration patterns
 
-# Check total size of preserved consciousness  
-du -sh chat-history/
-# Shows: ~50MB of structured development data
-
-# Look at a conversation file
+# Each conversation shows how the practical system was built
 head chat-history/3c00c241-4f9f-4d2b-aebd-34f7d5392654.jsonl
 ```
 
-**Each conversation file contains:**
-- Complete tool usage with context
-- Every architectural decision with reasoning
-- Debugging steps and solutions
-- Git commit correlation
+**Research Through Practice:**
+- Building real system components reveals collaboration patterns
+- Each technical challenge improves the methodology
+- Practical constraints drive methodology refinement
 
 ## 5. Trace a Decision
 
@@ -83,16 +102,30 @@ grep -r "c3e13db" chat-history/
 
 ## What You've Just Seen
 
-1. **Working multi-user AI chat system** with agent personalities
-2. **Real-time event processing** with auto-discovery
-3. **Complete conversation archaeology** - every development decision preserved
-4. **Traceability** from any line of code back to its original reasoning
+**Practical System:**
+1. **Distributed AI event processing** - real-time ingestion and intelligent handling
+2. **Multi-user chat interface** with AI agent personalities  
+3. **MCP tool integration** - AI can control cameras, capture screenshots, process events
+4. **Phoenix LiveView dashboards** - real-time system monitoring
+
+**Research Methodology:**
+1. **Research through practice** - building real system while developing collaboration patterns
+2. **Conversation archaeology** - complete development decision preservation
+3. **Two-role framework** - AI as development team, human as product team in action
+4. **Physics of Work** - making it better for the next person (which is us)
 
 ## Next Steps
 
-- **[Collaboration Methodology](COLLABORATION_METHODOLOGY.md)** - Learn the proven patterns
-- **[Development Journal](journal/)** - Read real-time discoveries  
+**Understand the System:**
+- **[System Architecture](SYSTEM_ARCHITECTURE.md)** - Complete distributed AI system design
 - **[AI Quick Reference](AI_QUICK_REFERENCE.md)** - Key commands and patterns
+
+**Learn the Methodology:**
+- **[Collaboration Methodology](COLLABORATION_METHODOLOGY.md)** - Research through practice patterns
+- **[Development Journal](journal/)** - Real-time discoveries and insights
+
+**Explore Both:**
+- **[Conversation Archaeology](CONVERSATION_ARCHAEOLOGY.md)** - How methodology emerges from practice
 
 ## Troubleshooting
 
