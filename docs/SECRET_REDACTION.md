@@ -9,15 +9,19 @@ Claude Code conversation logs may contain sensitive information like API keys or
 ## Components
 
 ### 1. Redaction Script
-**Location**: `/scripts/redact-secrets.sh`
+**Location**: `/scripts/git-pre-commit-redact-secrets.sh`
 
 Removes the following patterns:
 - GitHub Personal Access Tokens: `github_pat_*`, `ghp_*`, `ghs_*`
-- JSON fields: `api_key`, `token`, `password`, `secret`
+- OpenRouter API keys: `sk-or-v1-*`
+- Sentry keys: `sentry_key=*`
+- JSON fields: `api_key`, `openrouter_key`, `token`, `password`, `secret`
+- Environment variables: `*_KEY=*`, `*_TOKEN=*`, `*_SECRET=*`, `*_PASSWORD=*`
+- Generic catch-all: Any `CAPS_VAR=value` pattern
 
 Usage:
 ```bash
-./scripts/redact-secrets.sh < input.jsonl > output.jsonl
+./scripts/git-pre-commit-redact-secrets.sh < input.jsonl > output.jsonl
 ```
 
 ### 2. Sync Script
@@ -48,12 +52,12 @@ To test the redaction without committing:
 ./scripts/sync-chat-history.sh
 
 # Check what would be redacted
-./scripts/redact-secrets.sh < ~/.claude/projects/-Users-j-Code-athena/some-file.jsonl | grep REDACTED
+./scripts/git-pre-commit-redact-secrets.sh < ~/.claude/projects/-Users-j-Code-athena/some-file.jsonl | grep REDACTED
 ```
 
 ## Adding New Patterns
 
-To redact additional secret patterns, edit `/scripts/redact-secrets.sh` and add new sed expressions:
+To redact additional secret patterns, edit `/scripts/git-pre-commit-redact-secrets.sh` and add new sed expressions:
 ```bash
 -e 's/your_pattern_here/REDACTED/g' \
 ```
@@ -61,7 +65,7 @@ To redact additional secret patterns, edit `/scripts/redact-secrets.sh` and add 
 ## Troubleshooting
 
 1. **Sync not running**: Ensure scripts are executable: `chmod +x scripts/*.sh`
-2. **Secrets still detected**: Add the pattern to redact-secrets.sh
+2. **Secrets still detected**: Add the pattern to git-pre-commit-redact-secrets.sh
 3. **Files not syncing**: Check that Claude project path exists
 
 ## Security Notes

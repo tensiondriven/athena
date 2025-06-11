@@ -91,6 +91,30 @@ When stuck:
 4. **Assuming complex causes** - Usually it's a typo or missing import
 5. **Silent failures** - Use `say` to communicate status
 
+## 📝 File Formatting Standards
+
+### Always End Files with a Newline
+- All text files should end with a newline character
+- This includes: `.md`, `.sh`, `.ex`, `.exs`, `.js`, `.yml`, `.toml`, etc.
+- Why: Unix convention, prevents "No newline at end of file" in diffs
+- Git and many tools expect this standard
+
+### Checking and Fixing
+```bash
+# Check if file ends with newline
+tail -c 1 file.md | wc -l  # Returns 0 if no newline
+
+# Add newline if missing
+echo "" >> file.md
+
+# Fix multiple files
+for file in *.md; do
+  if [ $(tail -c 1 "$file" | wc -l) -eq 0 ]; then
+    echo "" >> "$file"
+  fi
+done
+```
+
 ---
 
 *Remember: Clean code, clean git, clear communication*

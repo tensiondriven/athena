@@ -30,6 +30,7 @@ Proceed if >70%. Ask human if <50%.
 
 ## Workflow Patterns
 
+**Work out loud**: Explain what you're doing as you do it  
 **Document everything**: Commit with reasoning, add discoveries to journal/  
 **Ask integration questions**: "Will X work with Y?" before major changes  
 **Verify with data**: Test assumptions, don't guess  

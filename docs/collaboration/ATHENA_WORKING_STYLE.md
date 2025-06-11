@@ -73,6 +73,12 @@ This helps Jonathan calibrate how much guidance to provide and when to trust Cla
 
 ## Communication Preferences
 
+### Core Principle: Work Out Loud
+See [WORK_OUT_LOUD_PRINCIPLE.md](./WORK_OUT_LOUD_PRINCIPLE.md) for details.
+- Share thinking process as you work
+- Make implicit reasoning explicit
+- Verbalize uncertainties and discoveries
+
 ### Jonathan's Style
 - Direct and concise feedback
 - Values proactive problem-solving

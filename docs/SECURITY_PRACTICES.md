@@ -83,17 +83,31 @@ If the pre-commit hook is missing, reinstall it:
 cat > .git/hooks/pre-commit << 'EOF'
 #!/bin/bash
 
-# Pre-commit hook to check for secrets using gitleaks
+# Pre-commit hook to sync chat logs and check for secrets
+# Dependencies:
+# - scripts/sync-chat-history.sh
+# - scripts/git-pre-commit-redact-secrets.sh
+# - gitleaks command
+
+# Sync Claude Code conversation logs with redaction
+if [[ -x "./scripts/sync-chat-history.sh" ]]; then
+    echo "Syncing and redacting conversation logs..."
+    ./scripts/sync-chat-history.sh
+fi
 
 echo "Running gitleaks to check for secrets..."
 
 # Check only staged files
-gitleaks protect --staged --verbose
-
-if [ $? -ne 0 ]; then
+if ! gitleaks protect --staged --verbose; then
+    echo ""
     echo "⚠️  Secrets detected in staged files!"
-    echo "Please remove the secrets before committing."
-    echo "You can use 'git reset HEAD <file>' to unstage files with secrets."
+    echo ""
+    echo "To fix this:"
+    echo "1. Run: ./scripts/sync-chat-history.sh"
+    echo "2. Stage the updated files: git add chat-history/*.jsonl"
+    echo "3. Try committing again"
+    echo ""
+    echo "If secrets persist, update /scripts/git-pre-commit-redact-secrets.sh with new patterns"
     exit 1
 fi
 
@@ -103,3 +117,5 @@ EOF
 
 chmod +x .git/hooks/pre-commit
 ```
+
+For more details on git hooks and their dependencies, see [GIT-HOOKS.md](./GIT-HOOKS.md)

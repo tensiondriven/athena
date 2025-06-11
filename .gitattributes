@@ -1,2 +1,3 @@
 # Apply secret redaction filter to chat history files
+# Uses: scripts/git-pre-commit-redact-secrets.sh
 chat-history/*.jsonl filter=redact-secrets

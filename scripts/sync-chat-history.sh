@@ -4,7 +4,7 @@
 
 CLAUDE_DIR="$HOME/.claude/projects/-Users-j-Code-athena"
 CHAT_HISTORY_DIR="./chat-history"
-REDACT_SCRIPT="./scripts/redact-secrets.sh"
+REDACT_SCRIPT="./scripts/git-pre-commit-redact-secrets.sh"
 
 echo "Syncing Claude Code conversation logs..."
 
