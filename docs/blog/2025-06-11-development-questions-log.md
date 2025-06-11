@@ -106,4 +106,32 @@
 
 ## Questions During Development
 
-*This section will accumulate questions as I work...*
+### Answers from QA Game
+
+**Q1: Agent auto-responses**
+- Agents should respond when they think it's useful
+- Must be able to NOT respond (selective engagement)
+- Phase 2: Check for new messages before sending, reconsider if new info
+- Must prevent conversation loops in design/implementation
+
+**Q2: Response delays**
+- No artificial delays, or max 200ms if any
+- (My prediction of 1-3 seconds was way off!)
+
+**Q3: Agent memory**
+- Yes, agents read room message history as needed to get up to speed
+- Can maintain explicit memory (not yet defined)
+- Will have implicit memory (not yet defined)
+- Focus on reading history rather than complex memory systems for now
+
+**Q4: Messages as events**
+- Yes, every chat message should create an event
+- Watch out for loops (chat → event → chat → event)
+- Phase 2: Add loop prevention (TTL or LLM check)
+- (I'll note event type/priority questions for later)
+
+**Q5-Q10: Marked for later discussion**
+- Will proceed with reasonable assumptions
+- Document decisions as I go
+
+*Questions accumulating during work...*
