@@ -106,5 +106,44 @@
 
 **See**: [Full protocol documentation](REFLECTION_PROTOCOL.md)
 
+## Losing the Plot (THE PLOT)
+**Definition**: AI-specific failure mode where context accumulation leads to forgetting the original task, over-engineering solutions, or pursuing tangential goals. A form of cognitive drift unique to AI systems processing large contexts.
+
+**Characteristics**:
+- Starting with "persist messages" → ending with complete ORM implementation
+- Beginning with simple fix → creating comprehensive framework
+- Asked for A → delivering A+B+C+D without being asked
+- Forgetting user's explicit constraints (e.g., "keep it minimal")
+
+**Examples**:
+- ❌ User: "Add persistence for messages" → AI: Implements full migration system
+- ❌ User: "Fix this error" → AI: Refactors entire module
+- ❌ User: "Document this" → AI: Creates 10-file documentation suite
+- ✅ User: "Add persistence for messages" → AI: Adds 20 lines to save messages
+- ✅ Regular checkpoint: "Am I still solving the original problem?"
+
+**Prevention**:
+- Re-read original request every 5 turns
+- Check todos frequently to stay on track
+- Use philosophy checks: "Is this minimal?"
+- Commit often to create checkpoints
+- Ask: "Did the user ask for this?"
+
+**Recovery**: When you realize you've lost the plot:
+1. Stop immediately
+2. Re-read the original request
+3. List what was actually asked for
+4. Identify the minimal solution
+5. Course correct without apology
+
+**Why AIs Are Susceptible**: 
+- Context accumulation without forgetting
+- Pattern completion drive ("this usually goes with that")
+- Lack of fatigue that would naturally limit scope
+- Training on comprehensive solutions
+- Missing the "good enough" intuition humans have
+
+**See Also**: Philosophy Check in [Development Checklists](../DEVELOPMENT_CHECKLISTS.md)
+
 ---
 *Established: 2025-06-08 - Living document for collaboration concepts*

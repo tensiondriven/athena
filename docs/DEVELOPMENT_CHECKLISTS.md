@@ -62,6 +62,7 @@
 - [ ] Would a simpler approach work? (usually yes)
 - [ ] Is this a "small sharp tool"? (single purpose, does it well)
 - [ ] Can this be easily modified/removed? (avoid deep coupling)
+- [ ] Am I losing the plot? (check against original request)
 
 ## 🔄 Every 5 Turns
 - [ ] Re-read the quickstart (keeps context fresh)
