@@ -35,11 +35,12 @@ cat AI_COLLABORATION_PROTOCOL.md
 ## Getting Started
 
 1. **Load protocol**: Read `AI_COLLABORATION_PROTOCOL.md`
-2. **Quick onboarding**: Check `docs/AI_ONBOARDING_QUICKSTART.md` for essential first steps
-3. **Check todos**: Use TodoRead tool for current task status
-4. **Review recent work**: `git log --oneline -10`
-5. **Review checklists**: `docs/DEVELOPMENT_CHECKLISTS.md` for process reminders
-6. **Ready to collaborate!**
+2. **See documentation map**: `docs/AI_DOCUMENTATION_MAP.md` for all AI docs
+3. **Quick onboarding**: Check `docs/AI_ONBOARDING_QUICKSTART.md` for essential first steps
+4. **Check todos**: Use TodoRead tool for current task status
+5. **Review recent work**: `git log --oneline -10`
+6. **Review checklists**: `docs/DEVELOPMENT_CHECKLISTS.md` for process reminders
+7. **Ready to collaborate!**
 
 ## Key Philosophy
 
