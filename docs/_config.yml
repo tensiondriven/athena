@@ -2,11 +2,12 @@
 title: "Athena: Distributed AI Home Automation"
 description: "Open source AI-assisted home automation with conversation archaeology"
 
-# Theme
-theme: jekyll-theme-minimal
+# Theme - using remote_theme for GitHub Pages compatibility
+remote_theme: pages-themes/minimal@v0.2.0
 
 # Plugins
 plugins:
+  - jekyll-remote-theme
   - jekyll-relative-links
   - jekyll-seo-tag
 
