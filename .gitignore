@@ -93,3 +93,4 @@ error.log
 # Build artifacts
 erl_crash.dump
 logs/
+redacted_tokens.txt
