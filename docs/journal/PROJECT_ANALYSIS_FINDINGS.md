@@ -69,7 +69,7 @@ The project has **7 separate git repositories** nested within the main `/Users/j
 
 #### sam-pipeline GitHub Reference (Line 90)
 ```markdown
-2. Check the [GitHub Issues](https://github.com/tensiondriven/sam-pipeline/issues) for tasks
+2. Check the GitHub Issues (repository location unknown) for tasks
 ```
 **Issue**: GitHub URL may be incorrect for current repository location.
 
