@@ -8,7 +8,8 @@ regex = '''[a-f0-9]{40}'''
 [rules.allowlist]
 paths = [
     '''chat-history/.*\.jsonl''',
-    '''data/claude-logs/.*\.jsonl'''
+    '''data/claude-logs/.*\.jsonl''',
+    '''docs/journal/.*\.md'''
 ]
 regexes = [
     '''commit [a-f0-9]{40}''',

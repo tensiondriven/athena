@@ -1,0 +1,2 @@
+# Apply secret redaction filter to chat history files
+chat-history/*.jsonl filter=redact-secrets
