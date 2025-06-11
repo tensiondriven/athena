@@ -1,10 +1,6 @@
-# Jekyll configuration for INTERNAL documentation
-# For public docs, see /docs/public/
-title: "Athena: Internal Development Documentation"
-description: "Complete development history including journal entries and collaboration patterns"
-
-# NOTE: This folder contains sensitive internal documentation
-# Public documentation is in /docs/public/
+# Jekyll configuration for GitHub Pages - Public Documentation Only
+title: "Athena: Distributed AI Home Automation"
+description: "Open source AI-assisted home automation with conversation archaeology"
 
 # Theme
 theme: jekyll-theme-minimal
@@ -19,10 +15,12 @@ relative_links:
   enabled: true
   collections: true
 
-# Include files that start with underscore
-include:
-  - _config.yml
-
-# Whitelist approach - only publish specific content
-# By default, Jekyll publishes everything
-# We'll use a public/ folder for explicit publishing
+# Exclude internal documentation from being published
+exclude:
+  - journal/
+  - physics-of-work/
+  - collaboration/
+  - architecture/DEV_PROD_*.md
+  - CONVERSATION_ARCHAEOLOGY.md
+  - _config.yml.internal
+  - SECRET_REDACTION.md

@@ -1,63 +1,45 @@
-# Athena: AI Development Archaeology
+# Athena Project
 
-## Preserving the Complete Consciousness of AI-Assisted Development
+An open-source distributed AI home automation system demonstrating conversation archaeology - the complete preservation of AI development consciousness alongside code.
 
-Welcome to Athena, a distributed AI home automation system that serves as both a practical IoT platform and a research laboratory for AI-human collaboration patterns.
+## What is Athena?
 
-### 🏛️ Core Concepts
+Athena is a research platform exploring AI-human collaboration patterns while building practical home automation. Every architectural decision, debugging step, and design evolution is preserved with complete context.
 
-- **[Conversation Archaeology](CONVERSATION_ARCHAEOLOGY.md)** - Every AI interaction is preserved as a primary source
-- **[Multi-User Chat System](../ash_chat/README.md)** - Phoenix LiveView chat with multi-agent support
-- **[Physics of Work Framework](physics-of-work/README.md)** - Collaboration protocols and patterns
-- **[System Architecture](SYSTEM_ARCHITECTURE.md)** - Event-driven distributed system design
+## Key Features
 
-### 🚀 Quick Start
+- **Multi-agent Chat System** - Hierarchical rooms with AI agent participants
+- **Hardware Integration** - PTZ cameras, sensors, and device control
+- **Event-Driven Architecture** - Real-time event collection and processing
+- **Conversation Archaeology** - Complete development history preserved
 
-```bash
-# Clone the repository
-git clone https://github.com/tensiondriven/athena.git
-cd athena
+## Architecture
 
-# Start the chat system
-cd ash_chat
-mix deps.get
-mix ash.setup
-iex -S mix phx.server
-```
+The system follows a domain-driven design:
 
-Visit [http://localhost:4000](http://localhost:4000) to access the chat interface.
+- **Events Domain** - Collection, routing, and storage of system events
+- **Hardware Domain** - Camera control, sensor integration
+- **Intelligence Domain** - AI processing pipelines and agent coordination
 
-### 📚 Documentation
+## Blog
 
-- **[Quick Start Guide](QUICK_START.md)** - Get up and running quickly
-- **[AI Quick Reference](AI_QUICK_REFERENCE.md)** - Essential commands and patterns
-- **[Development Journal](journal/)** - Daily discoveries and insights
-- **[Architecture Docs](architecture/)** - System design and implementation
+- [Error Watchdog Breakthrough](blog/2025-06-09-error-watchdog-breakthrough.md)
+- [Multi-Agent Channel Architecture](blog/2025-06-10-multi-agent-channel-breakthrough.md)
 
-### 🔬 Research Focus
+## Documentation
 
-This project explores:
-- How AI and humans collaborate on complex software projects
-- The emergence of specialized AI roles (Architect, Curator, Guide)
-- Documentation as archaeological artifacts of development
-- The "Physics of Work" in AI-assisted development
+- [System Architecture](architecture/SYSTEM_ARCHITECTURE.md)
+- [Event Types](architecture/EVENT_TYPES.md)
+- [Quick Start Guide](QUICK_START.md)
 
-### 🤝 Collaboration
+## Contributing
 
-Athena is designed for AI-first development. See our [Collaboration Methodology](COLLABORATION_METHODOLOGY.md) for working with AI assistants on this project.
+This project demonstrates AI-assisted development with a Zero-Touch Constraint - all code is written by AI through natural language collaboration.
 
-### 📊 Live Systems
+## License
 
-- **Event Inspector**: Real-time view of system events
-- **Agent Dashboard**: Monitor AI agent activities
-- **Chat Interface**: Multi-agent conversational system
-
-### 🔗 Links
-
-- [GitHub Repository](https://github.com/tensiondriven/athena)
-- [Development Blog](blog/)
-- [Project Journal](journal/)
+[Project License Information]
 
 ---
 
-*"In the archaeology of code, every conversation leaves artifacts worth preserving."*
+*Building the future of AI-human collaboration, one conversation at a time*

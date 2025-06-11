@@ -1,0 +1,28 @@
+# Jekyll configuration for INTERNAL documentation
+# For public docs, see /docs/public/
+title: "Athena: Internal Development Documentation"
+description: "Complete development history including journal entries and collaboration patterns"
+
+# NOTE: This folder contains sensitive internal documentation
+# Public documentation is in /docs/public/
+
+# Theme
+theme: jekyll-theme-minimal
+
+# Plugins
+plugins:
+  - jekyll-relative-links
+  - jekyll-seo-tag
+
+# Enable relative links
+relative_links:
+  enabled: true
+  collections: true
+
+# Include files that start with underscore
+include:
+  - _config.yml
+
+# Whitelist approach - only publish specific content
+# By default, Jekyll publishes everything
+# We'll use a public/ folder for explicit publishing
