@@ -15,7 +15,8 @@ defmodule AshChat.Tools do
       get_recent_events_tool(),
       take_screenshot_tool(),
       search_messages_tool(),
-      create_room_tool()
+      create_room_tool(),
+      get_current_time_tool()
     ]
   end
   
@@ -221,6 +222,60 @@ defmodule AshChat.Tools do
             }
           {:error, error} ->
             %{success: false, error: inspect(error)}
+        end
+      end
+    }
+  end
+  
+  defp get_current_time_tool() do
+    %{
+      name: "get_current_time",
+      description: "Get the current date, time, and sunset information if it's afternoon",
+      parameters: %{
+        type: "object",
+        properties: %{
+          location: %{
+            type: "string",
+            description: "Location for timezone (e.g., 'madison', 'chicago', 'new york'). Default: madison"
+          }
+        }
+      },
+      function: fn params, context ->
+        location = params["location"] || "madison"
+        server_path = "/Users/j/Code/athena/system/athena-mcp/time_mcp_server.py"
+        
+        case McpClient.call_mcp_server(server_path, "get_current_time", %{location: location}, context) do
+          {:ok, result} ->
+            # Format the response nicely
+            response = %{
+              success: true,
+              date: result["date"],
+              time: result["time"],
+              location: result["location"],
+              timezone: result["timezone"]
+            }
+            
+            # Add sunset info if available
+            final_response = if sunset_info = result["sunset_info"] do
+              if sunset_info["sunset_passed"] do
+                Map.put(response, :sunset_message, sunset_info["message"])
+              else
+                Map.merge(response, %{
+                  sunset_time: sunset_info["sunset_time"],
+                  time_until_sunset: sunset_info["time_until_sunset"]
+                })
+              end
+            else
+              response
+            end
+            
+            final_response
+            
+          {:error, reason} ->
+            %{
+              success: false,
+              error: "Failed to get time: #{inspect(reason)}"
+            }
         end
       end
     }

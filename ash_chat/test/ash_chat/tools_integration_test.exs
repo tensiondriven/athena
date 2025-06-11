@@ -48,6 +48,15 @@ defmodule AshChat.ToolsIntegrationTest do
       assert shell_tool != nil
       assert shell_tool.description =~ "whitelisted"
     end
+    
+    test "get_current_time tool is included" do
+      tools = Tools.list()
+      time_tool = Enum.find(tools, &(&1.name == "get_current_time"))
+      
+      assert time_tool != nil
+      assert time_tool.description =~ "date"
+      assert time_tool.description =~ "sunset"
+    end
   end
   
   describe "shell command execution" do
@@ -142,6 +151,51 @@ defmodule AshChat.ToolsIntegrationTest do
       
       assert result.success == true
       assert Enum.all?(result.events, &(&1.type == "special_type"))
+    end
+  end
+  
+  describe "time tool" do
+    test "can get current time for location", %{context: context} do
+      tools = Tools.list()
+      time_tool = Enum.find(tools, &(&1.name == "get_current_time"))
+      
+      result = time_tool.function.(%{"location" => "chicago"}, context)
+      
+      assert result.success == true
+      assert result.date != nil
+      assert result.time != nil
+      assert result.location == "Chicago"
+      assert result.timezone == "America/Chicago"
+    end
+    
+    test "defaults to Madison when no location provided", %{context: context} do
+      tools = Tools.list()
+      time_tool = Enum.find(tools, &(&1.name == "get_current_time"))
+      
+      result = time_tool.function.(%{}, context)
+      
+      assert result.success == true
+      assert result.location == "Madison"
+    end
+    
+    test "time tool creates events", %{context: context} do
+      tools = Tools.list()
+      time_tool = Enum.find(tools, &(&1.name == "get_current_time"))
+      
+      # Get initial event count
+      {:ok, initial_events} = Event.recent(%{limit: 10})
+      initial_count = length(initial_events)
+      
+      # Call the time tool
+      _result = time_tool.function.(%{"location" => "chicago"}, context)
+      
+      # Check events were created
+      {:ok, new_events} = Event.recent(%{limit: 10})
+      assert length(new_events) > initial_count
+      
+      # Should have tool call events
+      event_types = Enum.map(new_events, & &1.event_type)
+      assert "tool_call_started" in event_types || "tool_call_completed" in event_types
     end
   end
 end
