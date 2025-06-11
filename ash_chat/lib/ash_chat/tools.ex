@@ -3,7 +3,7 @@ defmodule AshChat.Tools do
   AI Tools for chat agents - integrated with LangChain
   """
   
-  alias AshChat.Tools.Shell
+  alias AshChat.Tools.{Shell, McpClient}
   alias AshChat.Resources.{Event, Message}
   
   @doc """
@@ -112,31 +112,35 @@ defmodule AshChat.Tools do
         required: ["source"]
       },
       function: fn params, context ->
-        # For now, we'll create a placeholder - actual MCP integration coming next
-        timestamp = DateTime.utc_now()
-        filename = "screenshot_#{DateTime.to_unix(timestamp)}.png"
+        source = params["source"] || "camera"
         
-        # Create event for screenshot
-        Event.create(%{
-          timestamp: timestamp,
-          event_type: "tool_call_completed",
-          source_id: context[:agent_id] || "screenshot_tool",
-          source_path: "ash_chat/tools/screenshot",
-          content: filename,
-          description: "Screenshot taken from #{params["source"]}",
-          metadata: %{
-            tool: "screenshot",
-            source: params["source"],
-            filename: filename,
-            room_id: context[:room_id]
-          }
-        })
-        
-        %{
-          success: true,
-          filename: filename,
-          message: "Screenshot functionality will be integrated with MCP servers"
-        }
+        case McpClient.take_screenshot(source, nil, context) do
+          {:ok, result} ->
+            # Store screenshot data if requested
+            if params["save_to_message"] && result["success"] do
+              # TODO: Create message with image attachment
+              # For now, just return the result
+            end
+            
+            %{
+              success: result["success"],
+              filename: result["output_path"],
+              camera_info: result["camera"],
+              message: "Screenshot taken successfully"
+            }
+            
+          {:error, :no_cameras_available} ->
+            %{
+              success: false,
+              error: "No cameras available for screenshots"
+            }
+            
+          {:error, reason} ->
+            %{
+              success: false,
+              error: "Screenshot failed: #{inspect(reason)}"
+            }
+        end
       end
     }
   end
