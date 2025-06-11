@@ -131,42 +131,9 @@ defmodule AshChat.Resources.Message do
     define :semantic_search
   end
   
-  # Simple SQLite persistence
-  defp persist_to_sqlite(message) do
-    case Exqlite.Sqlite3.open("ash_chat.db") do
-      {:ok, conn} ->
-        # Create table if not exists
-        Exqlite.Sqlite3.execute(conn, """
-        CREATE TABLE IF NOT EXISTS messages (
-          id TEXT PRIMARY KEY,
-          room_id TEXT NOT NULL,
-          user_id TEXT,
-          content TEXT NOT NULL,
-          role TEXT NOT NULL,
-          created_at TEXT NOT NULL
-        )
-        """)
-        
-        # Insert message
-        {:ok, statement} = Exqlite.Sqlite3.prepare(conn, """
-        INSERT OR REPLACE INTO messages (id, room_id, user_id, content, role, created_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """)
-        
-        :ok = Exqlite.Sqlite3.bind(statement, [
-          message.id,
-          message.room_id,
-          message.user_id || "",
-          message.content,
-          to_string(message.role),
-          DateTime.to_iso8601(message.created_at)
-        ])
-        
-        Exqlite.Sqlite3.step(conn, statement)
-        Exqlite.Sqlite3.release(conn, statement)
-        Exqlite.Sqlite3.close(conn)
-      _ ->
-        :ok  # Fail silently - don't break chat if DB is down
-    end
+  # SQLite persistence now handled by Ash DataLayer
+  defp persist_to_sqlite(_message) do
+    # No longer needed - Ash handles persistence through the SQLite adapter
+    :ok
   end
 end

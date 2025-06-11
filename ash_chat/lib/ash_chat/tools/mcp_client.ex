@@ -87,12 +87,12 @@ defmodule AshChat.Tools.McpClient do
   @doc """
   Take a screenshot using the screenshot MCP server
   """
-  def take_screenshot(source \\ "camera", output_path \\ nil, context \\ %{}) do
+  def take_screenshot(_source \\ "camera", output_path \\ nil, context \\ %{}) do
     server_path = "/Users/j/Code/athena/system/athena-mcp/screenshot_mcp_server.py"
     
     # First list available cameras
     case call_mcp_server(server_path, "list_screenshot_cameras", %{}, context) do
-      {:ok, %{"cameras" => cameras}} when length(cameras) > 0 ->
+      {:ok, %{"cameras" => [_ | _] = cameras}} ->
         # Use first available camera
         camera = hd(cameras)
         camera_id = camera["id"]

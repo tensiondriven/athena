@@ -1,17 +1,18 @@
 defmodule AshChat.AI.AgentConversationTest do
   use ExUnit.Case, async: false
   
-  alias AshChat.AI.{ChatAgent, AgentConversation}
-  alias AshChat.Resources.{Room, User, Message, AgentCard, AgentMembership, Profile}
+  alias AshChat.AI.AgentConversation
+  alias AshChat.Resources.{Room, User, Message, AgentCard, AgentMembership, Profile, RoomMembership}
   
   setup do
     # Clean up any existing data
-    {:ok, _} = Ash.bulk_destroy(Message, :all)
-    {:ok, _} = Ash.bulk_destroy(AgentMembership, :all)
-    {:ok, _} = Ash.bulk_destroy(Room, :all)
-    {:ok, _} = Ash.bulk_destroy(AgentCard, :all)
-    {:ok, _} = Ash.bulk_destroy(User, :all)
-    {:ok, _} = Ash.bulk_destroy(Profile, :all)
+    Message.read!() |> Enum.each(&Message.destroy!/1)
+    AgentMembership.read!() |> Enum.each(&AgentMembership.destroy!/1)
+    RoomMembership.read!() |> Enum.each(&RoomMembership.destroy!/1)
+    Room.read!() |> Enum.each(&Room.destroy!/1)
+    AgentCard.read!() |> Enum.each(&AgentCard.destroy!/1)
+    User.read!() |> Enum.each(&User.destroy!/1)
+    Profile.read!() |> Enum.each(&Profile.destroy!/1)
     
     # Create a test profile for agents
     {:ok, profile} = Profile.create(%{
@@ -152,7 +153,7 @@ defmodule AshChat.AI.AgentConversationTest do
       })
       
       # Process multiple rounds
-      messages_count_start = length(Message.for_room!(%{room_id: room.id}))
+      _messages_count_start = length(Message.for_room!(%{room_id: room.id}))
       
       # First response
       AgentConversation.process_agent_responses(room.id, trigger, [])
@@ -201,7 +202,7 @@ defmodule AshChat.AI.AgentConversationTest do
       })
       
       # Check response patterns
-      statement_responses = AgentConversation.process_agent_responses(room.id, statement, [])
+      _statement_responses = AgentConversation.process_agent_responses(room.id, statement, [])
       question_responses = AgentConversation.process_agent_responses(room.id, question, [])
       
       # Questions should have responses (70% chance, but with low temp should be consistent)
@@ -236,7 +237,7 @@ defmodule AshChat.AI.AgentConversationTest do
       })
       
       # Process agent response
-      responses = AgentConversation.process_agent_responses(room.id, user_msg, [])
+      _responses = AgentConversation.process_agent_responses(room.id, user_msg, [])
       
       # Wait for async operations
       Process.sleep(500)

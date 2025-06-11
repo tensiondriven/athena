@@ -3,7 +3,7 @@ defmodule AshChatWeb.ChatLive do
   require Logger
 
   alias AshChat.AI.{ChatAgent, AgentConversation}
-  alias AshChat.Resources.{Room, User, Message, AgentMembership, AgentCard}
+  alias AshChat.Resources.{Room, User, Message}
 
   @impl true
   def mount(_params, _session, socket) do
