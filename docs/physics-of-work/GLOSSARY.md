@@ -89,5 +89,22 @@
 
 **In Practice**: Before any destructive action, curiosity asks "What might I learn from this first?"
 
+## Reflection Protocol  
+**Definition**: A documentation practice of write-commit-breathe-read-revise cycles that captures both initial thoughts and refined insights through AI reasoning.
+
+**Critical Value**: "We can make huge improvements and catch errors that would be very costly, we're foolish not to leverage it!" - Jonathan
+
+**Pattern**: Write → Commit → Deep Breath → Re-read → Revise → Commit
+
+**Why It's Essential**:
+- **Catches costly errors** before they propagate
+- **Makes huge improvements** through iterative reasoning
+- **Transforms adequate into excellent** with minimal effort
+- **Documents thinking evolution** for future understanding
+
+**Example Impact**: First draft might miss critical connections or contain flawed logic. Reflection catches these before they become embedded assumptions.
+
+**See**: [Full protocol documentation](REFLECTION_PROTOCOL.md)
+
 ---
 *Established: 2025-06-08 - Living document for collaboration concepts*
