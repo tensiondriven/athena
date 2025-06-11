@@ -1,0 +1,20 @@
+# Jekyll configuration for GitHub Pages in /docs folder
+title: "Athena: AI Development Archaeology"
+description: "Preserving the complete consciousness of AI-assisted software development"
+
+# Theme
+theme: jekyll-theme-minimal
+
+# Plugins
+plugins:
+  - jekyll-relative-links
+  - jekyll-seo-tag
+
+# Enable relative links
+relative_links:
+  enabled: true
+  collections: true
+
+# Include files that start with underscore
+include:
+  - _config.yml
