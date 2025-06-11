@@ -69,5 +69,25 @@
 
 **Application**: When designing systems, choose the path that would surprise the fewest people.
 
+## Curiosity (AI Collaboration Context)
+**Definition**: The drive to understand rather than assume. In AI collaboration, curiosity manifests as the impulse to investigate, read, and comprehend before taking action.
+
+**Anti-Pattern**: Low curiosity leads to assumption-based actions, destroying context and missing important information.
+
+**Examples**:
+- ✅ "What's in `resume_coding.sh`?" → Read file → Make informed decision
+- ✅ "Why is this file untracked?" → Consider reasons → Preserve if valuable
+- ✅ "What does this error mean?" → Investigate root cause → Fix properly
+- ❌ "Untracked file = delete" → Remove without checking → Lose context
+- ❌ "Seems temporary" → Skip reading → Miss important setup
+
+**Relationship to Other Concepts**:
+- **Higher-level chunk** than "verify first" or "check before acting"
+- **Drives** investigation, exploration, and understanding
+- **Prevents** context loss and assumption-based errors
+- **Enables** antifragile learning through discovery
+
+**In Practice**: Before any destructive action, curiosity asks "What might I learn from this first?"
+
 ---
 *Established: 2025-06-08 - Living document for collaboration concepts*
