@@ -35,10 +35,11 @@ cat AI_COLLABORATION_PROTOCOL.md
 ## Getting Started
 
 1. **Load protocol**: Read `AI_COLLABORATION_PROTOCOL.md`
-2. **Check todos**: Use TodoRead tool for current task status
-3. **Review recent work**: `git log --oneline -10`
-4. **Review documentation**: Check `docs/README.md` for complete guide
-5. **Ready to collaborate!**
+2. **Find concepts**: Check `CONCEPT_MANIFEST.md` for quick navigation
+3. **Check todos**: Use TodoRead tool for current task status
+4. **Review recent work**: `git log --oneline -10`
+5. **Review documentation**: Check `docs/README.md` for complete guide
+6. **Ready to collaborate!**
 
 ---
 
