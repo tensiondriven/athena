@@ -4,6 +4,21 @@ Development and testing utilities for the Athena project.
 
 ## Tools
 
+### OpenCode Integration
+- **`opencode-tool.sh`** - Comprehensive tool for OpenCode + Ollama integration
+  ```bash
+  ./opencode-tool.sh status      # Check status
+  ./opencode-tool.sh test        # Run tests
+  ./opencode-tool.sh run [args]  # Run opencode with fixed config
+  ./opencode-tool.sh interactive # Interactive mode
+  ```
+  Works with llama3-groq-tool-use model for tool support. For complex tasks, use deepseek-r1 directly.
+
+### Ollama Management
+- **`ollama-status.sh`** - Interactive server status monitor with TUI
+- **`ollama-quick-status.sh`** - Quick status check (non-interactive)
+- **`ollama-api-cleanup.sh`** - Model cleanup utility (freed 1TB in last run!)
+
 ### `test-event-sender`
 Single-file executable to verify Athena event collection pipeline functionality.
 
