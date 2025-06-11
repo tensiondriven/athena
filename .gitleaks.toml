@@ -7,12 +7,14 @@ id = "ignore-git-hashes"
 regex = '''[a-f0-9]{40}'''
 [rules.allowlist]
 paths = [
-    '''chat-history/.*\.jsonl'''
+    '''chat-history/.*\.jsonl''',
+    '''data/claude-logs/.*\.jsonl'''
 ]
 regexes = [
     '''commit [a-f0-9]{40}''',
     '''blob id: [a-f0-9]{40}''',
-    '''blob [a-f0-9]{40}'''
+    '''blob [a-f0-9]{40}''',
+    '''sha256:[a-f0-9]{40}'''
 ]
 
 [[rules]]

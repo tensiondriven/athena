@@ -74,6 +74,7 @@ logs/
 data/*
 !data/.gitkeep
 !data/claude-logs/
+data/claude-logs/live.backup/
 
 # Temporary files
 *.tmp
