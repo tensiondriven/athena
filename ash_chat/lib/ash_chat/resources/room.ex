@@ -59,6 +59,17 @@ defmodule AshChat.Resources.Room do
 
     create :create do
       accept [:title, :parent_room_id, :starting_message, :hidden]
+      
+      # Add persistence hook
+      change fn changeset, _context ->
+        changeset
+        |> Ash.Changeset.after_action(fn _changeset, result ->
+          Task.start(fn ->
+            persist_to_sqlite(result)
+          end)
+          {:ok, result}
+        end)
+      end
     end
     
     read :get do
@@ -95,5 +106,44 @@ defmodule AshChat.Resources.Room do
     define :destroy
     define :hide
     define :unhide
+  end
+  
+  # Simple SQLite persistence
+  defp persist_to_sqlite(room) do
+    case Exqlite.Sqlite3.open("ash_chat.db") do
+      {:ok, conn} ->
+        # Create table if not exists
+        Exqlite.Sqlite3.execute(conn, """
+        CREATE TABLE IF NOT EXISTS rooms (
+          id TEXT PRIMARY KEY,
+          title TEXT NOT NULL,
+          parent_room_id TEXT,
+          starting_message TEXT,
+          hidden INTEGER DEFAULT 0,
+          created_at TEXT NOT NULL
+        )
+        """)
+        
+        # Insert room
+        {:ok, statement} = Exqlite.Sqlite3.prepare(conn, """
+        INSERT OR REPLACE INTO rooms (id, title, parent_room_id, starting_message, hidden, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """)
+        
+        :ok = Exqlite.Sqlite3.bind(statement, [
+          room.id,
+          room.title,
+          room.parent_room_id || "",
+          room.starting_message || "",
+          if(room.hidden, do: 1, else: 0),
+          DateTime.to_iso8601(room.created_at)
+        ])
+        
+        Exqlite.Sqlite3.step(conn, statement)
+        Exqlite.Sqlite3.release(conn, statement)
+        Exqlite.Sqlite3.close(conn)
+      _ ->
+        :ok  # Fail silently - don't break chat if DB is down
+    end
   end
 end
