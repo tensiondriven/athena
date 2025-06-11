@@ -22,6 +22,7 @@ Proceed if >70%. Ask human if <50%.
 
 ## Tool Usage (Mandatory)
 
+**Consider carefully**: Before using shell commands, pause - is there a better tool/script/app for this purpose?  
 **Shell**: Use builtin Bash tool (with --dangerously-skip-permissions for autonomous execution)  
 **Search**: Agent tool for keywords, Glob for patterns, Read for known paths  
 **Large files**: head/tail/sampling only (never full read >1MB)  

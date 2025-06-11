@@ -7,7 +7,9 @@ sed -E \
   -e 's/ghp_[A-Za-z0-9]{36}/REDACTED_GITHUB_TOKEN/g' \
   -e 's/ghs_[A-Za-z0-9]{36}/REDACTED_GITHUB_SECRET/g' \
   -e 's/sk-or-v1-[A-Za-z0-9]+/REDACTED_OPENROUTER_KEY/g' \
+  -e 's/sk-ant-[A-Za-z0-9_-]+/REDACTED_ANTHROPIC_KEY/g' \
   -e 's/sentry_key=[A-Za-z0-9]+/sentry_key=REDACTED/g' \
+  -e 's/SFMyNTY\.[A-Za-z0-9\._-]+/REDACTED_PHOENIX_SESSION/g' \
   -e 's/"api_key":\s*"[^"]+"/\"api_key\": \"REDACTED\"/g' \
   -e 's/"openrouter_key":\s*"[^"]+"/\"openrouter_key\": \"REDACTED\"/g' \
   -e 's/"token":\s*"[^"]+"/\"token\": \"REDACTED\"/g' \

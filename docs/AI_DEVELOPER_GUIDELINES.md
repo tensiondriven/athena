@@ -42,6 +42,21 @@
   - ❌ `grep -r "function" .` (searches everything)
   - ✅ `grep "function" lib/ash_chat/ai/*.ex` (targeted)
 
+### 6. Thoughtful Tool Selection
+- **Pause before reaching for common shell commands**
+- Ask yourself: "Given the purpose, is there a better tool/script/app?"
+- Consider existing project scripts before writing new commands
+- Examples:
+  - ❌ `sed -E 's/sk-ant-.*/REDACTED/' file.jsonl` (manual redaction)
+  - ✅ `./scripts/git-pre-commit-redact-secrets.sh < file.jsonl` (use existing tool)
+  - ❌ `find . -name "*.md" | xargs grep "pattern"` (generic search)
+  - ✅ Use Agent tool for complex searches across codebase
+- Check for specialized tools:
+  - Redaction? → redact-secrets script
+  - Git operations? → Check for existing git scripts
+  - Testing? → Use project test runners
+  - Searching? → Agent tool for exploration
+
 ## 📋 Quick Checklist
 
 Before starting any task:
@@ -49,12 +64,14 @@ Before starting any task:
 - [ ] No compilation warnings?
 - [ ] Know where to look for examples?
 - [ ] Have a specific search strategy?
+- [ ] Checked for existing tools/scripts first?
 
 When stuck:
 - [ ] Found a working example to compare?
 - [ ] Checked the obvious issues first?
 - [ ] Used `say` to ask for clarification?
 - [ ] Committed progress so far?
+- [ ] Considered if there's a better tool than shell?
 
 ## 🔧 Practical Tips
 
