@@ -252,10 +252,15 @@ defmodule AshChat.AI.ChatAgent do
     agent = create_ai_agent_with_agent_card(room, agent_card, context_opts)
     
     try do
-      case LLMChain.run(agent, all_messages) do
+      # Add messages to the chain before running (like in process_message_with_system_prompt)
+      agent_with_messages = Enum.reduce(all_messages, agent, fn msg, chain ->
+        LLMChain.add_message(chain, msg)
+      end)
+      
+      case LLMChain.run(agent_with_messages) do
         {:ok, updated_chain} ->
-          # Get the assistant's response
-          [assistant_response | _] = updated_chain.messages
+          # Get the assistant's response (last message should be the response)
+          assistant_response = updated_chain.last_message
           
           # Store both user and assistant messages  
           # Note: User message handled by caller, only store assistant response
@@ -266,6 +271,10 @@ defmodule AshChat.AI.ChatAgent do
           })
           
           {:ok, assistant_response.content}
+          
+        {:error, _chain, %LangChain.LangChainError{message: error_msg}} ->
+          Logger.error("LLM chain execution failed (3-tuple): #{error_msg}")
+          {:error, error_msg}
           
         {:error, reason} ->
           Logger.error("LLM chain execution failed: #{inspect(reason)}")

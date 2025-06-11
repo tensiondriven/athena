@@ -99,14 +99,47 @@ defmodule AshChatWeb.ChatLive do
       true ->
         socket = assign(socket, :processing, true)
         
-        # Temporarily disable automatic AI response to fix CaseClauseError
+        # Re-enabled AI response system with multi-agent support
         Task.start(fn ->
-          # Just send user message without AI response for now
+          # Send user message first
           ChatAgent.send_text_message(
             socket.assigns.room.id,
             content,
             socket.assigns.current_user.id
           )
+          
+          # Get all auto-responding agents for this room
+          case AshChat.Resources.AgentMembership.auto_responders_for_room(%{room_id: socket.assigns.room.id}) do
+            {:ok, [_ | _] = agent_memberships} ->
+              # Process response for each auto-responding agent
+              for agent_membership <- agent_memberships do
+                case Ash.get(AshChat.Resources.AgentCard, agent_membership.agent_card_id) do
+                  {:ok, agent_card} ->
+                    # Get room for context
+                    {:ok, room} = Ash.get(AshChat.Resources.Room, socket.assigns.room.id)
+                    
+                    # Generate AI response using specific agent card without sending duplicate user message
+                    ChatAgent.process_message_with_agent_card(
+                      room,
+                      content, 
+                      agent_card,
+                      [user_id: socket.assigns.current_user.id]
+                    )
+                    
+                  {:error, error} ->
+                    require Logger
+                    Logger.warning("Failed to get agent card #{agent_membership.agent_card_id}: #{inspect(error)}")
+                end
+              end
+              
+            {:ok, []} ->
+              # No auto-responding agents, no AI response needed
+              :ok
+              
+            {:error, error} ->
+              require Logger
+              Logger.warning("Failed to get auto-responding agents for room: #{inspect(error)}")
+          end
           
           Phoenix.PubSub.broadcast(
             AshChat.PubSub, 
