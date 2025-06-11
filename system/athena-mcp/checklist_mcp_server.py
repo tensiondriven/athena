@@ -142,21 +142,42 @@ class ChecklistManager:
         item.updated_at = datetime.utcnow().isoformat()
         return f"Added note to {item_id}"
     
-    def view_list(self) -> str:
-        """Render current checklist"""
-        items = self.checklists.get(self.current_list, [])
-        if not items:
-            return f"Checklist '{self.current_list}' is empty"
+    def view_list(self, list_name: Optional[str] = None) -> str:
+        """Render checklist"""
+        target_list = list_name or self.current_list
+        if target_list not in self.checklists:
+            return f"Checklist '{target_list}' not found"
             
-        lines = [f"=== {self.current_list} ==="]
+        items = self.checklists[target_list]
+        if not items:
+            return f"Checklist '{target_list}' is empty"
+            
+        lines = [f"=== {target_list} ==="]
         for item in items:
             lines.append(self._render_item(item))
         
         # Add summary
         total = self._count_items(items)
         completed = self._count_by_status(items, CheckStatus.COMPLETED)
-        lines.append(f"\n--- Progress: {completed}/{total} completed ---")
+        in_progress = self._count_by_status(items, CheckStatus.IN_PROGRESS)
+        blocked = self._count_by_status(items, CheckStatus.BLOCKED)
         
+        lines.append(f"\n--- Progress: {completed}/{total} completed, {in_progress} in progress, {blocked} blocked ---")
+        
+        return '\n'.join(lines)
+    
+    def list_all(self) -> str:
+        """List all checklists with summary"""
+        if not self.checklists:
+            return "No checklists created yet"
+            
+        lines = ["=== All Checklists ==="]
+        for name, items in self.checklists.items():
+            total = self._count_items(items)
+            completed = self._count_by_status(items, CheckStatus.COMPLETED)
+            current = " (current)" if name == self.current_list else ""
+            lines.append(f"- {name}{current}: {completed}/{total} completed")
+            
         return '\n'.join(lines)
     
     def _count_items(self, items: List[CheckItem]) -> int:
@@ -250,7 +271,17 @@ async def list_tools() -> list[Tool]:
         ),
         Tool(
             name="checklist_view",
-            description="View current checklist",
+            description="View checklist (current or specified)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "list_name": {"type": "string", "description": "Checklist name (optional, defaults to current)"}
+                }
+            }
+        ),
+        Tool(
+            name="checklist_list_all",
+            description="List all checklists with summary",
             inputSchema={
                 "type": "object",
                 "properties": {}
@@ -288,7 +319,10 @@ async def call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
         )
     
     elif name == "checklist_view":
-        result = checklist_manager.view_list()
+        result = checklist_manager.view_list(arguments.get("list_name"))
+    
+    elif name == "checklist_list_all":
+        result = checklist_manager.list_all()
     
     else:
         result = f"Unknown tool: {name}"
