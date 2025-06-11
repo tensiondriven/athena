@@ -70,9 +70,10 @@ logs/
 *.sqlite
 *.sqlite3
 
-# Data directory (except .gitkeep)
+# Data directory (except .gitkeep and claude-logs)
 data/*
 !data/.gitkeep
+!data/claude-logs/
 
 # Temporary files
 *.tmp
