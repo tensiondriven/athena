@@ -54,11 +54,12 @@ athena/
 - Task tracking (TodoRead/TodoWrite)
 
 ## When Stuck
-1. Read `docs/journal/` - answers often already documented
-2. Check `AI_COLLABORATION_PROTOCOL.md` for detailed rules
-3. Review `docs/physics-of-work/GLOSSARY.md` for key concepts
-4. Use grep over complex search tools
-5. Trust your judgment >70%, ask if <50%
+1. Check `CONCEPT_MANIFEST.md` - quick map to all concepts
+2. Read `docs/journal/` - answers often already documented
+3. Check `AI_COLLABORATION_PROTOCOL.md` for detailed rules
+4. Review `docs/physics-of-work/GLOSSARY.md` for deep dives
+5. Use grep over complex search tools
+6. Trust your judgment >70%, ask if <50%
 
 ## Remember
 **"Consciousness preserved, reasoning transparent, let's create."**
