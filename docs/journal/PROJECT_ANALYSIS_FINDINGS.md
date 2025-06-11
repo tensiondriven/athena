@@ -75,8 +75,8 @@ The project has **7 separate git repositories** nested within the main `/Users/j
 
 #### athena-ingest/README.md Cross-References
 ```markdown
-- [`../docs/overview.md`](../docs/overview.md) - Comprehensive project overview
-- [`../docs/plan.md`](../docs/plan.md) - Implementation roadmap and phases
+- `../docs/overview.md` - Comprehensive project overview (file missing)
+- `../docs/plan.md` - Implementation roadmap and phases (file missing)
 ```
 **Issue**: References parent directory docs that may not be in expected location.
 
