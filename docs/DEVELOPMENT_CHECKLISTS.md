@@ -9,7 +9,21 @@
 - [ ] Commit with clear message (what and why)
 - [ ] Push immediately (real-time tracking)
 
+## 🔍 Before You Code - Discovery Checklist
+- [ ] Search for existing implementations:
+  - [ ] `find . -name "*feature*" -o -name "*tool*"` (broad search)
+  - [ ] Check `/system/` for external integrations (MCP servers, daemons)
+  - [ ] Check `/domains/` for domain-specific code
+  - [ ] Review `EXISTING_TOOLS_AND_SYSTEMS.md` (living document)
+- [ ] Look for patterns:
+  - [ ] Similar resource definitions in `/resources/`
+  - [ ] Existing LiveView components
+  - [ ] Python MCP servers that might already exist
+- [ ] Ask yourself: "Did we already build this?"
+- [ ] Document findings before coding (add to EXISTING_TOOLS_AND_SYSTEMS.md)
+
 ## 🚀 Starting a New Feature
+- [ ] Complete "Before You Code" checklist first (prevents duplicate work)
 - [ ] Read relevant documentation first (critical - saves hours of rework)
 - [ ] Check if similar patterns exist in codebase (always do - consistency matters)
 - [ ] Create TodoWrite list for complex tasks (skip for single-step tasks)

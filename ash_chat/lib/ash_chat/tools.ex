@@ -1,30 +1,236 @@
 defmodule AshChat.Tools do
   @moduledoc """
-  AI Tools for chat agents - simplified for basic functionality
+  AI Tools for chat agents - integrated with LangChain
   """
-
+  
+  alias AshChat.Tools.Shell
+  alias AshChat.Resources.{Event, Message}
+  
+  @doc """
+  List all available tools for LangChain integration
+  """
   def list() do
     [
-      # Return empty list until AshAI tools are properly configured
+      shell_command_tool(),
+      get_recent_events_tool(),
+      take_screenshot_tool(),
+      search_messages_tool(),
+      create_room_tool()
     ]
   end
-
-  # Simple helper functions for manual tool calling
-  def search_messages(_query, _limit \\ 5) do
-    {:ok, "Search functionality coming soon when vectorization is enabled"}
+  
+  # Tool Definitions
+  
+  defp shell_command_tool() do
+    %{
+      name: "shell_command",
+      description: "Execute a whitelisted shell command. Available commands: #{Enum.join(Shell.whitelisted_commands(), ", ")}",
+      parameters: %{
+        type: "object",
+        properties: %{
+          command: %{
+            type: "string",
+            description: "The shell command to execute (must be whitelisted)"
+          }
+        },
+        required: ["command"]
+      },
+      function: fn %{"command" => command}, context ->
+        case Shell.execute(command, context) do
+          {:ok, output} ->
+            %{success: true, output: output}
+          {:error, {:not_whitelisted, allowed}} ->
+            %{
+              success: false, 
+              error: "Command not whitelisted. Allowed: #{Enum.join(allowed, ", ")}",
+              retry_hint: "Try using one of the allowed commands"
+            }
+          {:error, reason} ->
+            %{success: false, error: inspect(reason)}
+        end
+      end
+    }
   end
-
-  def create_room(title \\ "New Room") do
-    case AshChat.Resources.Room.create(%{title: title}) do
-      {:ok, room} ->
-        {:ok, "Created new room '#{room.title}' with ID: #{room.id}"}
-      
-      {:error, error} ->
-        {:error, "Failed to create room: #{inspect(error)}"}
-    end
+  
+  defp get_recent_events_tool() do
+    %{
+      name: "get_recent_events",
+      description: "Get recent events from the system, optionally filtered by type",
+      parameters: %{
+        type: "object",
+        properties: %{
+          limit: %{
+            type: "integer",
+            description: "Number of events to return (default: 20, max: 100)"
+          },
+          event_type: %{
+            type: "string",
+            description: "Optional: filter by event type (e.g., 'tool_call_completed', 'message_created')"
+          }
+        }
+      },
+      function: fn params, _context ->
+        limit = min(params["limit"] || 20, 100)
+        
+        result = if event_type = params["event_type"] do
+          Event.by_event_type(%{event_type: event_type, limit: limit})
+        else
+          Event.recent(%{limit: limit})
+        end
+        
+        case result do
+          {:ok, events} ->
+            %{
+              success: true,
+              count: length(events),
+              events: Enum.map(events, &format_event/1)
+            }
+          {:error, error} ->
+            %{success: false, error: inspect(error)}
+        end
+      end
+    }
   end
-
-  def analyze_image(image_url, _analysis_type \\ "describe") do
-    {:ok, "Analyzing image at #{image_url}..."}
+  
+  defp take_screenshot_tool() do
+    %{
+      name: "take_screenshot",
+      description: "Take a screenshot using available camera/screen capture",
+      parameters: %{
+        type: "object",
+        properties: %{
+          source: %{
+            type: "string",
+            description: "Screenshot source: 'screen' for desktop or 'camera' for webcam",
+            enum: ["screen", "camera"]
+          },
+          save_to_message: %{
+            type: "boolean",
+            description: "Whether to save the screenshot as a message attachment"
+          }
+        },
+        required: ["source"]
+      },
+      function: fn params, context ->
+        # For now, we'll create a placeholder - actual MCP integration coming next
+        timestamp = DateTime.utc_now()
+        filename = "screenshot_#{DateTime.to_unix(timestamp)}.png"
+        
+        # Create event for screenshot
+        Event.create(%{
+          timestamp: timestamp,
+          event_type: "tool_call_completed",
+          source_id: context[:agent_id] || "screenshot_tool",
+          source_path: "ash_chat/tools/screenshot",
+          content: filename,
+          description: "Screenshot taken from #{params["source"]}",
+          metadata: %{
+            tool: "screenshot",
+            source: params["source"],
+            filename: filename,
+            room_id: context[:room_id]
+          }
+        })
+        
+        %{
+          success: true,
+          filename: filename,
+          message: "Screenshot functionality will be integrated with MCP servers"
+        }
+      end
+    }
+  end
+  
+  defp search_messages_tool() do
+    %{
+      name: "search_messages",
+      description: "Search for messages in the current room",
+      parameters: %{
+        type: "object",
+        properties: %{
+          query: %{
+            type: "string",
+            description: "Search query"
+          },
+          limit: %{
+            type: "integer",
+            description: "Maximum number of results (default: 5)"
+          }
+        },
+        required: ["query"]
+      },
+      function: fn params, context ->
+        # Simple text search for now
+        limit = params["limit"] || 5
+        query = String.downcase(params["query"])
+        
+        case Message.for_room(%{room_id: context[:room_id]}) do
+          {:ok, messages} ->
+            matching = messages
+            |> Enum.filter(fn msg -> 
+              String.downcase(msg.content) |> String.contains?(query)
+            end)
+            |> Enum.take(limit)
+            
+            %{
+              success: true,
+              count: length(matching),
+              messages: Enum.map(matching, fn msg ->
+                %{
+                  id: msg.id,
+                  content: msg.content,
+                  role: msg.role,
+                  created_at: msg.created_at
+                }
+              end)
+            }
+            
+          {:error, error} ->
+            %{success: false, error: inspect(error)}
+        end
+      end
+    }
+  end
+  
+  defp create_room_tool() do
+    %{
+      name: "create_room",
+      description: "Create a new chat room",
+      parameters: %{
+        type: "object",
+        properties: %{
+          title: %{
+            type: "string",
+            description: "Title for the new room"
+          }
+        },
+        required: ["title"]
+      },
+      function: fn %{"title" => title}, _context ->
+        case AshChat.Resources.Room.create(%{title: title}) do
+          {:ok, room} ->
+            %{
+              success: true,
+              room_id: room.id,
+              title: room.title,
+              message: "Created new room '#{room.title}'"
+            }
+          {:error, error} ->
+            %{success: false, error: inspect(error)}
+        end
+      end
+    }
+  end
+  
+  # Helper functions
+  
+  defp format_event(event) do
+    %{
+      id: event.id,
+      type: event.event_type,
+      timestamp: event.timestamp,
+      description: event.description,
+      metadata: event.metadata
+    }
   end
 end

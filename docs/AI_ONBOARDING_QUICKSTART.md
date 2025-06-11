@@ -34,6 +34,7 @@
 ### System Understanding
 - **[QUICK_START.md](QUICK_START.md)** - 5-minute system overview
 - **[SYSTEM_ARCHITECTURE.md](SYSTEM_ARCHITECTURE.md)** - Technical design
+- **[EXISTING_TOOLS_AND_SYSTEMS.md](EXISTING_TOOLS_AND_SYSTEMS.md)** - What's already built (CHECK FIRST!)
 - **ash_chat/** - Main Phoenix LiveView application
 
 ### Philosophy & Methodology  

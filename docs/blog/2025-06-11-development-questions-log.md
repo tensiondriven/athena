@@ -130,9 +130,34 @@
 - Phase 2: Add loop prevention (TTL or LLM check)
 - (I'll note event type/priority questions for later)
 
-**Q5-Q10: Marked for later discussion**
-- Will proceed with reasonable assumptions
-- Document decisions as I go
+**Q5: External events triggering agent responses**
+- Agents should be able to query recent events (not auto-triggered)
+- Phase 2: Get last N events, last N unique by type, subscriptions
+- For now: Single method to get recent events
+
+**Q6: Tool allocation for agents**
+- All tools available to all agents (not tied to identity)
+- Personality ≠ roles (important distinction!)
+- Sam and Maya can use any tools they want
+
+**Q7: Tool approval requirements**
+- No approval needed
+- Log all MCP calls as events in event system
+- Full transparency and auditability
+
+**Q8: Modifying Sam and Maya**
+- Yes, free to enhance as needed
+- They're demo agents meant to evolve
+
+**Q9: Backend operation without UI**
+- Must work when browser/LiveView closed
+- Need backend-only operation
+- Phase 2: Instrumentation and visualization
+
+**Q10: Processing indicators**
+- Nice to have, not required if hard
+- Phase 2: "thought", "feeling", "emote" MCP tools
+- Want signals for less concrete agent states
 
 *Questions accumulating during work...*
 
@@ -176,3 +201,28 @@
 3. Agents process responses in parallel with 5s timeout
 
 🔵 **Philosophy Decision**: Kept the existing agent response flow and enhanced it rather than rewriting. The PubSub approach enables agent-to-agent while maintaining the original human-to-agent flow.
+
+### Phase 2 Insights Captured - 16:50 UTC
+
+🟣 **Key Discoveries from Q&A**:
+
+1. **Personality vs Roles**: Important distinction! Agents have personalities (Sam is casual, Maya is thoughtful) but tools/capabilities shouldn't be tied to identity. Any agent can use any tool.
+
+2. **Backend-First Architecture**: Agents must work without browser/UI. This means:
+   - Can't rely on LiveView presence
+   - Need persistent background processing
+   - Instrumentation becomes critical for observability
+
+3. **Event Transparency**: Every MCP tool call becomes an event:
+   - "Command sent: ls -la" event
+   - "Command completed: ls -la (exit 0)" event  
+   - Enables audit trails and debugging
+
+4. **Agent Inner Life**: Future idea for "thought/feeling/emote" tools to surface agent's internal states. Not just actions but the reasoning/emotions behind them.
+
+5. **Event Access Pattern**: Agents need to query events (pull model) not be triggered by them (push model). Simpler to start with.
+
+🟤 **Architecture Questions for Later**:
+- How do agents run when no LiveView sessions exist?
+- Should we use GenServers for persistent agent processes?
+- How do we visualize agent activity without coupling to UI?
