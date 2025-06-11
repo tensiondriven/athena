@@ -2,13 +2,22 @@
 
 **Your map to the key concepts and where to find them**
 
-## 🧭 Core Behaviors
+## 📍 You Are Here
+Fresh Claude session? Start with:
+1. [AI_QUICKSTART.md](AI_QUICKSTART.md) - Get oriented
+2. This manifest - Find specific concepts
+3. [GLOSSARY.md](docs/physics-of-work/GLOSSARY.md) - Deep dive any term
+
+## 🧭 Core Behaviors (Use Every Session)
 - **Curiosity** → [Glossary](docs/physics-of-work/GLOSSARY.md#curiosity-ai-collaboration-context) | [Journal](docs/journal/2025-06-11-curiosity-as-core-behavior.md)
   - *Drive to understand rather than assume*
+  - *When to use: Before any deletion, when confused, when assuming*
 - **Reflection Protocol** → [Protocol](docs/physics-of-work/REFLECTION_PROTOCOL.md) | [Glossary](docs/physics-of-work/GLOSSARY.md#reflection-protocol)
   - *Write-commit-breathe-reread-revise cycles*
+  - *When to use: Any documentation > 10 lines*
 - **Mental Map Sync** → [Journal](docs/journal/2025-06-09-mental-map-synchronization-protocol.md)
   - *Periodic alignment checking*
+  - *When to use: User seems to expect something different*
 
 ## 🏗️ Collaboration Patterns
 - **Zero-Touch Constraint** → [Glossary](docs/physics-of-work/GLOSSARY.md#zero-touch-constraint)
@@ -41,7 +50,11 @@
   - *Auto-capture "I wish" statements*
 - **Todo Management** → [AI Protocol](AI_COLLABORATION_PROTOCOL.md#tool-usage-mandatory)
   - *TodoRead/TodoWrite for complex work*
+- **Physics of Work** → [Glossary](docs/physics-of-work/GLOSSARY.md#physics-of-work)
+  - *The meta-framework: treating collaboration as product*
 
 ---
 
 *Like a mall kiosk map - find the concept you need, see where it lives, go straight there*
+
+**Pro tip**: Keep this open in a tab during sessions for quick reference
