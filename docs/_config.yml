@@ -18,3 +18,10 @@ relative_links:
 # Include files that start with underscore
 include:
   - _config.yml
+
+# Exclude sensitive/internal documentation
+exclude:
+  - journal/
+  - physics-of-work/
+  - collaboration/ATHENA_WORKING_STYLE.md
+  - CONVERSATION_ARCHAEOLOGY.md
