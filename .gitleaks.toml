@@ -1,0 +1,22 @@
+[extend]
+# This configuration extends the base gitleaks configuration
+
+[[rules]]
+description = "Ignore git commit hashes and blob IDs"
+id = "ignore-git-hashes"
+regex = '''[a-f0-9]{40}'''
+[rules.allowlist]
+paths = [
+    '''chat-history/.*\.jsonl'''
+]
+regexes = [
+    '''commit [a-f0-9]{40}''',
+    '''blob id: [a-f0-9]{40}''',
+    '''blob [a-f0-9]{40}'''
+]
+
+[[rules]]
+description = "GitHub Personal Access Token"
+id = "github-pat-custom"
+regex = '''github_pat_[0-9A-Za-z]{36,}'''
+keywords = ["github_pat_"]
