@@ -56,6 +56,17 @@ defmodule AshChat.Resources.User do
             changeset
         end
       end
+      
+      # Add persistence hook
+      change fn changeset, _context ->
+        changeset
+        |> Ash.Changeset.after_action(fn _changeset, result ->
+          Task.start(fn ->
+            persist_to_sqlite(result)
+          end)
+          {:ok, result}
+        end)
+      end
     end
     
     read :get do
@@ -75,5 +86,48 @@ defmodule AshChat.Resources.User do
     define :update
     define :destroy
     define :list_active, action: :active
+  end
+  
+  # Simple SQLite persistence
+  defp persist_to_sqlite(user) do
+    case Exqlite.Sqlite3.open("ash_chat.db") do
+      {:ok, conn} ->
+        # Create table if not exists
+        Exqlite.Sqlite3.execute(conn, """
+        CREATE TABLE IF NOT EXISTS users (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          email TEXT,
+          display_name TEXT NOT NULL,
+          avatar_url TEXT,
+          preferences TEXT,
+          is_active INTEGER DEFAULT 1,
+          created_at TEXT NOT NULL
+        )
+        """)
+        
+        # Insert user
+        {:ok, statement} = Exqlite.Sqlite3.prepare(conn, """
+        INSERT OR REPLACE INTO users (id, name, email, display_name, avatar_url, preferences, is_active, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """)
+        
+        :ok = Exqlite.Sqlite3.bind(statement, [
+          user.id,
+          user.name,
+          user.email || "",
+          user.display_name,
+          user.avatar_url || "",
+          Jason.encode!(user.preferences || %{}),
+          if(user.is_active, do: 1, else: 0),
+          DateTime.to_iso8601(user.created_at)
+        ])
+        
+        Exqlite.Sqlite3.step(conn, statement)
+        Exqlite.Sqlite3.release(conn, statement)
+        Exqlite.Sqlite3.close(conn)
+      _ ->
+        :ok  # Fail silently - don't break chat if DB is down
+    end
   end
 end
