@@ -9,7 +9,8 @@ regex = '''[a-f0-9]{40}'''
 paths = [
     '''chat-history/.*\.jsonl''',
     '''data/claude-logs/.*\.jsonl''',
-    '''docs/journal/.*\.md'''
+    '''docs/journal/.*\.md''',
+    '''.*mix\.lock'''
 ]
 regexes = [
     '''commit [a-f0-9]{40}''',

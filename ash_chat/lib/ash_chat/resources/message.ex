@@ -42,6 +42,19 @@ defmodule AshChat.Resources.Message do
 
   actions do
     defaults [:create, :read, :update, :destroy]
+    
+    create :create_and_persist do
+      change fn changeset, _context ->
+        # Simple SQLite persistence hook
+        changeset
+        |> Ash.Changeset.after_action(fn _changeset, result ->
+          Task.start(fn ->
+            persist_to_sqlite(result)
+          end)
+          {:ok, result}
+        end)
+      end
+    end
 
     read :for_room do
       argument :room_id, :uuid, allow_nil?: false
@@ -72,6 +85,17 @@ defmodule AshChat.Resources.Message do
       change set_attribute(:message_type, :text)
       change set_attribute(:user_id, arg(:user_id))
       change set_attribute(:profile_id, arg(:profile_id))
+      
+      # Add persistence hook
+      change fn changeset, _context ->
+        changeset
+        |> Ash.Changeset.after_action(fn _changeset, result ->
+          Task.start(fn ->
+            persist_to_sqlite(result)
+          end)
+          {:ok, result}
+        end)
+      end
     end
 
     create :create_image_message do
@@ -103,5 +127,44 @@ defmodule AshChat.Resources.Message do
     define :create_image_message
     define :for_room
     define :semantic_search
+  end
+  
+  # Simple SQLite persistence
+  defp persist_to_sqlite(message) do
+    case Exqlite.Sqlite3.open("ash_chat.db") do
+      {:ok, conn} ->
+        # Create table if not exists
+        Exqlite.Sqlite3.execute(conn, """
+        CREATE TABLE IF NOT EXISTS messages (
+          id TEXT PRIMARY KEY,
+          room_id TEXT NOT NULL,
+          user_id TEXT,
+          content TEXT NOT NULL,
+          role TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        )
+        """)
+        
+        # Insert message
+        {:ok, statement} = Exqlite.Sqlite3.prepare(conn, """
+        INSERT OR REPLACE INTO messages (id, room_id, user_id, content, role, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+        """)
+        
+        :ok = Exqlite.Sqlite3.bind(statement, [
+          message.id,
+          message.room_id,
+          message.user_id || "",
+          message.content,
+          to_string(message.role),
+          DateTime.to_iso8601(message.created_at)
+        ])
+        
+        Exqlite.Sqlite3.step(conn, statement)
+        Exqlite.Sqlite3.release(conn, statement)
+        Exqlite.Sqlite3.close(conn)
+      _ ->
+        :ok  # Fail silently - don't break chat if DB is down
+    end
   end
 end
