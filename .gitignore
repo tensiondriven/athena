@@ -94,3 +94,12 @@ error.log
 erl_crash.dump
 logs/
 redacted_tokens.txt
+
+# Development and test files
+ash_chat/debug_context_assembler.exs
+ash_chat/test_conversation_goal.exs
+ash_chat/test_multi_agent.exs
+ash_chat/watchdog_disabled.lock
+
+# Editor/IDE files
+.opencode/
