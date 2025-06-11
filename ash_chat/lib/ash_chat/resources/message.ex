@@ -78,6 +78,7 @@ defmodule AshChat.Resources.Message do
       argument :role, :atom, default: :user
       argument :user_id, :uuid
       argument :profile_id, :uuid
+      argument :metadata, :map, default: %{}
 
       change set_attribute(:room_id, arg(:room_id))
       change set_attribute(:content, arg(:content))
@@ -85,6 +86,7 @@ defmodule AshChat.Resources.Message do
       change set_attribute(:message_type, :text)
       change set_attribute(:user_id, arg(:user_id))
       change set_attribute(:profile_id, arg(:profile_id))
+      change set_attribute(:metadata, arg(:metadata))
       
       # Add persistence hook
       change fn changeset, _context ->

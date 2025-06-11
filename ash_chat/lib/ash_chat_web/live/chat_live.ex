@@ -2,8 +2,8 @@ defmodule AshChatWeb.ChatLive do
   use AshChatWeb, :live_view
   require Logger
 
-  alias AshChat.AI.ChatAgent
-  alias AshChat.Resources.{Room, User}
+  alias AshChat.AI.{ChatAgent, AgentConversation}
+  alias AshChat.Resources.{Room, User, Message, AgentMembership, AgentCard}
 
   @impl true
   def mount(_params, _session, socket) do
@@ -50,6 +50,9 @@ defmodule AshChatWeb.ChatLive do
   def handle_params(%{"room_id" => room_id}, _url, socket) do
     case Ash.get(Room, room_id) do
       {:ok, room} ->
+        # Subscribe to room updates for agent-to-agent conversations
+        Phoenix.PubSub.subscribe(AshChat.PubSub, "room:#{room_id}")
+        
         messages = ChatAgent.get_room_messages(room_id)
         
         # Check if current user is a member of this room
@@ -108,37 +111,29 @@ defmodule AshChatWeb.ChatLive do
             socket.assigns.current_user.id
           )
           
-          # Get all auto-responding agents for this room
-          case AshChat.Resources.AgentMembership.auto_responders_for_room(%{room_id: socket.assigns.room.id}) do
-            {:ok, [_ | _] = agent_memberships} ->
-              # Process response for each auto-responding agent
-              for agent_membership <- agent_memberships do
-                case Ash.get(AshChat.Resources.AgentCard, agent_membership.agent_card_id) do
-                  {:ok, agent_card} ->
-                    # Get room for context
-                    {:ok, room} = Ash.get(AshChat.Resources.Room, socket.assigns.room.id)
-                    
-                    # Generate AI response using specific agent card without sending duplicate user message
-                    ChatAgent.process_message_with_agent_card(
-                      room,
-                      content, 
-                      agent_card,
-                      [user_id: socket.assigns.current_user.id]
-                    )
-                    
-                  {:error, error} ->
-                    require Logger
-                    Logger.warning("Failed to get agent card #{agent_membership.agent_card_id}: #{inspect(error)}")
-                end
+          # Get the created message for agent processing
+          user_message = case Message.for_room(%{room_id: socket.assigns.room.id}) do
+            {:ok, messages} -> List.last(messages)
+            _ -> nil
+          end
+          
+          if user_message do
+            # Process agent responses using the new selective system
+            agent_responses = AgentConversation.process_agent_responses(
+              socket.assigns.room.id,
+              user_message,
+              [user_id: socket.assigns.current_user.id]
+            )
+            
+            # Send agent responses with delays
+            for response <- agent_responses do
+              if response.delay_ms > 0 do
+                Process.sleep(response.delay_ms)
               end
               
-            {:ok, []} ->
-              # No auto-responding agents, no AI response needed
-              :ok
-              
-            {:error, error} ->
-              require Logger
-              Logger.warning("Failed to get auto-responding agents for room: #{inspect(error)}")
+              # Message is already created by process_agent_responses
+              Logger.info("Agent #{response.agent_card.name} responded")
+            end
           end
           
           Phoenix.PubSub.broadcast(
@@ -623,6 +618,32 @@ defmodule AshChatWeb.ChatLive do
       |> update_messages()
 
     {:noreply, socket}
+  end
+  
+  def handle_info({:new_agent_message, message}, socket) do
+    # When an agent posts a message, trigger other agents to potentially respond
+    if socket.assigns.room && message.role == :assistant do
+      Task.start(fn ->
+        # Let agents see and potentially respond to this agent's message
+        agent_responses = AgentConversation.process_agent_responses(
+          socket.assigns.room.id,
+          message,
+          []
+        )
+        
+        # Send agent responses with delays
+        for response <- agent_responses do
+          if response.delay_ms > 0 do
+            Process.sleep(response.delay_ms)
+          end
+          
+          Logger.info("Agent #{response.agent_card.name} responded to another agent")
+        end
+      end)
+    end
+    
+    # Update the UI with the new message
+    {:noreply, update_messages(socket)}
   end
 
   def handle_info({:models_refreshed, current_loaded, available_models}, socket) do

@@ -135,3 +135,44 @@
 - Document decisions as I go
 
 *Questions accumulating during work...*
+
+### Development Started - 14:16 UTC
+
+🟣 **Discovery**: Found that multi-agent chat already exists! Lines 111-142 in chat_live.ex show agents auto-responding to messages.
+
+⚡ **Assumption**: The current implementation processes each agent sequentially. I'll enhance this to support agent-to-agent conversations.
+
+🟢 **Curiosity**: The system uses agent_card for personality/config and profile for inference settings. Interesting separation of concerns.
+
+🔵 **Philosophy**: Should I create a new feature for agent-to-agent chat or enhance the existing flow? Going minimal - enhance existing.
+
+🟤 **Technical Debt**: The agent response processing happens in the Task.start block, which means agents won't see each other's messages in real-time. Should I fix this?
+
+⚡ **Assumption**: For now, I'll add a PubSub subscription so agents can respond to each other's messages. This enables the requested behavior.
+
+### Multi-Agent Chat Implementation - 14:45 UTC
+
+🟢 **Status**: Multi-agent chat conversations are now implemented!
+
+✅ **What Was Done**:
+1. Created `AshChat.AI.AgentConversation` module for selective agent responses
+2. Added PubSub broadcasting when agents post messages 
+3. Added loop prevention (agents check last 3 messages)
+4. Implemented selective response logic:
+   - 100% respond if mentioned by name
+   - 70% respond to questions
+   - 30% respond to statements
+5. Fixed metadata handling in Message resource
+6. Added handle_info for {:new_agent_message} events
+
+🟤 **Technical Debt Remaining**:
+1. The unused alias warnings (AgentCard, AgentMembership) in chat_live.ex
+2. Missing Exqlite dependency for SQLite persistence
+3. Could enhance loop detection with LLM-based checking
+
+⚡ **Assumptions Made**:
+1. 200ms delay between agent responses (as specified by user)
+2. Simple heuristic for "should respond" logic
+3. Agents process responses in parallel with 5s timeout
+
+🔵 **Philosophy Decision**: Kept the existing agent response flow and enhanced it rather than rewriting. The PubSub approach enables agent-to-agent while maintaining the original human-to-agent flow.

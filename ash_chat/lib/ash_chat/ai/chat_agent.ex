@@ -262,13 +262,24 @@ defmodule AshChat.AI.ChatAgent do
           # Get the assistant's response (last message should be the response)
           assistant_response = updated_chain.last_message
           
+          # Extract metadata from context_opts if provided
+          metadata = context_opts[:metadata] || %{}
+          
           # Store both user and assistant messages  
           # Note: User message handled by caller, only store assistant response
-          Message.create_text_message!(%{
+          agent_message = Message.create_text_message!(%{
             room_id: room.id,
             content: assistant_response.content,
-            role: :assistant
+            role: :assistant,
+            metadata: metadata
           })
+          
+          # Broadcast that an agent posted a message (for agent-to-agent conversations)
+          Phoenix.PubSub.broadcast(
+            AshChat.PubSub, 
+            "room:#{room.id}", 
+            {:new_agent_message, agent_message}
+          )
           
           {:ok, assistant_response.content}
           

@@ -22,7 +22,29 @@ defmodule AshChat.Application do
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: AshChat.Supervisor]
-    Supervisor.start_link(children, opts)
+    
+    # Start the supervisor
+    case Supervisor.start_link(children, opts) do
+      {:ok, pid} ->
+        # Initialize demo data after the supervisor starts
+        Task.start(fn ->
+          # Give the system a moment to fully initialize
+          Process.sleep(1000)
+          
+          # Check if we need to initialize demo data
+          if Enum.empty?(AshChat.Resources.Room.read!()) do
+            IO.puts("Initializing demo data...")
+            AshChat.Setup.reset_demo_data()
+          else
+            IO.puts("Demo data already exists, skipping initialization")
+          end
+        end)
+        
+        {:ok, pid}
+        
+      error ->
+        error
+    end
   end
 
   # Tell Phoenix to update the endpoint configuration
