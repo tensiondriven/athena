@@ -3,9 +3,13 @@
 **Date Created**: 2025-06-09  
 **Purpose**: Structured requirements gathering through focused Y/N questions
 
+> See also: [QA Game in Glossary](../physics-of-work/GLOSSARY.md#qa-game-question--answer-game) for definition and enhanced protocol
+
 ## Game Overview
 
 A collaborative requirements gathering approach where Claude asks focused Y/N questions one at a time to build understanding of project requirements, rather than overwhelming with complex multi-part questions.
+
+Like the checklists in "The Checklist Manifesto", these rules serve as a procedure for reliable, sustainable requirements gathering - preventing errors of omission and ensuring consistent quality in our collaborative process.
 
 ## Core Rules
 

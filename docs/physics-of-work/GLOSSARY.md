@@ -145,5 +145,55 @@
 
 **See Also**: Philosophy Check in [Development Checklists](../DEVELOPMENT_CHECKLISTS.md)
 
+## QA Game (Question & Answer Game)
+**Definition**: Structured requirements gathering ritual where AI asks focused Y/N questions one at a time to build understanding incrementally, preventing overwhelming multi-part questions and ensuring clarity.
+
+**Core Mechanics**:
+- **One question at a time** - Never bundle multiple questions
+- **Y/N format preferred** - Binary responses for clarity
+- **Game commands**: "QA Game Start/End", "Time Out/In" for meta-discussion
+- **Progressive understanding** - Each question builds on previous answers
+
+**Enhanced Protocol** (Multiple Choice Variant):
+1. **Ask questions** - Gather initial set of clarifying questions
+2. **Review & revise** - Separate step to refine questions for clarity
+3. **Add choices** - Provide 2-6 multiple choice answers with confidence levels
+4. **Present options** - Show what AI thinks are likely responses
+
+**Example with Multiple Choice**:
+```
+Q: Should agents have persistent memory between conversations?
+A) Yes, full conversation history (85% confidence)
+B) Yes, but only key facts/preferences (70% confidence)  
+C) No, fresh start each time (15% confidence)
+D) Configurable per agent (60% confidence)
+```
+
+**Value**: 
+- Forces clarity in requirements gathering
+- Prevents assumption-based development
+- Creates explicit decision points
+- Documents reasoning for future reference
+
+**See**: [Full QA Game Rules](../collaboration/QA_GAME_RULES.md)
+
+## The Checklist Manifesto (Reference)
+**Definition**: Book by Atul Gawande demonstrating how simple checklists dramatically improve outcomes in complex environments by preventing errors of omission and ensuring consistent execution of critical steps.
+
+**Relevance to AI Development**:
+- **Prevents "losing the plot"** - Checklists keep AI on track
+- **Ensures consistency** - Same quality regardless of context length
+- **Catches omissions** - Easy to forget steps in complex flows
+- **Enables autonomy** - Can work independently with good checklists
+- **Documents process** - Checklists become reusable procedures
+
+**Our Implementations**:
+- [Development Checklists](../DEVELOPMENT_CHECKLISTS.md) - Process reminders
+- [QA Game Rules](../collaboration/QA_GAME_RULES.md) - Requirements gathering procedure
+- Philosophy checks - Prevent over-engineering
+- Every 5 turns checks - Maintain context freshness
+
+**Key Insight**: "In complex environments, checklists don't make you dumb; they make you smart by freeing mental capacity for actual problem-solving rather than remembering routine steps."
+
 ---
 *Established: 2025-06-08 - Living document for collaboration concepts*
