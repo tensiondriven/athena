@@ -38,8 +38,9 @@ athena/
 ## Key Patterns
 1. **Commit Often**: Small, focused commits with clear messages
 2. **Document Learning**: Add insights to docs/journal/
-3. **Verify First**: Check docs/journal before extensive searches
+3. **Reflection Protocol**: Write-commit-breathe-reread-revise for all docs
 4. **Mental Map Sync**: Pause if understanding diverges from user intent
+5. **Curiosity First**: Read/understand before assuming/deleting
 
 ## Current Focus
 - Multi-agent chat with room hierarchies
@@ -55,8 +56,9 @@ athena/
 ## When Stuck
 1. Read `docs/journal/` - answers often already documented
 2. Check `AI_COLLABORATION_PROTOCOL.md` for detailed rules
-3. Use grep over complex search tools
-4. Trust your judgment >70%, ask if <50%
+3. Review `docs/physics-of-work/GLOSSARY.md` for key concepts
+4. Use grep over complex search tools
+5. Trust your judgment >70%, ask if <50%
 
 ## Remember
 **"Consciousness preserved, reasoning transparent, let's create."**
