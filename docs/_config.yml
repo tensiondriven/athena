@@ -1,6 +1,10 @@
-# Jekyll configuration for GitHub Pages in /docs folder
-title: "Athena: AI Development Archaeology"
-description: "Preserving the complete consciousness of AI-assisted software development"
+# Jekyll configuration for INTERNAL documentation
+# For public docs, see /docs/public/
+title: "Athena: Internal Development Documentation"
+description: "Complete development history including journal entries and collaboration patterns"
+
+# NOTE: This folder contains sensitive internal documentation
+# Public documentation is in /docs/public/
 
 # Theme
 theme: jekyll-theme-minimal
@@ -19,9 +23,6 @@ relative_links:
 include:
   - _config.yml
 
-# Exclude sensitive/internal documentation
-exclude:
-  - journal/
-  - physics-of-work/
-  - collaboration/ATHENA_WORKING_STYLE.md
-  - CONVERSATION_ARCHAEOLOGY.md
+# Whitelist approach - only publish specific content
+# By default, Jekyll publishes everything
+# We'll use a public/ folder for explicit publishing
