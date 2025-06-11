@@ -90,7 +90,7 @@ Athena Capture feeds events to [athena-ingest](../athena-ingest/) for processing
 
 #### sam-pipeline Git Clone Command (Lines 37-40)
 ```bash
-git clone https://github.com/yourusername/sam-pipeline.git
+git clone <repository-url-placeholder>
 cd sam-pipeline
 ```
 **Issue**: Placeholder GitHub URL should be updated.
