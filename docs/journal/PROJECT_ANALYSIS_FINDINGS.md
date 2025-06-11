@@ -59,11 +59,11 @@ The project has **7 separate git repositories** nested within the main `/Users/j
 
 #### sam-pipeline/README.md (Lines 78-83)
 ```markdown
-- [docs/README.md](docs/README.md) - Documentation index and starting point
-- [CLAUDE.md](CLAUDE.md) - Primary project roadmap and implementation guide
-- [ARCHITECTURE.md](ARCHITECTURE.md) - Detailed architecture overview
-- [SETUP.md](SETUP.md) - Installation and configuration instructions
-- [PROJECT_STATUS.md](PROJECT_STATUS.md) - Current project status and progress
+- docs/README.md - Documentation index and starting point (file missing)
+- CLAUDE.md - Primary project roadmap and implementation guide (file missing)
+- ARCHITECTURE.md - Detailed architecture overview (file missing)
+- SETUP.md - Installation and configuration instructions (file missing)
+- PROJECT_STATUS.md - Current project status and progress (file missing)
 ```
 **Issue**: References files that may not exist or have moved.
 
