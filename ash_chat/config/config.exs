@@ -87,12 +87,32 @@ config :langchain, :anthropic_key, System.get_env("ANTHROPIC_API_KEY")
 # Configure Ollama
 config :langchain, :ollama_url, System.get_env("OLLAMA_URL", "http://10.1.2.200:11434")
 
+# Configure OpenRouter (preferred over direct Ollama)
+config :langchain, :openrouter_key, System.get_env("OPENROUTER_API_KEY")
+config :ash_chat, :use_openrouter, System.get_env("USE_OPENROUTER", "true") == "true"
+
 # Configure provider defaults
 config :ash_chat, :llm_providers, %{
   "ollama" => %{
     name: "Ollama (Local)",
     url: System.get_env("OLLAMA_URL", "http://10.1.2.200:11434"),
     models: ["llama3.2", "qwen2.5", "deepseek-coder", "codestral"]
+  },
+  "openrouter" => %{
+    name: "OpenRouter",
+    url: "https://openrouter.ai/api/v1",
+    models: [
+      "qwen/qwen-2.5-72b-instruct",
+      "meta-llama/llama-3.1-70b-instruct",
+      "anthropic/claude-3.5-sonnet",
+      "google/gemini-pro-1.5",
+      "mistralai/mistral-large",
+      "deepseek/deepseek-chat"
+    ],
+    headers: %{
+      "HTTP-Referer" => "https://github.com/tensiondriven/athena",
+      "X-Title" => "Athena Chat"
+    }
   },
   "openai" => %{
     name: "OpenAI",

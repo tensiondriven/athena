@@ -21,12 +21,38 @@ defmodule AshChat.Setup do
 
   def create_demo_data() do
     # Create demo profiles
+    # Check if we should use OpenRouter
+    use_openrouter = Application.get_env(:ash_chat, :use_openrouter, true)
+    openrouter_key = Application.get_env(:langchain, :openrouter_key)
+    
+    # Create OpenRouter profile if API key is available
+    default_profile = if use_openrouter && openrouter_key do
+      Profile.create!(%{
+        name: "OpenRouter (Cloud)",
+        provider: "openrouter",
+        url: "https://openrouter.ai/api/v1",
+        api_key: openrouter_key,
+        model: "qwen/qwen-2.5-72b-instruct",
+        is_default: true
+      })
+    else
+      # Fallback to Ollama if no OpenRouter key
+      Profile.create!(%{
+        name: "Local Ollama",
+        provider: "ollama",
+        url: System.get_env("OLLAMA_URL", "http://10.1.2.200:11434"),
+        model: "qwen2.5:latest",
+        is_default: true
+      })
+    end
+    
+    # Always create Ollama profile as a backup option
     ollama_profile = Profile.create!(%{
       name: "Local Ollama",
       provider: "ollama",
       url: System.get_env("OLLAMA_URL", "http://10.1.2.200:11434"),
       model: "qwen2.5:latest",
-      is_default: true
+      is_default: !use_openrouter || !openrouter_key
     })
 
     # Create demo users
@@ -288,8 +314,20 @@ defmodule AshChat.Setup do
       user_id: alice.id
     })
 
+    profiles_list = if default_profile.provider == "openrouter" do
+      [default_profile, ollama_profile]
+    else
+      [ollama_profile]
+    end
+    
+    profile_info = if default_profile.provider == "openrouter" do
+      "⚙️  OpenRouter (Cloud) profile configured as default with Ollama fallback"
+    else
+      "⚙️  Local Ollama profile configured (set OPENROUTER_API_KEY for cloud models)"
+    end
+
     %{
-      profiles: [ollama_profile],
+      profiles: profiles_list,
       users: [alice, bob],
       agent_cards: [helpful_assistant, creative_writer, research_assistant, coding_mentor, brainstorm_buddy, sam, maya],
       rooms: [general_room, creative_room, story_room, conversation_room],
@@ -300,7 +338,7 @@ defmodule AshChat.Setup do
       🤖 Agent Cards: Helpful Assistant, Creative Writer, Research Assistant, Coding Mentor, Brainstorm Buddy, Sam, Maya
       🏠 Rooms: General Chat, Creative Writing Workshop, Story Collaboration (sub-room), Conversation Lounge
       💬 Sample messages in each room with conversation starter
-      ⚙️  Default Ollama profile configured
+      #{profile_info}
       
       🎯 Test conversation: Sam & Maya are in Conversation Lounge for agent-to-agent dialogue
       
