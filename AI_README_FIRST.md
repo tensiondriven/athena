@@ -35,11 +35,18 @@ cat AI_COLLABORATION_PROTOCOL.md
 ## Getting Started
 
 1. **Load protocol**: Read `AI_COLLABORATION_PROTOCOL.md`
-2. **Find concepts**: Check `CONCEPT_MANIFEST.md` for quick navigation
+2. **Quick onboarding**: Check `docs/AI_ONBOARDING_QUICKSTART.md` for essential first steps
 3. **Check todos**: Use TodoRead tool for current task status
 4. **Review recent work**: `git log --oneline -10`
-5. **Review documentation**: Check `docs/README.md` for complete guide
+5. **Review checklists**: `docs/DEVELOPMENT_CHECKLISTS.md` for process reminders
 6. **Ready to collaborate!**
+
+## Key Philosophy
+
+- **Minimal solutions** - Always ask "What's the smallest useful version?"
+- **Push every commit** - Enable real-time progress tracking
+- **Document decisions** - Future us will thank us
+- **Test in context** - Use IEx, not standalone scripts
 
 ---
 

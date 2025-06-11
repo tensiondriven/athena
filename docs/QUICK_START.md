@@ -116,16 +116,22 @@ grep -r "c3e13db" chat-history/
 
 ## Next Steps
 
-**Understand the System:**
-- **[System Architecture](SYSTEM_ARCHITECTURE.md)** - Complete distributed AI system design
-- **[AI Quick Reference](AI_QUICK_REFERENCE.md)** - Key commands and patterns
+### 🤖 For AI Collaborators
+**Start Here:** **[AI Onboarding Quick Start](AI_ONBOARDING_QUICKSTART.md)** - Essential first steps for new AI sessions
 
-**Learn the Methodology:**
+**Core Resources:**
+- **[AI Collaboration Protocol](../AI_COLLABORATION_PROTOCOL.md)** - How we work together
+- **[Development Checklists](DEVELOPMENT_CHECKLISTS.md)** - Process reminders from experience
+- **[AI Quick Reference](AI_QUICK_REFERENCE.md)** - Common commands and patterns
+
+### 📚 Understanding the System
+- **[System Architecture](SYSTEM_ARCHITECTURE.md)** - Complete distributed AI system design
 - **[Collaboration Methodology](COLLABORATION_METHODOLOGY.md)** - Research through practice patterns
 - **[Development Journal](journal/)** - Real-time discoveries and insights
 
-**Explore Both:**
+### 🔍 Deep Dives
 - **[Conversation Archaeology](CONVERSATION_ARCHAEOLOGY.md)** - How methodology emerges from practice
+- **Chat Persistence** - Check `ash_chat/PERSISTENCE_*.md` for SQLite implementation
 
 ## Troubleshooting
 

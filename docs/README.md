@@ -16,7 +16,9 @@ Comprehensive documentation for the AI collaboration research platform with conv
 
 ### AI Onboarding
 - **[AI README First](../AI_README_FIRST.md)** - Entry point for AI collaborators
+- **[AI Onboarding Quick Start](AI_ONBOARDING_QUICKSTART.md)** - Essential first steps
 - **[AI Collaboration Protocol](../AI_COLLABORATION_PROTOCOL.md)** - Core working agreements
+- **[Development Checklists](DEVELOPMENT_CHECKLISTS.md)** - Process reminders from experience
 
 ## 🔍 Key Research Contributions
 
@@ -37,9 +39,10 @@ Complete preservation of AI development consciousness - every architectural deci
 3. **[Collaboration Methodology](COLLABORATION_METHODOLOGY.md)** - Learn the patterns
 
 ### AI Systems  
-1. **[AI Collaboration Protocol](../AI_COLLABORATION_PROTOCOL.md)** - Core working agreements
-2. **[AI Quick Reference](AI_QUICK_REFERENCE.md)** - Commands and patterns
-3. **[Development Journal](journal/)** - Recent discoveries and insights
+1. **[AI Onboarding Quick Start](AI_ONBOARDING_QUICKSTART.md)** - Start here for new sessions
+2. **[AI Collaboration Protocol](../AI_COLLABORATION_PROTOCOL.md)** - Core working agreements
+3. **[Development Checklists](DEVELOPMENT_CHECKLISTS.md)** - Keep on track
+4. **[AI Quick Reference](AI_QUICK_REFERENCE.md)** - Commands and patterns
 
 ### Researchers
 1. **[Conversation Archaeology Discovery](journal/2025-06-09-conversation-archaeology-discovery.md)** - The key breakthrough
