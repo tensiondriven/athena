@@ -51,5 +51,23 @@
 
 **Core Principle**: Make it better for the next person (which is us).
 
+## Principle of Least Surprise
+**Definition**: System design principle where components behave in ways that users naturally expect. What seems obvious should be what actually happens.
+
+**In Practice**:
+- File organization matches mental models
+- Public/private boundaries are explicit
+- Default behaviors align with common expectations
+- Exceptions are clearly documented
+
+**Examples**:
+- ✅ `/docs/public/` contains public documentation
+- ✅ Whitelisting public content rather than blacklisting private
+- ✅ Secret redaction happens automatically on commit
+- ❌ Publishing internal journal entries by default
+- ❌ Hidden side effects of seemingly simple operations
+
+**Application**: When designing systems, choose the path that would surprise the fewest people.
+
 ---
 *Established: 2025-06-08 - Living document for collaboration concepts*
