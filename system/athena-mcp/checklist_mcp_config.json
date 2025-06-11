@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "athena-checklist": {
+      "command": "python",
+      "args": [
+        "/Users/j/Code/athena/system/athena-mcp/checklist_mcp_server.py"
+      ],
+      "env": {}
+    }
+  }
+}
