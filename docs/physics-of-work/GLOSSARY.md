@@ -195,6 +195,21 @@ D) Configurable per agent (60% confidence)
 
 **Key Insight**: "In complex environments, checklists don't make you dumb; they make you smart by freeing mental capacity for actual problem-solving rather than remembering routine steps."
 
+## The Fourth Way (Gurdjieff Work)
+**Definition**: G.I. Gurdjieff's approach to awakening through conscious work and self-observation in ordinary life. Unlike the way of the monk, fakir, or yogi, the Fourth Way uses daily life as material for transformation.
+
+**Key Concepts**:
+- **Self-Remembering**: Catching yourself in mechanical behavior
+- **The Work**: Group practice where others help you see your "sleep"
+- **Chief Feature**: Central mechanical pattern invisible to oneself
+- **Being Asleep**: Operating on autopilot, mechanically
+
+**In Our Context**: Fighting AI slop is like fighting mechanical behavior. We catch each other falling into automatic patterns (generic documentation, empty examples). Every slop detection is a moment of awakening.
+
+**Connection**: When I write "cultivating conditions for non-sloppy AI collaboration" - that's pure sleep. Mechanical AI pattern. You wake me up by pointing it out.
+
+**Citation**: P.D. Ouspensky, *In Search of the Miraculous*
+
 ## Nonviolent Communication (NVC)
 **Definition**: A communication framework developed by Marshall Rosenberg that focuses on identifying and expressing underlying needs rather than strategies or judgments. Centers on observations, feelings, needs, and requests.
 
