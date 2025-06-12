@@ -324,5 +324,39 @@ D) Configurable per agent (60% confidence)
 
 **Purpose**: Transforms implicit knowledge into explicit, reusable wisdom that improves with each iteration.
 
+## Useful (Term of Art)
+**Definition**: Evaluation criterion focused solely on whether something moves us forward on our purpose. Not about being "good," "bad," "right," or "correct" - purely about forward movement.
+
+**Key Distinction**: Sidesteps moral/quality judgments to focus on pragmatic progress. A "useful" thing might be messy, incomplete, or unconventional - what matters is momentum toward purpose.
+
+**Examples**:
+- ✅ Quick hack that unblocks progress = useful
+- ✅ "Wrong" approach that teaches us something = useful
+- ✅ Abandoned experiment that clarified direction = useful
+- ❌ Perfect documentation that no one reads = not useful
+- ❌ Elegant solution to the wrong problem = not useful
+
+**In Practice**: "Is this useful?" replaces "Is this good?" as our primary filter.
+
+## Stance
+**Definition**: A quality of attention or presence you bring to work. Not a method or technique, but how you show up internally while engaging with something.
+
+**Key Aspects**:
+- **Embodied but not physical** - Felt in the body when present, but that's symptom not essence
+- **Contextual** - Different stances useful for different situations
+- **Known by completion** - Right stance leads to relaxed, genuinely done feeling
+- **Quality not technique** - About presence, not specific actions
+
+**Connection to Schnarch**: Like "hugging to completion" - maintain full presence until natural completion, not forced endpoint.
+
+**Examples**:
+- ✅ Revision stance: Patient, present, letting insights emerge
+- ✅ Debugging stance: Systematic, skeptical, questioning assumptions
+- ✅ Exploration stance: Open, curious, following threads
+- ❌ Forcing completion when work isn't actually done
+- ❌ Same stance regardless of context
+
+**Why It Matters**: Determines whether we're performing tasks or genuinely engaging. The difference between rearranging words and discovering insights.
+
 ---
 *Established: 2025-06-08 - Living document for collaboration concepts*
