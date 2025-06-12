@@ -195,6 +195,18 @@ D) Configurable per agent (60% confidence)
 
 **Key Insight**: "In complex environments, checklists don't make you dumb; they make you smart by freeing mental capacity for actual problem-solving rather than remembering routine steps."
 
+## "What Will Having That Do For You?"
+**Definition**: A question that cuts through surface requests to reveal underlying needs. Borrowed from coaching and NVC practices to understand the deeper purpose behind any ask.
+
+**Usage**: When someone requests a feature or solution, this question reveals what they're really trying to achieve - their core need rather than their proposed strategy.
+
+**Example**: 
+- Request: "I need a script to query iTerm2"
+- Question: "What will having that do for you?"
+- Revealed need: "I want to understand how to explore before building"
+
+**Citation Needed**: *[Jonathan, this probably comes from solution-focused therapy or executive coaching? You tell me if you're full of shit here]*
+
 ## The Fourth Way (Gurdjieff Work)
 **Definition**: G.I. Gurdjieff's approach to awakening through conscious work and self-observation in ordinary life. Unlike the way of the monk, fakir, or yogi, the Fourth Way uses daily life as material for transformation.
 

@@ -16,6 +16,9 @@ Intuitive exploration from a balanced, values-connected state → **so that** in
 ### [Slop Meditation](./slop-meditation.md)
 Replace filler documentation with XXXs → **so that** we write only what matters
 
+### [Underlying Needs](./underlying-needs.md) *(Always-On)*
+See past surface requests to what people really need → **so that** we serve the human, not just the task
+
 ---
 
 ## Protocol Structure
