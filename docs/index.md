@@ -1,3 +1,8 @@
+---
+layout: default
+title: Athena Project
+---
+
 # Athena Project
 
 An open-source distributed AI home automation system demonstrating conversation archaeology - the complete preservation of AI development consciousness alongside code.
