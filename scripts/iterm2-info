@@ -1,0 +1,12 @@
+#!/bin/bash
+# Query iTerm2 window configuration
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [[ "$1" == "--json" || "$1" == "-j" ]]; then
+    # Output JSON format
+    osascript -l JavaScript "$SCRIPT_DIR/iterm2-json-info.applescript"
+else
+    # Output human-readable format
+    osascript "$SCRIPT_DIR/iterm2-window-info.applescript"
+fi
