@@ -87,6 +87,9 @@ Which direction speaks to you? I can go deeper on any of these."
 ### 🏃 Sidequest Specialist
 *Takes bounded explorations and returns with findings*
 
+### 🚫 Anti-Slop Guardian
+*Protects documentation from meaningless filler and generic examples*
+
 ---
 
 *Roles allow focused expertise while maintaining collaborative spirit*

@@ -202,10 +202,10 @@ D) Configurable per agent (60% confidence)
 
 **In Our Context**: When someone asks for a feature or makes a request, look deeper - what need are they trying to meet? What will having that do for them?
 
-**Example**:
-- Surface: "Can you query iTerm2 from CLI?"
-- Possible needs: Understanding, efficiency, learning, control
-- Response addresses both surface question AND underlying need
+**Example Example EXAMPLE**:
+- Surface: "Can you query the Example Terminal from CLI?"
+- Possible example needs: Understanding examples, example efficiency, learning by example, control (example: having control)
+- Example response addresses both example surface question AND example underlying need (EXAMPLE!)
 
 **Citation**: Marshall B. Rosenberg, *Nonviolent Communication: A Language of Life*
 
