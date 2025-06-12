@@ -2,6 +2,14 @@
 
 ## Active Git Hooks
 
+### post-commit
+**Location**: `.git/hooks/post-commit`  
+**Purpose**: Clear error logs and auto-push to origin  
+**Actions**:
+- Clears ash_chat error log for fresh error tracking
+- **Automatically pushes to origin** (we agreed to ALWAYS push)
+- Shows success/failure message with troubleshooting tips
+
 ### pre-commit
 **Location**: `.git/hooks/pre-commit`  
 **Purpose**: Sync and redact conversation logs, then check for secrets  
