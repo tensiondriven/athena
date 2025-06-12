@@ -104,3 +104,23 @@
   - Unclear directives encountered
 - Enables roles to evolve based on practice
 - Creates audit trail of role evolution
+
+### Role Schema Enforcement System
+- Define formal schemas for roles and structured data
+- Generate validators/enforcers from schemas
+- Benefits:
+  - Consistent role structure across all definitions
+  - Type-safe role capabilities and requirements
+  - Automated validation on role updates
+  - Enable tooling (role switcher, capability matcher)
+- Schema elements:
+  - Required fields (persona, responsibilities, capabilities)
+  - Optional fields (tools, philosophy, questions)
+  - Field types and constraints
+  - Relationship definitions between roles
+- Implementation options:
+  - JSON Schema for role definitions
+  - TypeScript interfaces generated from schema
+  - Elixir structs with Ecto changesets
+  - GraphQL schema for role queries
+- "Hardcore structured role data" → enabling role composition and analysis
