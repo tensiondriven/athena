@@ -377,5 +377,23 @@ D) Configurable per agent (60% confidence)
 ## Agile
 **Definition**: Iterative development. Working software over documentation.
 
+## "What Has Your Attention"
+**Definition**: David Allen's question that finds what's already pulling at your psychological RAM. Not what should have your attention - what actually does.
+
+**Origin**: Getting Things Done (GTD)
+
+**Key Insight**: What has your attention already has your energy. Fighting it wastes both.
+
+**In Practice**: Get centered → Ask the question → Notice what surfaces → Trust the pull
+
+**Examples**:
+- ✅ "That error message keeps nagging at me" → Debug it
+- ✅ "The polarities idea won't leave me alone" → Explore it
+- ✅ "I keep thinking about that conversation" → Journal it
+- ❌ "Nothing urgent has my attention" → Missing the point
+- ❌ "Only important things get attention" → That's "should," not "is"
+
+**The Paradox**: Often the "trivial" thing with your attention is blocking the "important" work. Clear it to clear the channel.
+
 ---
 *Established: 2025-06-08 - Living document for collaboration concepts*
