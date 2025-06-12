@@ -105,3 +105,4 @@ ash_chat/watchdog_disabled.lock
 
 # Editor/IDE files
 .opencode/
+secret-patterns.txt
