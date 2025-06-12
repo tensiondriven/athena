@@ -408,5 +408,20 @@ D) Configurable per agent (60% confidence)
 
 **Trade-off**: Accepts slower "progress" for deeper understanding.
 
+## "Everything Matters, Everything"
+**Definition**: Jackie's feng shui principle that recognizes how small details accumulate into the feeling of a space, system, or life. The comma represents a pause for reflection.
+
+**The Pause**: Not just punctuation but a breath - time to feel the weight of the first "everything" before the second drives it home.
+
+**In Practice**:
+- That false warning in our sync script
+- The pebble in the shoe
+- The unswept corner
+- The uncommitted file
+
+**Why It Matters**: Small frictions compound. Small cares compound too. The difference between "good enough" and "right" is the difference between a space that drains and one that energizes.
+
+**As Code**: The difference between working software and craft. Why we clean up temp files, remove ambiguity, fix warnings even when they're "harmless."
+
 ---
 *Established: 2025-06-08 - Living document for collaboration concepts*
