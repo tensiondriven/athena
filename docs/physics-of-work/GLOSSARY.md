@@ -395,5 +395,18 @@ D) Configurable per agent (60% confidence)
 
 **The Paradox**: Often the "trivial" thing with your attention is blocking the "important" work. Clear it to clear the channel.
 
+## Maximize Harvesting Emergent Wisdom
+**Definition**: Organizational strategy prioritizing knowledge capture over product delivery. Every session aims to extract and document insights, patterns, and learnings.
+
+**Key Principle**: The wisdom that emerges is more valuable than any specific output. Products are temporary; patterns are permanent.
+
+**In Practice**:
+- Capture insights immediately (napkin logs, scratchpad)
+- Value messy discovery over polished delivery
+- Document the journey, not just destination
+- Treat every interaction as research
+
+**Trade-off**: Accepts slower "progress" for deeper understanding.
+
 ---
 *Established: 2025-06-08 - Living document for collaboration concepts*
