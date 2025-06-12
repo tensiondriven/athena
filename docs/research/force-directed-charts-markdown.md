@@ -64,6 +64,37 @@ graph TD
 - **AIX Score**: 7/10 - Scientific focus
 - **Best For**: Biological/scientific networks
 
+### 6. Vega/Vega-Lite (Design Iteration Champion)
+- **Setup Time**: 10 minutes
+- **CDN**: `https://cdn.jsdelivr.net/npm/vega@5` + `vega-lite@5` + `vega-embed@6`
+- **AIX Score**: 9/10 - Declarative, version-controlled specs
+- **Best For**: Rapid iteration, design exploration
+- **Key Advantage**: JSON specs can be generated/modified programmatically
+```html
+<div id="vis"></div>
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+<script>
+const spec = {
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "width": 700, "height": 500,
+  "data": [{
+    "name": "node-data",
+    "values": [
+      {"id": 1, "name": "A"}, {"id": 2, "name": "B"}
+    ]
+  }],
+  "forces": [
+    {"force": "link", "links": "link-data"},
+    {"force": "charge", "strength": -30},
+    {"force": "center", "x": 350, "y": 250}
+  ]
+};
+vegaEmbed('#vis', spec);
+</script>
+```
+
 ## 📦 Copy-Paste Templates
 
 ### Template 1: Concept Relationship Graph
@@ -135,11 +166,46 @@ Just paste the HTML/Script blocks directly!
 4. **Responsive**: Set width: 100% for mobile
 5. **Fallback**: Include static image for RSS/email
 
+## 🎨 Design Iteration Workflow
+
+### Why Vega/Vega-Lite for Iterations
+1. **Declarative JSON** → Version control your designs
+2. **Programmatic generation** → Create variations easily
+3. **Live reload** → See changes instantly
+4. **Share specs** → Send JSON to collaborate
+
+### Rapid Iteration Process
+```javascript
+// Base template for variations
+const baseSpec = {
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {"url": "data.json"},
+  // Generate variations by modifying...
+};
+
+// Option 1: Different layouts
+const layouts = ['force', 'tree', 'radial', 'matrix'];
+
+// Option 2: Different encodings  
+const colorSchemes = ['category10', 'dark2', 'set3'];
+
+// Option 3: Different interactions
+const interactions = ['hover', 'click', 'drag', 'zoom'];
+```
+
+### Observable Notebooks for Prototyping
+1. Create cells for each variation
+2. Use sliders for real-time parameter tuning
+3. Fork and modify existing examples
+4. Export final spec as JSON
+
 ## 🔗 Resources
 
 - [force-graph docs](https://github.com/vasturiano/force-graph)
 - [Vis.js examples](https://visjs.github.io/vis-network/examples/)
 - [Observable notebooks](https://observablehq.com/@d3/force-directed-graph) for prototyping
+- [Vega force-directed examples](https://vega.github.io/vega/examples/force-directed-layout/)
+- [Vega-Lite gallery](https://vega.github.io/vega-lite/examples/)
 
 ---
 
