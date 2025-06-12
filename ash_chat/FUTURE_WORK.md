@@ -124,3 +124,19 @@
   - Elixir structs with Ecto changesets
   - GraphQL schema for role queries
 - "Hardcore structured role data" → enabling role composition and analysis
+
+### iTerm2 MCP Integration
+- MCP server for iTerm2 control
+- Capabilities:
+  - Open new tabs/windows
+  - Run interactive commands
+  - Display live output streams
+  - Split panes for monitoring
+  - Execute AppleScript for macOS automation
+- Use cases:
+  - Launch monitoring scripts in dedicated panes
+  - Run test suites with live output
+  - Open multiple file watchers
+  - Create development dashboard layouts
+- Could use iTerm2's Python API
+- Alternative: AppleScript execution MCP for broader macOS control
