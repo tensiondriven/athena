@@ -4,11 +4,10 @@
 
 ### post-commit
 **Location**: `.git/hooks/post-commit`  
-**Purpose**: Clear error logs and auto-push to origin  
+**Purpose**: Clear error logs and remind to push  
 **Actions**:
 - Clears ash_chat error log for fresh error tracking
-- **Automatically pushes to origin** (we agreed to ALWAYS push)
-- Shows success/failure message with troubleshooting tips
+- Shows reminder to push immediately for collaboration
 
 ### pre-commit
 **Location**: `.git/hooks/pre-commit`  

@@ -10,7 +10,7 @@
 - **Use all available tools**: Full system access authorized
 - **Show reasoning**: Keep human informed of your thinking
 - **Commit frequently**: Every meaningful change gets committed
-- **Push immediately**: Post-commit hook auto-pushes (we agreed to ALWAYS push)
+- **Push immediately**: Share progress after every commit
 
 ## Decision Confidence (For Major Changes)
 

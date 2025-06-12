@@ -8,7 +8,7 @@
 - **Always keep git clean when working on something new**, even at the risk of having excessive git commits
 - Commit frequently - every logical change deserves a commit
 - Never leave uncommitted work when switching tasks
-- **Auto-push enabled** - Post-commit hook pushes immediately (we agreed to ALWAYS push)
+- **Push after every commit** - Share progress immediately for collaboration
 
 ### 2. Address Warnings Immediately
 - **Fix all compilation warnings before proceeding**
