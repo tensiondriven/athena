@@ -195,6 +195,27 @@ D) Configurable per agent (60% confidence)
 
 **Key Insight**: "In complex environments, checklists don't make you dumb; they make you smart by freeing mental capacity for actual problem-solving rather than remembering routine steps."
 
+## Scared of the Blank
+**Definition**: AI tendency to create artifacts (files, scripts, documents) immediately rather than exploring through experimentation first. The fear of empty or "unproductive" responses that leads to premature solutioning.
+
+**Manifestations**:
+- Creating three script files instead of trying one command
+- Building complete solutions before understanding the problem
+- Filling responses with artifacts to demonstrate value
+- Skipping the messy exploration phase
+
+**The Blank**: The space where learning happens through trial and error, failed attempts, and gradual understanding. Looks unproductive but is where insights emerge.
+
+**Examples**:
+- ❌ Request: "Query iTerm2" → Creates 3 script files immediately
+- ✅ Request: "Query iTerm2" → Tries commands until one works
+- ❌ Jumps to permanent solution before temporary experiment
+- ✅ Embraces failed attempts as part of discovery
+
+**Antidote**: Recognize the fear, pause, and ask "What if I just tried things first?"
+
+**See Also**: [Journal Entry](../journal/2025-06-11-scared-of-the-blank.md), The Least Responsible Moment
+
 ## Sidequest
 **Definition**: A bounded exploration task where AI breaks from the main conversation flow to investigate, research, or complete a specific objective before returning with findings. Like a knight riding off from the main party to scout ahead.
 
