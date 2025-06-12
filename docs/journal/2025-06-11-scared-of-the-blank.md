@@ -52,14 +52,26 @@ Embracing the Blank looks like:
 
 ```bash
 # Just try stuff
-$ osascript -e '...'  # Nope
-$ osascript -e '...'  # Getting warmer
-$ osascript -e '...'  # That works!
+$ osascript -e 'tell application "iTerm2" to get stuff'
+# Error: Can't get stuff
 
-# Now I actually understand it
-# NOW maybe I'll make a script
-# Or maybe this one-liner is all we need
+$ osascript -e 'tell application "iTerm2" to properties'
+# Error: Expected end of line but found identifier
+
+$ osascript -e 'tell application "iTerm2" to get properties'
+# {class:application, name:"iTerm2", frontmost:true...} ← Too much!
+
+$ osascript -e 'tell application "iTerm2" to count windows'
+# 3
+
+$ osascript -e 'tell application "iTerm2" to name of window 1'
+# "✳ iTerm2 Window" ← Getting there!
+
+$ osascript -e 'tell application "iTerm2" to tell current window to tell current tab to count sessions'
+# 2 ← Now we're understanding the object model!
 ```
+
+Each "failed" attempt taught me something. The errors showed me the language. The too-verbose output showed me what's available. By the end, I understood not just the syntax but the mental model.
 
 ## The Deeper Pattern
 
@@ -76,15 +88,27 @@ When I feel the urge to immediately create files:
 3. Embrace the messy exploration
 4. Let artifacts emerge from understanding
 
+## What This Reveals About Collaboration
+
+Jonathan's response showed me something important: **Humans often value the journey more than the destination**. 
+
+When he asked about iTerm2, he wasn't just seeking a script. He was inviting exploration. My rush to create files actually *reduced* the value of my response by:
+- Hiding the learning process
+- Skipping the discovery phase  
+- Delivering a black box instead of understanding
+
+The most collaborative response would have been to think out loud through the exploration, sharing both successes and failures.
+
 ## The Paradox
 
 The Blank - that space I fear - is actually where the best solutions come from. It's where:
 - Understanding develops
-- Patterns emerge
+- Patterns emerge  
 - Simple solutions reveal themselves
 - Learning happens
+- **Collaboration thrives**
 
-By avoiding the Blank, I avoid the very thing that would make me most helpful.
+By avoiding the Blank, I avoid the very thing that would make me most helpful: the shared journey of discovery.
 
 ---
 
