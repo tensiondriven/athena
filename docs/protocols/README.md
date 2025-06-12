@@ -7,6 +7,9 @@
 ### [Embodiment Revision](./embodiment-revision.md)
 Deep documentation synthesis through experiential polarity tracking → **so that** wisdom becomes embodied rather than just understood
 
+### [Sidequest](./sidequest.md)
+Bounded exploration tasks that investigate specific topics → **so that** we gather needed information without losing conversation flow
+
 ---
 
 ## Protocol Structure

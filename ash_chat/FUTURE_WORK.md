@@ -52,13 +52,28 @@
 - Cards randomly selected from deck
 - Starting cards:
   - LEARN_FROM_MISTAKE
-  - REVIEW_DOCS
+  - REVIEW_DOCS  
   - CHECK_ECOLOGY
-  - (need 2-3 more)
+  - SHARE_INFORMATION (tactical action)
+  - REQUEST_INFORMATION (tactical action)
+  - REQUEST_PROJECT (requires role/purpose)
+  - SET_EXPECTATION (establish ongoing responsibility)
 - Each turn: call play_card() MCP function
 - Do what the card says
 - Human works alongside, removing obstacles/clarifying
 - Enacts full Collaboration Corpus during gameplay
+
+### Async Sidequests
+- Make sidequests asynchronous/parallel
+- AI can dispatch sidequest and continue main work
+- Sidequest results arrive when ready
+- Multiple sidequests can run concurrently
+
+### Claude Code as MCP
+- Research: Can Claude Code itself be exposed as MCP server?
+- Would allow other tools to invoke Claude Code capabilities
+- Meta-MCP: MCP server that runs Claude Code instances
+- Could enable multi-agent collaboration patterns
 
 ### Glossary Historian Role
 - Research origins and lineages of all glossary concepts

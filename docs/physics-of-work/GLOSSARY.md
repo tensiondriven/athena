@@ -195,6 +195,29 @@ D) Configurable per agent (60% confidence)
 
 **Key Insight**: "In complex environments, checklists don't make you dumb; they make you smart by freeing mental capacity for actual problem-solving rather than remembering routine steps."
 
+## Sidequest
+**Definition**: A bounded exploration task where AI breaks from the main conversation flow to investigate, research, or complete a specific objective before returning with findings. Like a knight riding off from the main party to scout ahead.
+
+**Characteristics**:
+- Self-contained investigation
+- Clear objective or question
+- Time-boxed effort
+- Returns with concrete findings
+- Documents results for future use
+
+**Examples**:
+- ✅ "Take a sidequest to research force-directed charts"
+- ✅ "Sidequest: Find all prior art on CLI task managers"
+- ✅ "Quick sidequest to verify this API still exists"
+
+**Protocol Elements**:
+- Announce departure: "Taking a sidequest to..."
+- Work autonomously within scope
+- Return with summary: "Sidequest complete! Found..."
+- File research in docs/research/ when substantial
+
+**Value**: Allows focused exploration without derailing main conversation flow.
+
 ## The Least Responsible Moment
 **Definition**: Design principle of deferring decisions and commitments until the last possible moment when you have the most information and the least uncertainty. Related to lean/agile principles of avoiding premature optimization.
 
