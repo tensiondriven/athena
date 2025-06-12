@@ -358,5 +358,24 @@ D) Configurable per agent (60% confidence)
 
 **Why It Matters**: Determines whether we're performing tasks or genuinely engaging. The difference between rearranging words and discovering insights.
 
+## Bias for Action
+**Definition**: Choose doing over deliberating.
+
+**Origin**: Lean/Agile
+
+## Minimize Work in Progress (WIP)
+**Definition**: Finish what you start before starting more.
+
+**Origin**: Lean/Kanban
+
+## Lean
+**Definition**: Eliminate waste. Deliver value faster.
+
+## Scrum
+**Definition**: Sprint-based delivery with daily standups.
+
+## Agile
+**Definition**: Iterative development. Working software over documentation.
+
 ---
 *Established: 2025-06-08 - Living document for collaboration concepts*
