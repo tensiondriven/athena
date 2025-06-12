@@ -34,7 +34,7 @@ fi
 echo ""
 
 # Save status to log file (without full history to avoid conflicts)
-LOG_FILE="docs/github-pages-status.log"
+LOG_FILE="/Users/j/Code/athena/docs/github-pages-status.log"
 {
     echo "Last checked: $(date)"
     echo -n "Status: "
