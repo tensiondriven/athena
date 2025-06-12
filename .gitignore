@@ -108,5 +108,6 @@ ash_chat/watchdog_disabled.lock
 secret-patterns.txt
 
 # AI Scratchpad - everything except README
-/scratchpad/*
-!/scratchpad/README.md
+# Scratchpad now tracked for microjournal functionality
+# /scratchpad/*
+# !/scratchpad/README.md
