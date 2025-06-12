@@ -57,6 +57,16 @@
   - Testing? → Use project test runners
   - Searching? → Agent tool for exploration
 
+### 7. Documentation Philosophy
+- **Terse and actionable over complete and polished**
+- Brief documentation that gets used beats comprehensive docs that don't
+- Focus on the "why" and "so that" rather than exhaustive details
+- Examples:
+  - ✅ "Use TodoWrite for complex tasks → so that nothing gets forgotten"
+  - ❌ "The TodoWrite tool provides comprehensive task management capabilities enabling developers to track multiple concurrent workstreams..."
+- If you wouldn't read it during active work, don't write it
+- One clear example > three paragraphs of explanation
+
 ## 📋 Quick Checklist
 
 Before starting any task:
