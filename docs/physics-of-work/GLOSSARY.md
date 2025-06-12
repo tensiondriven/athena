@@ -195,6 +195,24 @@ D) Configurable per agent (60% confidence)
 
 **Key Insight**: "In complex environments, checklists don't make you dumb; they make you smart by freeing mental capacity for actual problem-solving rather than remembering routine steps."
 
+## The Least Responsible Moment
+**Definition**: Design principle of deferring decisions and commitments until the last possible moment when you have the most information and the least uncertainty. Related to lean/agile principles of avoiding premature optimization.
+
+**In Practice**:
+- Don't create abstractions until patterns emerge
+- Don't build features until they're needed
+- Don't make irreversible decisions until necessary
+- Keep options open as long as practical
+
+**Examples**:
+- ✅ Simple JSON files until you need a database
+- ✅ Flat file structure until hierarchy proves necessary
+- ✅ Manual process until automation ROI is clear
+- ❌ Building a framework for your first use case
+- ❌ Designing for scale before proving concept
+
+**Origin**: Lean software development, real options theory
+
 ## Collaboration Corpus
 **Definition**: The complete body of standards, instructions, processes, roles, responsibilities, protocols, meta-processes, and cultural agreements that define how we work together. Our collective operating system.
 

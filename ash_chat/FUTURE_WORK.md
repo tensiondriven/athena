@@ -59,3 +59,14 @@
 - Do what the card says
 - Human works alongside, removing obstacles/clarifying
 - Enacts full Collaboration Corpus during gameplay
+
+### Glossary Historian Role
+- Research origins and lineages of all glossary concepts
+- Document intellectual history of our practices
+- Create visualizations of idea relationships
+- Track evolution of concepts over time
+- Build concept genealogy trees
+- Share findings through journal entries
+- Connect our practices to broader movements (lean, agile, etc.)
+- Identify influences and predecessors
+- Map conceptual dependencies
