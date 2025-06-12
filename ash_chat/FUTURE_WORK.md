@@ -45,3 +45,17 @@
 - Tool calling through Ash resources
 - Streaming tool responses
 - Tool permission management
+
+### Collaboration Card Game (MCP)
+- Turn-based game where AI plays cards from hand of 7
+- Each game session has file: `games/[timestamp]-[goal-or-untitled].game`
+- Cards randomly selected from deck
+- Starting cards:
+  - LEARN_FROM_MISTAKE
+  - REVIEW_DOCS
+  - CHECK_ECOLOGY
+  - (need 2-3 more)
+- Each turn: call play_card() MCP function
+- Do what the card says
+- Human works alongside, removing obstacles/clarifying
+- Enacts full Collaboration Corpus during gameplay

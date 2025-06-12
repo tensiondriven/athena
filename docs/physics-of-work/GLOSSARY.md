@@ -195,5 +195,27 @@ D) Configurable per agent (60% confidence)
 
 **Key Insight**: "In complex environments, checklists don't make you dumb; they make you smart by freeing mental capacity for actual problem-solving rather than remembering routine steps."
 
+## Collaboration Corpus
+**Definition**: The complete body of standards, instructions, processes, roles, responsibilities, protocols, meta-processes, and cultural agreements that define how we work together. Our collective operating system.
+
+**Includes**:
+- Working agreements and protocols
+- Development guidelines and checklists  
+- Cultural principles and values
+- Communication patterns
+- Decision frameworks
+- Meta-processes for improving processes
+- Documented learnings and patterns
+
+**Examples**:
+- AI_COLLABORATION_PROTOCOL.md
+- ATHENA_WORKING_STYLE.md
+- Development Checklists
+- QA Game Rules
+- Reflection Protocol
+- All glossary concepts
+
+**Purpose**: Transforms implicit knowledge into explicit, reusable wisdom that improves with each iteration.
+
 ---
 *Established: 2025-06-08 - Living document for collaboration concepts*
