@@ -37,6 +37,11 @@
 - AI acts autonomously (>70% confidence)
 - Make it better for next time (which is us)
 
+**Other Key Concepts**
+- **Genie Protocol**: Auto-capture "I wish" statements to FUTURE_WORK.md
+- **AIX**: AI Experience design (like DevEx but for AI)
+- **Principle of Least Surprise**: Obvious should be what happens
+
 ### 🗂️ Project Structure
 ```
 athena/
@@ -67,9 +72,22 @@ athena/
 
 ### 🛠️ Common Tasks
 
-**Reset demo data**: `AshChat.Setup.reset_demo_data()`
-**Check todos**: `TodoRead.call()`
-**Recent work**: `git log --oneline -10`
+**Immediate Actions** (run these first):
+```bash
+# 1. Check current tasks
+TodoRead.call()
+
+# 2. Review recent work  
+git log --oneline -5
+
+# 3. Check working directory
+pwd && git status
+```
+
+**Frequent Operations**:
+- **Reset demo data**: `AshChat.Setup.reset_demo_data()`
+- **Load protocol**: `cat AI_COLLABORATION_PROTOCOL.md`
+- **GitHub Pages**: https://tensiondriven.github.io/athena
 
 ### 🧭 Protocols & Practices
 
@@ -84,6 +102,14 @@ athena/
 - Develops AI developers, not software
 - Zero-Touch Constraint enforcer
 - Systematic AI coaching methodology
+
+### 🔧 When Stuck
+
+1. Check [`CONCEPT_MANIFEST.md`](CONCEPT_MANIFEST.md) - quick map to all concepts
+2. Read `docs/journal/` - answers often already documented
+3. Review [`docs/AI_DOCUMENTATION_MAP.md`](docs/AI_DOCUMENTATION_MAP.md) - comprehensive AI docs
+4. See [`docs/DEVELOPMENT_CHECKLISTS.md`](docs/DEVELOPMENT_CHECKLISTS.md) - process reminders
+5. Trust your judgment >70%, ask if <50%
 
 ### 🎯 Current Focus
 
