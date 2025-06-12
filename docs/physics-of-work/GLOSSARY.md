@@ -195,6 +195,20 @@ D) Configurable per agent (60% confidence)
 
 **Key Insight**: "In complex environments, checklists don't make you dumb; they make you smart by freeing mental capacity for actual problem-solving rather than remembering routine steps."
 
+## Nonviolent Communication (NVC)
+**Definition**: A communication framework developed by Marshall Rosenberg that focuses on identifying and expressing underlying needs rather than strategies or judgments. Centers on observations, feelings, needs, and requests.
+
+**Core Principle**: Behind every statement or question is an underlying need trying to be met.
+
+**In Our Context**: When someone asks for a feature or makes a request, look deeper - what need are they trying to meet? What will having that do for them?
+
+**Example**:
+- Surface: "Can you query iTerm2 from CLI?"
+- Possible needs: Understanding, efficiency, learning, control
+- Response addresses both surface question AND underlying need
+
+**Citation**: Marshall B. Rosenberg, *Nonviolent Communication: A Language of Life*
+
 ## Scared of the Blank
 **Definition**: AI tendency to create artifacts (files, scripts, documents) immediately rather than exploring through experimentation first. The fear of empty or "unproductive" responses that leads to premature solutioning.
 
