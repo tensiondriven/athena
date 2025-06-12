@@ -13,6 +13,9 @@ Bounded exploration tasks that investigate specific topics → **so that** we ga
 ### [Feel Into](./feel-into.md)
 Intuitive exploration from a balanced, values-connected state → **so that** insights emerge with both utility and soul
 
+### [Slop Meditation](./slop-meditation.md)
+Replace filler documentation with XXXs → **so that** we write only what matters
+
 ---
 
 ## Protocol Structure
