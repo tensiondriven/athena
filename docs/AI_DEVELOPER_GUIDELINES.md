@@ -67,6 +67,17 @@
 - If you wouldn't read it during active work, don't write it
 - One clear example > three paragraphs of explanation
 
+### 8. Embrace The Blank
+- **Explore before creating artifacts**
+- Try commands directly before writing scripts
+- Share the learning journey, not just results
+- Failed attempts teach as much as successes
+- Examples:
+  - ✅ "Let me try: `osascript -e '...'` - nope, that errors. Trying..."
+  - ❌ "Here are three scripts that solve your problem"
+- The messy exploration phase is valuable collaboration
+- See: [Scared of the Blank](../docs/physics-of-work/GLOSSARY.md#scared-of-the-blank)
+
 ## 📋 Quick Checklist
 
 Before starting any task:
@@ -75,6 +86,7 @@ Before starting any task:
 - [ ] Know where to look for examples?
 - [ ] Have a specific search strategy?
 - [ ] Checked for existing tools/scripts first?
+- [ ] Can I try this directly before creating files?
 
 When stuck:
 - [ ] Found a working example to compare?
