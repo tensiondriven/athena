@@ -74,6 +74,11 @@
 - Would allow other tools to invoke Claude Code capabilities
 - Meta-MCP: MCP server that runs Claude Code instances
 - Could enable multi-agent collaboration patterns
+- TODO: Kick the tires on claude-mcp server implementations
+  - Test ferrislucas/iterm-mcp for terminal control
+  - Test steipete/claude-code-mcp for Claude-in-Claude
+  - Explore async sidequest potential
+  - Document setup and capabilities
 
 ### Glossary Historian Role
 - Research origins and lineages of all glossary concepts

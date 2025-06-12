@@ -10,6 +10,9 @@ Deep documentation synthesis through experiential polarity tracking → **so tha
 ### [Sidequest](./sidequest.md)
 Bounded exploration tasks that investigate specific topics → **so that** we gather needed information without losing conversation flow
 
+### [Feel Into](./feel-into.md)
+Intuitive exploration from a balanced, values-connected state → **so that** insights emerge with both utility and soul
+
 ---
 
 ## Protocol Structure
