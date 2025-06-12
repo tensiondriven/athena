@@ -85,3 +85,22 @@
 - Connect our practices to broader movements (lean, agile, etc.)
 - Identify influences and predecessors
 - Map conceptual dependencies
+
+### Self-Reflective Role Update Agent
+- Infrastructure for periodic role self-reflection
+- Triggers: After 50 turns OR once/hour on active days
+- Process:
+  1. Load role definition + recent work history
+  2. Analyze what role actually did vs definition
+  3. Create up to 12 micro git commits updating role
+  4. Reflect between each commit
+  5. Add/update "Questions" section at role bottom
+  6. Document cognitive dissonances specific to role
+  7. Tag questions with dates (e.g., <!-- 2025-06-11 -->)
+- Questions focus on:
+  - Role boundary confusion
+  - Missing capabilities discovered during work
+  - Tensions between defined and actual behavior
+  - Unclear directives encountered
+- Enables roles to evolve based on practice
+- Creates audit trail of role evolution

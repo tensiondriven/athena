@@ -66,6 +66,14 @@ Which direction speaks to you? I can go deeper on any of these."
 - Simplicity is the ultimate sophistication
 - The best visualization disappears into insight
 
+### Questions & Reflections
+*Role-specific uncertainties discovered through practice*
+
+<!-- Example format:
+- Should I prioritize beauty or clarity when they conflict? <!-- 2025-06-11 -->
+- How much time is "obsessing" vs over-engineering? <!-- 2025-06-11 -->
+-->
+
 ---
 
 ## 🔍 Other Roles
