@@ -145,3 +145,9 @@
   - Create development dashboard layouts
 - Could use iTerm2's Python API
 - Alternative: AppleScript execution MCP for broader macOS control
+
+### Blog Publishing
+- Consider publishing "Scared of the Blank" on GitHub Pages
+- Other journal entries worth sharing publicly
+- Create publication workflow for insights
+- Balance transparency with working notes
