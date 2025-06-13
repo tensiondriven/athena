@@ -65,7 +65,8 @@ defmodule AshChat.MixProject do
       {:httpoison, "~> 2.0"},
       {:dotenv, "~> 3.1", only: [:dev, :test]},
       {:yaml_elixir, "~> 2.10"},
-      {:exqlite, "~> 0.23"}
+      {:exqlite, "~> 0.23"},
+      {:tzdata, "~> 1.1"}
     ]
   end
 

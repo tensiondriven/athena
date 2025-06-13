@@ -2327,15 +2327,23 @@ defmodule AshChatWeb.ChatLive do
   end
   
   defp format_message_time(datetime) do
-    datetime
-    |> DateTime.shift_zone!("America/Chicago")
-    |> Calendar.strftime("%I:%M %p")
+    case DateTime.shift_zone(datetime, "America/Chicago") do
+      {:ok, chicago_time} ->
+        Calendar.strftime(chicago_time, "%I:%M %p")
+      {:error, _} ->
+        # Fallback to UTC if timezone conversion fails
+        Calendar.strftime(datetime, "%I:%M %p UTC")
+    end
   end
   
   defp format_room_time(datetime) do
-    datetime
-    |> DateTime.shift_zone!("America/Chicago")
-    |> Calendar.strftime("%b %d, %I:%M %p")
+    case DateTime.shift_zone(datetime, "America/Chicago") do
+      {:ok, chicago_time} ->
+        Calendar.strftime(chicago_time, "%b %d, %I:%M %p")
+      {:error, _} ->
+        # Fallback to UTC if timezone conversion fails
+        Calendar.strftime(datetime, "%b %d, %I:%M %p UTC")
+    end
   end
   
   defp generate_thinking_message(agent_name) do
