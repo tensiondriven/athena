@@ -11,7 +11,6 @@ defmodule AshChat.Resources.AgentCard do
     uuid_primary_key :id
     attribute :name, :string, public?: true
     attribute :description, :string, public?: true # Brief description of the character
-    attribute :system_message, :string, public?: true # Core personality prompt
     attribute :model_preferences, :map, public?: true, default: %{} # temperature, top_p, etc.
     attribute :available_tools, {:array, :string}, public?: true, default: [] # tool names this agent can use
     attribute :context_settings, :map, public?: true, default: %{} # history_limit, vector_search, etc.
@@ -23,6 +22,12 @@ defmodule AshChat.Resources.AgentCard do
   end
 
   relationships do
+    belongs_to :system_prompt, AshChat.Resources.SystemPrompt do
+      public? true
+      allow_nil? false
+      description "The system prompt this agent uses"
+    end
+
     belongs_to :default_profile, AshChat.Resources.Profile do
       source_attribute :default_profile_id
       destination_attribute :id
@@ -41,14 +46,14 @@ defmodule AshChat.Resources.AgentCard do
 
   validations do
     validate present(:name), message: "Agent name is required"
-    validate present(:system_message), message: "System message is required"
+    validate present(:system_prompt_id), message: "System prompt is required"
   end
 
   actions do
     defaults [:read, :update, :destroy]
 
     create :create do
-      accept [:name, :description, :system_message, :model_preferences, 
+      accept [:name, :description, :system_prompt_id, :model_preferences, 
               :available_tools, :context_settings, :avatar_url, :is_default, :add_to_new_rooms, :default_profile_id]
       
       change fn changeset, _context ->
@@ -113,7 +118,7 @@ defmodule AshChat.Resources.AgentCard do
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL,
           description TEXT,
-          system_message TEXT NOT NULL,
+          system_prompt_id TEXT NOT NULL,
           model_preferences TEXT,
           available_tools TEXT,
           context_settings TEXT,
@@ -128,7 +133,7 @@ defmodule AshChat.Resources.AgentCard do
         # Insert agent_card
         {:ok, statement} = Exqlite.Sqlite3.prepare(conn, """
         INSERT OR REPLACE INTO agent_cards 
-        (id, name, description, system_message, model_preferences, available_tools, 
+        (id, name, description, system_prompt_id, model_preferences, available_tools, 
          context_settings, avatar_url, is_default, add_to_new_rooms, default_profile_id, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """)
@@ -137,7 +142,7 @@ defmodule AshChat.Resources.AgentCard do
           agent_card.id,
           agent_card.name,
           agent_card.description || "",
-          agent_card.system_message,
+          agent_card.system_prompt_id,
           Jason.encode!(agent_card.model_preferences || %{}),
           Jason.encode!(agent_card.available_tools || []),
           Jason.encode!(agent_card.context_settings || %{}),

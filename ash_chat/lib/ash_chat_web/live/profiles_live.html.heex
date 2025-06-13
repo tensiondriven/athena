@@ -1,0 +1,305 @@
+<div class="p-6 max-w-6xl mx-auto">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-900 mb-2">Profiles & System Prompts</h1>
+    <p class="text-gray-600">Manage AI provider backends and reusable system prompts for your agents.</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Profiles Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h2 class="text-xl font-semibold text-gray-900">Provider Profiles</h2>
+        <button
+          phx-click="new_profile"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+        >
+          + New Profile
+        </button>
+      </div>
+      
+      <div class="divide-y divide-gray-200">
+        <%= for profile <- @profiles do %>
+          <div class="px-6 py-4 flex justify-between items-start">
+            <div class="flex-1">
+              <h3 class="font-medium text-gray-900 flex items-center">
+                <%= profile.name %>
+                <%= if profile.is_default do %>
+                  <span class="ml-2 bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Default</span>
+                <% end %>
+              </h3>
+              <p class="text-sm text-gray-600"><%= profile.provider %></p>
+              <%= if profile.url do %>
+                <p class="text-xs text-gray-500 mt-1"><%= profile.url %></p>
+              <% end %>
+              <%= if profile.model do %>
+                <p class="text-xs text-blue-600 mt-1">Model: <%= profile.model %></p>
+              <% end %>
+            </div>
+            <div class="flex space-x-2 ml-4">
+              <button
+                phx-click="edit_profile"
+                phx-value-id={profile.id}
+                class="text-blue-600 hover:text-blue-800 text-sm"
+              >
+                Edit
+              </button>
+              <button
+                phx-click="delete_profile"
+                phx-value-id={profile.id}
+                data-confirm="Are you sure?"
+                class="text-red-600 hover:text-red-800 text-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        <% end %>
+        
+        <%= if @profiles == [] do %>
+          <div class="px-6 py-8 text-center text-gray-500">
+            No profiles configured yet. Create your first provider profile to get started.
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- System Prompts Section -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h2 class="text-xl font-semibold text-gray-900">System Prompts</h2>
+        <button
+          phx-click="new_system_prompt"
+          class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+        >
+          + New Prompt
+        </button>
+      </div>
+      
+      <div class="divide-y divide-gray-200">
+        <%= for system_prompt <- @system_prompts do %>
+          <div class="px-6 py-4 flex justify-between items-start">
+            <div class="flex-1">
+              <h3 class="font-medium text-gray-900 flex items-center">
+                <%= system_prompt.name %>
+                <%= unless system_prompt.is_active do %>
+                  <span class="ml-2 bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">Inactive</span>
+                <% end %>
+              </h3>
+              <%= if system_prompt.description do %>
+                <p class="text-sm text-gray-600 mt-1"><%= system_prompt.description %></p>
+              <% end %>
+              <p class="text-xs text-blue-600 mt-1">
+                Backend: <%= system_prompt.profile.name %> (<%= system_prompt.profile.provider %>)
+              </p>
+              <p class="text-xs text-gray-500 mt-2 line-clamp-2">
+                <%= String.slice(system_prompt.content, 0, 100) %><%= if String.length(system_prompt.content) > 100, do: "..." %>
+              </p>
+            </div>
+            <div class="flex space-x-2 ml-4">
+              <button
+                phx-click="edit_system_prompt"
+                phx-value-id={system_prompt.id}
+                class="text-blue-600 hover:text-blue-800 text-sm"
+              >
+                Edit
+              </button>
+              <button
+                phx-click="delete_system_prompt"
+                phx-value-id={system_prompt.id}
+                data-confirm="Are you sure?"
+                class="text-red-600 hover:text-red-800 text-sm"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        <% end %>
+        
+        <%= if @system_prompts == [] do %>
+          <div class="px-6 py-8 text-center text-gray-500">
+            No system prompts created yet. Create your first system prompt to assign to agents.
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Form Modal -->
+  <%= if @show_profile_form do %>
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">
+          <%= if @editing_profile, do: "Edit Profile", else: "New Profile" %>
+        </h3>
+        
+        <.form for={@profile_form} phx-submit="save_profile" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <input
+              type="text"
+              name="profile[name]"
+              value={@profile_form.data["name"] || ""}
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., Local Ollama"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Provider</label>
+            <select
+              name="profile[provider]"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select provider...</option>
+              <option value="ollama" selected={@profile_form.data["provider"] == "ollama"}>Ollama</option>
+              <option value="openai" selected={@profile_form.data["provider"] == "openai"}>OpenAI</option>
+              <option value="anthropic" selected={@profile_form.data["provider"] == "anthropic"}>Anthropic</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">URL (optional)</label>
+            <input
+              type="url"
+              name="profile[url]"
+              value={@profile_form.data["url"] || ""}
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., http://10.1.2.200:11434"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Model (optional)</label>
+            <input
+              type="text"
+              name="profile[model]"
+              value={@profile_form.data["model"] || ""}
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="e.g., qwen2.5:latest"
+            />
+          </div>
+          
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              name="profile[is_default]"
+              checked={@profile_form.data["is_default"] || false}
+              class="mr-2"
+            />
+            <label class="text-sm text-gray-700">Set as default profile</label>
+          </div>
+          
+          <div class="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              phx-click="cancel_form"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              Save Profile
+            </button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- System Prompt Form Modal -->
+  <%= if @show_system_prompt_form do %>
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">
+          <%= if @editing_system_prompt, do: "Edit System Prompt", else: "New System Prompt" %>
+        </h3>
+        
+        <.form for={@system_prompt_form} phx-submit="save_system_prompt" class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <input
+              type="text"
+              name="system_prompt[name]"
+              value={@system_prompt_form.data["name"] || ""}
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="e.g., Helpful Assistant"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
+            <input
+              type="text"
+              name="system_prompt[description]"
+              value={@system_prompt_form.data["description"] || ""}
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="Brief description of this prompt's purpose"
+            />
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Backend Profile</label>
+            <select
+              name="system_prompt[profile_id]"
+              required
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              <option value="">Select backend...</option>
+              <%= for profile <- @profiles do %>
+                <option 
+                  value={profile.id} 
+                  selected={@system_prompt_form.data["profile_id"] == profile.id}
+                >
+                  <%= profile.name %> (<%= profile.provider %>)
+                </option>
+              <% end %>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">System Prompt Content</label>
+            <textarea
+              name="system_prompt[content]"
+              required
+              rows="8"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+              placeholder="You are a helpful AI assistant..."
+            ><%= @system_prompt_form.data["content"] || "" %></textarea>
+          </div>
+          
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              name="system_prompt[is_active]"
+              checked={@system_prompt_form.data["is_active"] != false}
+              class="mr-2"
+            />
+            <label class="text-sm text-gray-700">Active (available for use)</label>
+          </div>
+          
+          <div class="flex justify-end space-x-3 pt-4">
+            <button
+              type="button"
+              phx-click="cancel_form"
+              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+            >
+              Save Prompt
+            </button>
+          </div>
+        </.form>
+      </div>
+    </div>
+  <% end %>
+</div>

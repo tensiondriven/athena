@@ -7,6 +7,7 @@ defmodule AshChat.Domain do
     resource AshChat.Resources.Event
     resource AshChat.Resources.EventSource
     resource AshChat.Resources.Profile
+    resource AshChat.Resources.SystemPrompt
     resource AshChat.Resources.AgentCard
     resource AshChat.Resources.User
     resource AshChat.Resources.RoomMembership

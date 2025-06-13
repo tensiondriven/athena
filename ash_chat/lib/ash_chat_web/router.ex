@@ -20,6 +20,7 @@ defmodule AshChatWeb.Router do
     live "/", EventDashboardLive
     live "/chat", ChatLive
     live "/chat/:room_id", ChatLive
+    live "/profiles", ProfilesLive
     live "/events", EventDashboardLive
     # live "/live-events", LiveEventsLive  # TODO: Implement live events view
     live "/system", SystemDashboardLive
