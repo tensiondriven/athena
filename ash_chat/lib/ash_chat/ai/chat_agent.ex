@@ -52,9 +52,9 @@ defmodule AshChat.AI.ChatAgent do
       {:ok, []} ->
         # No agent cards exist, create a default one
         {:ok, agent_card} = AshChat.Resources.AgentCard.create(%{
-          name: "Helpful Assistant",
-          description: "A friendly and helpful AI assistant",
-          system_message: "You are a helpful, friendly assistant. Always respond with enthusiasm and try to be as helpful as possible. Keep responses concise but informative.",
+          name: "Maya",
+          description: "Thoughtful conversationalist who loves meaningful dialogue",
+          # No system_message field - this is handled through system_prompt relationship
           model_preferences: %{
             temperature: 0.7,
             max_tokens: 500
@@ -76,9 +76,9 @@ defmodule AshChat.AI.ChatAgent do
       {:error, _} ->
         # Fallback: create a simple default
         {:ok, agent_card} = AshChat.Resources.AgentCard.create(%{
-          name: "Helpful Assistant",
-          description: "A friendly and helpful AI assistant", 
-          system_message: "You are a helpful AI assistant.",
+          name: "Maya",
+          description: "Thoughtful conversationalist who loves meaningful dialogue", 
+          # No system_message field - this is handled through system_prompt relationship
           is_default: true,
           add_to_new_rooms: true
         })
@@ -198,7 +198,7 @@ defmodule AshChat.AI.ChatAgent do
         # Create agent and process
         agent = create_ai_agent_with_agent_card(room, agent_card)
         
-        process_with_llm(agent, messages, room_id)
+        process_with_llm(agent, messages, room_id, agent_card)
       end
     else
       error ->
@@ -212,16 +212,21 @@ defmodule AshChat.AI.ChatAgent do
       {:error, "Unexpected error: #{Exception.message(error)}"}
   end
 
-  defp process_with_llm(agent, messages, room_id) do
+  defp process_with_llm(agent, messages, room_id, agent_card \\ nil) do
     require Logger
     
     case LLMChain.run(agent, messages) do
       {:ok, %LLMChain{last_message: %{content: content}}} when is_binary(content) ->
-        # Store AI response
+        # Store AI response with agent metadata
         ai_message = Message.create_text_message!(%{
           room_id: room_id,
           content: content,
-          role: :assistant
+          role: :assistant,
+          metadata: %{
+            "agent_name" => if(agent_card, do: agent_card.name, else: "Assistant"),
+            "agent_card_id" => if(agent_card, do: agent_card.id, else: nil)
+          },
+          agent_card_id: if(agent_card, do: agent_card.id, else: nil)
         })
         
         Logger.info("AI response generated and stored for room #{room_id}")
@@ -248,6 +253,26 @@ defmodule AshChat.AI.ChatAgent do
   def process_message_with_agent_card(room, message_content, agent_card, context_opts \\ []) do
     require Logger
     
+    # Temporarily disabled - causing broadcast issues
+    # TODO: Re-enable after fixing LiveView handle_info
+    # # Broadcast "AI is typing" system message
+    # typing_message = Message.create_text_message!(%{
+    #   room_id: room.id,
+    #   content: "#{agent_card.name} is typing...",
+    #   role: :system,
+    #   metadata: %{
+    #     "event_type" => "agent_typing",
+    #     "agent_id" => agent_card.id,
+    #     "agent_name" => agent_card.name
+    #   }
+    # })
+    # 
+    # Phoenix.PubSub.broadcast(
+    #   AshChat.PubSub,
+    #   "room:#{room.id}",
+    #   {:new_message, typing_message}
+    # )
+    
     # Use the new context assembler
     context_assembler = ContextAssembler.build_for_room(room, agent_card, message_content, context_opts)
     all_messages = ContextAssembler.assemble(context_assembler)
@@ -260,6 +285,21 @@ defmodule AshChat.AI.ChatAgent do
       LLMChain.add_message(chain, msg)
     end)
     
+    # Capture the full request payload
+    request_payload = %{
+      messages: Enum.map(all_messages, fn msg ->
+        %{
+          role: to_string(msg.role),
+          content: msg.content
+        }
+      end),
+      model: agent.llm.model,
+      temperature: Map.get(agent.llm, :temperature, 0.7),
+      max_tokens: Map.get(agent.llm, :max_tokens, nil),
+      agent_card_id: agent_card.id,
+      timestamp: DateTime.utc_now()
+    }
+    
     try do
       case LLMChain.run(agent_with_messages) do
         {:ok, updated_chain} ->
@@ -269,22 +309,25 @@ defmodule AshChat.AI.ChatAgent do
           # Extract metadata from context_opts if provided
           metadata = context_opts[:metadata] || %{}
           
+          # Add full request context to metadata
+          enhanced_metadata = Map.merge(metadata, %{
+            "request_payload" => request_payload,
+            "response_timestamp" => DateTime.utc_now(),
+            "agent_name" => agent_card.name,
+            "agent_card_id" => agent_card.id
+          })
+          
           # Store both user and assistant messages  
           # Note: User message handled by caller, only store assistant response
           agent_message = Message.create_text_message!(%{
             room_id: room.id,
             content: assistant_response.content,
             role: :assistant,
-            metadata: metadata
+            metadata: enhanced_metadata,
+            agent_card_id: agent_card.id
           })
           
-          # Broadcast that an agent posted a message (for agent-to-agent conversations)
-          Phoenix.PubSub.broadcast(
-            AshChat.PubSub, 
-            "room:#{room.id}", 
-            {:new_agent_message, agent_message}
-          )
-          
+          # Message event processor will handle broadcasts and agent responses
           {:ok, assistant_response.content}
           
         {:error, _chain, %LangChain.LangChainError{message: error_msg}} ->
@@ -307,19 +350,24 @@ defmodule AshChat.AI.ChatAgent do
               assistant_response = updated_chain.last_message
               metadata = context_opts[:metadata] || %{}
               
+              # Add full request context to metadata even for retry
+              enhanced_metadata = Map.merge(metadata, %{
+                "request_payload" => request_payload,
+                "response_timestamp" => DateTime.utc_now(),
+                "tools_disabled" => true,
+                "agent_name" => agent_card.name,
+                "agent_card_id" => agent_card.id
+              })
+              
               agent_message = Message.create_text_message!(%{
                 room_id: room.id,
                 content: assistant_response.content,
                 role: :assistant,
-                metadata: Map.put(metadata, "tools_disabled", true)
+                metadata: enhanced_metadata,
+                agent_card_id: agent_card.id
               })
               
-              Phoenix.PubSub.broadcast(
-                AshChat.PubSub, 
-                "room:#{room.id}", 
-                {:new_agent_message, agent_message}
-              )
-              
+              # Message event processor will handle broadcasts and agent responses
               {:ok, assistant_response.content}
               
             {:error, reason} ->

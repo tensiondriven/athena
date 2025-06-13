@@ -13,6 +13,10 @@ defmodule AshChat.Application do
       {Phoenix.PubSub, name: AshChat.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: AshChat.Finch},
+      # Start the Room Conversation Supervisor for managing agent workers
+      AshChat.AI.RoomConversationSupervisor,
+      # Start the Message Event Processor for autonomous agent conversations
+      AshChat.AI.MessageEventProcessor,
       # Start a worker by calling: AshChat.Worker.start_link(arg)
       # {AshChat.Worker, arg},
       # Start to serve requests, typically the last entry

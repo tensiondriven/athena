@@ -25,7 +25,7 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:room, nil) # No room by default - user must create explicitly
       |> assign(:messages, [])
       |> assign(:current_message, "")
-      |> assign(:system_prompt, "You are a helpful AI assistant.")
+      |> assign(:system_prompt, nil)  # No default - agents use their own prompts
       |> assign(:agents_thinking, %{})
       |> assign(:page_title, "AshChat")
       |> assign(:sidebar_expanded, true)
@@ -49,6 +49,9 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:room_participants, [])
       |> assign(:available_entities, [])
       |> assign(:current_provider, get_current_provider())
+      |> assign(:selected_message, nil)
+      |> assign(:show_message_details, false)
+      |> assign(:current_view, :chat)
 
     {:ok, socket}
   end
@@ -64,7 +67,22 @@ defmodule AshChatWeb.ChatLive do
         
         # Check if current user is a member of this room
         is_member = if socket.assigns.current_user do
-          check_room_membership(socket.assigns.current_user.id, room_id)
+          case check_room_membership(socket.assigns.current_user.id, room_id) do
+            false ->
+              # Auto-join the user to the room
+              case AshChat.Resources.RoomMembership.create(%{
+                user_id: socket.assigns.current_user.id,
+                room_id: room_id,
+                role: "member"
+              }) do
+                {:ok, _membership} -> 
+                  true
+                {:error, _} -> 
+                  false
+              end
+            true -> 
+              true
+          end
         else
           false
         end
@@ -83,6 +101,17 @@ defmodule AshChatWeb.ChatLive do
         # Generate room join event for agents to respond to
         if socket.assigns.current_user do
           Task.start(fn ->
+            # Create a system message for the user join
+            Message.create_text_message(%{
+              room_id: room_id,
+              content: "#{socket.assigns.current_user.display_name || socket.assigns.current_user.name} joined the room",
+              role: :system,
+              metadata: %{
+                "event_type" => "user_join",
+                "user_id" => socket.assigns.current_user.id
+              }
+            })
+            
             AshChat.AI.EventGenerator.room_join(
               socket.assigns.current_user.display_name || socket.assigns.current_user.name,
               room.title,
@@ -132,6 +161,18 @@ defmodule AshChatWeb.ChatLive do
       String.trim(content) == "" ->
         {:noreply, socket}
       true ->
+        # Send user message first (synchronously so it appears immediately)
+        ChatAgent.send_text_message(
+          socket.assigns.room.id,
+          content,
+          socket.assigns.current_user.id
+        )
+        
+        # Update messages immediately so user sees their message
+        socket = socket
+        |> assign(:current_message, "")
+        |> update_messages()
+        
         # Re-enabled AI response system with multi-agent support
         Task.start(fn ->
           # Get agent memberships first to know who might respond
@@ -161,12 +202,6 @@ defmodule AshChatWeb.ChatLive do
               _ -> nil
             end
           end
-          # Send user message first
-          ChatAgent.send_text_message(
-            socket.assigns.room.id,
-            content,
-            socket.assigns.current_user.id
-          )
           
           # Get the created message for agent processing
           user_message = case Message.for_room(%{room_id: socket.assigns.room.id}) do
@@ -219,11 +254,6 @@ defmodule AshChatWeb.ChatLive do
             {:message_processed}
           )
         end)
-
-        socket = 
-          socket
-          |> assign(:current_message, "")
-          |> update_messages()
 
         {:noreply, socket}
     end
@@ -285,7 +315,7 @@ defmodule AshChatWeb.ChatLive do
   
   def handle_event("delete_room", %{"room-id" => room_id}, socket) do
     case Room.destroy(room_id) do
-      {:ok, _} ->
+      :ok ->
         # If we're currently in the deleted room, redirect to chat home
         socket = if socket.assigns.room && socket.assigns.room.id == room_id do
           socket
@@ -306,6 +336,50 @@ defmodule AshChatWeb.ChatLive do
   
   def handle_event("toggle_hidden_rooms", _params, socket) do
     {:noreply, assign(socket, :show_hidden_rooms, !socket.assigns.show_hidden_rooms)}
+  end
+  
+  def handle_event("select_message", %{"message-id" => message_id}, socket) do
+    message = Enum.find(socket.assigns.messages, &(&1.id == message_id))
+    
+    # Toggle if clicking the same message
+    socket = if socket.assigns.selected_message && socket.assigns.selected_message.id == message_id do
+      socket
+      |> assign(:show_message_details, !socket.assigns.show_message_details)
+    else
+      socket
+      |> assign(:selected_message, message)
+      |> assign(:show_message_details, true)
+    end
+    
+    {:noreply, socket}
+  end
+  
+  def handle_event("close_message_details", _params, socket) do
+    socket = socket
+    |> assign(:selected_message, nil)
+    |> assign(:show_message_details, false)
+    
+    {:noreply, socket}
+  end
+  
+  def handle_event("switch_view", %{"view" => view}, socket) do
+    view_atom = String.to_existing_atom(view)
+    {:noreply, assign(socket, :current_view, view_atom)}
+  end
+  
+  def handle_event("delete_message", %{"message-id" => message_id}, socket) do
+    case Message.destroy(message_id) do
+      :ok ->
+        socket = socket
+        |> assign(:selected_message, nil)
+        |> assign(:show_message_details, false)
+        |> update_messages()
+        |> put_flash(:info, "Message deleted")
+        
+        {:noreply, socket}
+      {:error, _} ->
+        {:noreply, put_error_flash(socket, "Failed to delete message")}
+    end
   end
   
   def handle_event("change_model", %{"model" => model}, socket) do
@@ -1038,29 +1112,15 @@ defmodule AshChatWeb.ChatLive do
     {:noreply, assign(socket, :agents_thinking, agents_thinking)}
   end
   
-  def handle_info({:new_agent_message, message}, socket) do
-    # When an agent posts a message, trigger other agents to potentially respond
-    if socket.assigns.room && message.role == :assistant do
-      Task.start(fn ->
-        # Let agents see and potentially respond to this agent's message
-        agent_responses = AgentConversation.process_agent_responses(
-          socket.assigns.room.id,
-          message,
-          []
-        )
-        
-        # Send agent responses with delays
-        for response <- agent_responses do
-          if response.delay_ms > 0 do
-            Process.sleep(response.delay_ms)
-          end
-          
-          Logger.info("Agent #{response.agent_card.name} responded to another agent")
-        end
-      end)
-    end
-    
-    # Update the UI with the new message
+  def handle_info({:new_message, _message}, socket) do
+    # Handle any new message broadcast
+    socket = update_messages(socket)
+    {:noreply, socket}
+  end
+  
+  def handle_info({:new_agent_message, _message}, socket) do
+    # Agent responses are now handled by MessageEventProcessor
+    # Just update the UI with the new message
     {:noreply, update_messages(socket)}
   end
 
@@ -1095,7 +1155,7 @@ defmodule AshChatWeb.ChatLive do
     FlashLogger.log_flash_error(message, metadata)
     
     # Put the flash as normal
-    put_error_flash(socket, message)
+    put_flash(socket, :error, message)
   end
 
   defp update_messages(socket) do
@@ -1332,6 +1392,20 @@ defmodule AshChatWeb.ChatLive do
       ]}>
         <!-- Sidebar Header -->
         <div class="border-b border-gray-200 px-3 py-4 space-y-3">
+          <!-- Top Header with close button -->
+          <div class="flex items-center justify-between">
+            <h2 class="text-sm font-semibold text-gray-800">AshChat</h2>
+            <button 
+              phx-click="toggle_sidebar"
+              class="p-1 hover:bg-gray-100 rounded-md transition-colors"
+              title="Hide sidebar"
+            >
+              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
           <!-- User Selector -->
           <div>
             <label class="block text-xs font-medium text-gray-700 mb-1">Current User</label>
@@ -1363,17 +1437,8 @@ defmodule AshChatWeb.ChatLive do
           </div>
           
           <!-- Rooms Header -->
-          <div class="flex items-center justify-between pt-1">
+          <div class="pt-1">
             <h2 class="text-sm font-semibold text-gray-800">Rooms</h2>
-            <button 
-              phx-click="toggle_sidebar"
-              class="p-1 hover:bg-gray-100 rounded-md transition-colors"
-              title="Hide sidebar"
-            >
-              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            </button>
           </div>
         </div>
         
@@ -1535,6 +1600,29 @@ defmodule AshChatWeb.ChatLive do
       
       <!-- Main Content Area -->
       <div class="flex-1 flex flex-col">
+        <!-- Navigation Tabs -->
+        <div class="bg-white border-b border-gray-200">
+          <div class="flex space-x-1 px-4">
+            <button 
+              phx-click="switch_view"
+              phx-value-view="chat"
+              class={[
+                "px-4 py-3 text-sm font-medium border-b-2 transition-colors",
+                if(@current_view == :chat, 
+                   do: "text-blue-600 border-blue-600", 
+                   else: "text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300")
+              ]}
+            >
+              Chat
+            </button>
+            <a 
+              href={~p"/events"}
+              class="px-4 py-3 text-sm font-medium text-gray-500 border-b-2 border-transparent hover:text-gray-700 hover:border-gray-300 transition-colors"
+            >
+              Events
+            </a>
+          </div>
+        </div>
         <%= if @room do %>
           <!-- Room Header -->
           <div class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
@@ -1659,48 +1747,87 @@ defmodule AshChatWeb.ChatLive do
           <!-- Messages Area -->
           <div class="flex-1 overflow-y-auto p-4 space-y-2">
             <%= for message <- @messages do %>
-              <!-- Slack-style message row -->
-              <div class="flex items-start gap-3 hover:bg-gray-50 px-2 py-1 rounded">
-                <!-- Avatar -->
-                <div class="flex-shrink-0">
-                  <%= if message.role == :user do %>
-                    <!-- User avatar -->
-                    <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center text-white text-sm font-semibold">
-                      <%= String.first(@current_user.name || "U") %>
-                    </div>
-                  <% else %>
-                    <!-- AI agent avatar -->
-                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-md flex items-center justify-center text-white text-xs">
-                      AI
-                    </div>
-                  <% end %>
-                </div>
-                
-                <!-- Message content -->
-                <div class="flex-1 min-w-0">
-                  <!-- Name and timestamp -->
-                  <div class="flex items-baseline gap-2">
-                    <span class="font-semibold text-sm text-gray-900">
-                      <%= if message.role == :user do %>
-                        <%= @current_user.display_name || @current_user.name %>
-                      <% else %>
-                        <%= get_agent_name_from_message(message) %>
-                      <% end %>
-                    </span>
-                    <span class="text-xs text-gray-500">
-                      <%= format_message_time(message.created_at) %>
-                    </span>
-                  </div>
-                  
-                  <!-- Message text -->
-                  <div class={[
-                    "text-sm text-gray-800 mt-0.5",
-                    if(message.role == :user, do: "", else: "")
-                  ]}>
+              <%= if message.role == :system do %>
+                <!-- System message -->
+                <div class="flex justify-center py-2">
+                  <div class="px-3 py-1 bg-gray-100 rounded-full text-xs text-gray-600">
                     <%= message.content %>
                   </div>
                 </div>
-              </div>
+              <% else %>
+                <!-- Slack-style message row -->
+                <div class="group flex items-start gap-3 hover:bg-gray-50 px-2 py-1 rounded">
+                  <!-- Avatar -->
+                  <div class="flex-shrink-0">
+                    <%= if message.role == :user do %>
+                      <!-- User avatar -->
+                      <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center text-white text-sm font-semibold">
+                        <%= String.first(@current_user.name || "U") %>
+                      </div>
+                    <% else %>
+                      <!-- AI agent avatar -->
+                      <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-md flex items-center justify-center text-white text-xs">
+                        AI
+                      </div>
+                    <% end %>
+                  </div>
+                  
+                  <!-- Message content -->
+                  <div 
+                    class="flex-1 min-w-0 cursor-pointer"
+                    phx-click="select_message"
+                    phx-value-message-id={message.id}
+                  >
+                    <!-- Name and timestamp -->
+                    <div class="flex items-baseline gap-2">
+                      <span class="font-semibold text-sm text-gray-900">
+                        <%= if message.role == :user do %>
+                          <%= @current_user.display_name || @current_user.name %>
+                        <% else %>
+                          <%= get_agent_name_from_message(message) %>
+                        <% end %>
+                      </span>
+                      <span class="text-xs text-gray-500">
+                        <%= format_message_time(message.created_at) %>
+                      </span>
+                    </div>
+                    
+                    <!-- Message text -->
+                    <div class={[
+                      "text-sm text-gray-800 mt-0.5",
+                      if(message.role == :user, do: "", else: "")
+                    ]}>
+                      <%= message.content %>
+                    </div>
+                  </div>
+                  
+                  <!-- Message actions (visible on hover) -->
+                  <div class="relative opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button 
+                      class="p-1 hover:bg-gray-200 rounded-sm transition-all"
+                      onclick="event.stopPropagation(); this.nextElementSibling.classList.toggle('hidden')"
+                      title="Message options"
+                    >
+                      <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                      </svg>
+                    </button>
+                    <div class="hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-20 min-w-[120px]">
+                      <button 
+                        phx-click="delete_message" 
+                        phx-value-message-id={message.id}
+                        class="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        onclick="this.parentElement.classList.add('hidden')"
+                      >
+                        <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        Delete Message
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
             <% end %>
 
             <%= for {_agent_id, thinking_msg} <- @agents_thinking do %>
@@ -1780,6 +1907,123 @@ defmodule AshChatWeb.ChatLive do
           </div>
         <% end %>
       </div>
+      
+      <!-- Message Details Sidebar -->
+      <%= if @show_message_details && @selected_message do %>
+        <div class={[
+          "w-96 bg-white border-l border-gray-200 flex flex-col transition-all duration-200 ease-in-out overflow-hidden",
+          if(@show_message_details && @selected_message, do: "translate-x-0", else: "translate-x-full")
+        ]}
+        style={if(@show_message_details && @selected_message, do: "", else: "width: 0")}>
+            <!-- Header -->
+            <div class="px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+              <h2 class="text-lg font-medium text-gray-900">Message Details</h2>
+              <div class="flex items-center gap-2">
+                <button 
+                  phx-click="delete_message"
+                  phx-value-message-id={@selected_message.id}
+                  class="p-1 hover:bg-red-100 rounded transition-colors"
+                  title="Delete message"
+                >
+                  <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+                <button 
+                  phx-click="close_message_details"
+                  class="p-1 hover:bg-gray-100 rounded transition-colors"
+                >
+                  <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <!-- Message Details Content -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+            <!-- Basic Info -->
+            <div>
+              <h3 class="text-sm font-medium text-gray-700 mb-2">Basic Information</h3>
+              <dl class="space-y-1 text-sm">
+                <div class="flex">
+                  <dt class="text-gray-500 w-20">ID:</dt>
+                  <dd class="text-gray-900 font-mono text-xs"><%= String.slice(@selected_message.id, 0, 8) %>...</dd>
+                </div>
+                <div class="flex">
+                  <dt class="text-gray-500 w-20">Role:</dt>
+                  <dd class="text-gray-900"><%= @selected_message.role %></dd>
+                </div>
+                <div class="flex">
+                  <dt class="text-gray-500 w-20">Type:</dt>
+                  <dd class="text-gray-900"><%= @selected_message.message_type %></dd>
+                </div>
+                <div class="flex">
+                  <dt class="text-gray-500 w-20">Created:</dt>
+                  <dd class="text-gray-900"><%= format_message_time(@selected_message.created_at) %></dd>
+                </div>
+              </dl>
+            </div>
+            
+            <!-- Message Content -->
+            <div>
+              <h3 class="text-sm font-medium text-gray-700 mb-2">Content</h3>
+              <div class="bg-gray-50 rounded-md p-3">
+                <pre class="text-xs text-gray-800 whitespace-pre-wrap"><%= @selected_message.content %></pre>
+              </div>
+            </div>
+            
+            <!-- Metadata -->
+            <%= if @selected_message.metadata && map_size(@selected_message.metadata) > 0 do %>
+              <div>
+                <h3 class="text-sm font-medium text-gray-700 mb-2">Metadata</h3>
+                <div class="bg-gray-50 rounded-md p-3">
+                  <pre class="text-xs text-gray-800 whitespace-pre-wrap"><%= Jason.encode!(@selected_message.metadata, pretty: true) %></pre>
+                </div>
+              </div>
+            <% end %>
+            
+            <!-- Associated IDs -->
+            <div>
+              <h3 class="text-sm font-medium text-gray-700 mb-2">Associated Records</h3>
+              <dl class="space-y-1 text-sm">
+                <%= if @selected_message.user_id do %>
+                  <div class="flex">
+                    <dt class="text-gray-500 w-20">User ID:</dt>
+                    <dd class="text-gray-900 font-mono text-xs"><%= @selected_message.user_id %></dd>
+                  </div>
+                <% end %>
+                <%= if @selected_message.persona_id do %>
+                  <div class="flex">
+                    <dt class="text-gray-500 w-20">Persona:</dt>
+                    <dd class="text-gray-900 font-mono text-xs"><%= @selected_message.persona_id %></dd>
+                  </div>
+                <% end %>
+                <%= if @selected_message.agent_card_id do %>
+                  <div class="flex">
+                    <dt class="text-gray-500 w-20">Agent:</dt>
+                    <dd class="text-gray-900 font-mono text-xs"><%= @selected_message.agent_card_id %></dd>
+                  </div>
+                <% end %>
+                <div class="flex">
+                  <dt class="text-gray-500 w-20">Room ID:</dt>
+                  <dd class="text-gray-900 font-mono text-xs"><%= @selected_message.room_id %></dd>
+                </div>
+              </dl>
+            </div>
+            
+            <!-- Request/Response Context -->
+            <%= if @selected_message.role == :assistant && @selected_message.metadata["request_payload"] do %>
+              <div class="pt-4 border-t border-gray-200">
+                <h3 class="text-sm font-medium text-gray-700 mb-2">Full Request Context</h3>
+                <div class="bg-gray-50 rounded-md p-3 max-h-96 overflow-y-auto">
+                  <pre class="text-xs text-gray-800 whitespace-pre-wrap"><%= Jason.encode!(@selected_message.metadata["request_payload"], pretty: true) %></pre>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
     </div>
     
     <!-- System Prompt Modal -->
@@ -1904,9 +2148,13 @@ defmodule AshChatWeb.ChatLive do
                             </div>
                             
                             <div>
-                              <span class="font-medium text-gray-900">Agent System Message:</span>
+                              <span class="font-medium text-gray-900">System Prompt:</span>
                               <div class="mt-1 p-2 bg-white rounded border text-sm text-gray-700">
-                                <%= agent_card.system_message %>
+                                <%= if agent_card.system_prompt_id do %>
+                                  <span class="text-xs text-gray-500">Prompt ID: <%= agent_card.system_prompt_id %></span>
+                                <% else %>
+                                  <span class="text-gray-500 italic">No system prompt assigned</span>
+                                <% end %>
                               </div>
                             </div>
                             
@@ -2318,7 +2566,16 @@ defmodule AshChatWeb.ChatLive do
     # Check if message has agent metadata
     case message.metadata do
       %{"agent_name" => name} when is_binary(name) -> name
-      _ -> "AI Assistant"
+      _ -> 
+        # Try to get name from agent_card_id
+        case message.agent_card_id do
+          nil -> "Assistant"  # Generic fallback only if no agent associated
+          agent_card_id ->
+            case Ash.get(AshChat.Resources.AgentCard, agent_card_id) do
+              {:ok, agent_card} -> agent_card.name
+              _ -> "Assistant"
+            end
+        end
     end
   end
   

@@ -64,6 +64,7 @@ defmodule AshChat.Resources.Message do
     read :for_room do
       argument :room_id, :uuid, allow_nil?: false
       filter expr(room_id == ^arg(:room_id))
+      prepare build(sort: [created_at: :asc])
     end
 
     read :semantic_search do
@@ -83,6 +84,7 @@ defmodule AshChat.Resources.Message do
       argument :role, :atom, default: :user
       argument :user_id, :uuid
       argument :persona_id, :uuid
+      argument :agent_card_id, :uuid
       argument :metadata, :map, default: %{}
 
       change set_attribute(:room_id, arg(:room_id))
@@ -91,14 +93,17 @@ defmodule AshChat.Resources.Message do
       change set_attribute(:message_type, :text)
       change set_attribute(:user_id, arg(:user_id))
       change set_attribute(:persona_id, arg(:persona_id))
+      change set_attribute(:agent_card_id, arg(:agent_card_id))
       change set_attribute(:metadata, arg(:metadata))
       
-      # Add persistence hook
+      # Add persistence hook and event processing
       change fn changeset, _context ->
         changeset
         |> Ash.Changeset.after_action(fn _changeset, result ->
           Task.start(fn ->
             persist_to_sqlite(result)
+            # Trigger event processing for autonomous agent conversations
+            AshChat.AI.MessageEventProcessor.process_message(result)
           end)
           {:ok, result}
         end)
@@ -122,6 +127,19 @@ defmodule AshChat.Resources.Message do
       change set_attribute(:image_data, arg(:image_data))
       change set_attribute(:user_id, arg(:user_id))
       change set_attribute(:persona_id, arg(:persona_id))
+      
+      # Add persistence hook and event processing
+      change fn changeset, _context ->
+        changeset
+        |> Ash.Changeset.after_action(fn _changeset, result ->
+          Task.start(fn ->
+            persist_to_sqlite(result)
+            # Trigger event processing for autonomous agent conversations
+            AshChat.AI.MessageEventProcessor.process_message(result)
+          end)
+          {:ok, result}
+        end)
+      end
     end
   end
 

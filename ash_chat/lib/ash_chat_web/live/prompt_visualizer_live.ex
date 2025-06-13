@@ -171,7 +171,7 @@ defmodule AshChatWeb.PromptVisualizerLive do
     |> assign(:conversation_messages, conversation_messages)
   end
   
-  defp build_character_system_prompt(nil), do: "You are a helpful AI assistant."
+  defp build_character_system_prompt(nil), do: nil
   defp build_character_system_prompt(character) do
     base = "You are #{character.name}."
     

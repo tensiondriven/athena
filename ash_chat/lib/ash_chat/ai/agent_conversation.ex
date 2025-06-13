@@ -15,8 +15,8 @@ defmodule AshChat.AI.AgentConversation do
   - Agent's decision-making
   """
   def should_agent_respond?(agent_card, message, room_id) do
-    # Don't respond to own messages (basic loop prevention)
-    if message.role == :assistant do
+    # Don't respond to assistant or system messages (basic loop prevention)
+    if message.role in [:assistant, :system] do
       false
     else
       # Get recent conversation context

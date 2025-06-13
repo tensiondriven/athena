@@ -125,6 +125,18 @@ defmodule AshChat.AI.EventGenerator do
     )
   end
   
+  @doc """
+  Create a generic event
+  """
+  def create_event(event_type, metadata \\ %{}) do
+    source_id = Map.get(metadata, :source, "system")
+    content = Map.get(metadata, :content, "")
+    description = Map.get(metadata, :description, event_type)
+    confidence = Map.get(metadata, :confidence, 1.0)
+    
+    create_agent_event(event_type, source_id, content, description, confidence, metadata)
+  end
+  
   defp create_agent_event(event_type, source_id, content, description, confidence, metadata) do
     event_args = %{
       timestamp: DateTime.utc_now(),

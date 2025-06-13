@@ -6,85 +6,85 @@ defmodule AshChatWeb.ProfilesLive do
     {:ok, 
      socket
      |> assign(
-       profiles: load_profiles(),
+       personas: load_personas(),
        system_prompts: load_system_prompts(),
-       show_profile_form: false,
+       show_persona_form: false,
        show_system_prompt_form: false,
-       editing_profile: nil,
+       editing_persona: nil,
        editing_system_prompt: nil,
-       profile_form: to_form(%{}, as: :profile),
+       persona_form: to_form(%{}, as: :persona),
        system_prompt_form: to_form(%{}, as: :system_prompt)
      )}
   end
 
   @impl true
-  def handle_event("new_profile", _params, socket) do
+  def handle_event("new_persona", _params, socket) do
     {:noreply, 
      socket
      |> assign(
-       show_profile_form: true,
-       editing_profile: nil,
-       profile_form: to_form(%{}, as: :profile)
+       show_persona_form: true,
+       editing_persona: nil,
+       persona_form: to_form(%{}, as: :persona)
      )}
   end
 
   @impl true
-  def handle_event("edit_profile", %{"id" => id}, socket) do
-    profile = Enum.find(socket.assigns.profiles, &(&1.id == id))
+  def handle_event("edit_persona", %{"id" => id}, socket) do
+    persona = Enum.find(socket.assigns.personas, &(&1.id == id))
     form_data = %{
-      "name" => profile.name,
-      "provider" => profile.provider,
-      "url" => profile.url || "",
-      "model" => profile.model || "",
-      "is_default" => profile.is_default
+      "name" => persona.name,
+      "provider" => persona.provider,
+      "url" => persona.url || "",
+      "model" => persona.model || "",
+      "is_default" => persona.is_default
     }
     
     {:noreply, 
      socket
      |> assign(
-       show_profile_form: true,
-       editing_profile: profile,
-       profile_form: to_form(form_data, as: :profile)
+       show_persona_form: true,
+       editing_persona: persona,
+       persona_form: to_form(form_data, as: :persona)
      )}
   end
 
   @impl true
-  def handle_event("save_profile", %{"profile" => profile_params}, socket) do
-    result = if socket.assigns.editing_profile do
-      AshChat.Resources.Profile.update(socket.assigns.editing_profile, profile_params)
+  def handle_event("save_persona", %{"persona" => persona_params}, socket) do
+    result = if socket.assigns.editing_persona do
+      AshChat.Resources.Persona.update(socket.assigns.editing_persona, persona_params)
     else
-      AshChat.Resources.Profile.create(profile_params)
+      AshChat.Resources.Persona.create(persona_params)
     end
 
     case result do
-      {:ok, _profile} ->
+      {:ok, _persona} ->
         {:noreply,
          socket
          |> assign(
-           profiles: load_profiles(),
-           show_profile_form: false,
-           editing_profile: nil
+           personas: load_personas(),
+           show_persona_form: false,
+           editing_persona: nil
          )
-         |> put_flash(:info, "Profile saved successfully")}
+         |> put_flash(:info, "Persona saved successfully")}
       
       {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, "Failed to save profile")}
+        {:noreply, put_flash(socket, :error, "Failed to save persona")}
     end
   end
 
   @impl true
-  def handle_event("delete_profile", %{"id" => id}, socket) do
-    profile = Enum.find(socket.assigns.profiles, &(&1.id == id))
+  def handle_event("delete_persona", %{"id" => id}, socket) do
+    persona = Enum.find(socket.assigns.personas, &(&1.id == id))
     
-    case AshChat.Resources.Profile.destroy(profile) do
+    case AshChat.Resources.Persona.destroy(persona) do
       :ok ->
         {:noreply,
          socket
-         |> assign(profiles: load_profiles())
-         |> put_flash(:info, "Profile deleted successfully")}
+         |> assign(personas: load_personas())
+         |> put_flash(:info, "Persona deleted successfully")}
       
       {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, "Failed to delete profile")}
+        {:noreply, put_flash(socket, :error, "Failed to delete persona")}
     end
   end
 
@@ -106,7 +106,7 @@ defmodule AshChatWeb.ProfilesLive do
       "name" => system_prompt.name,
       "content" => system_prompt.content,
       "description" => system_prompt.description || "",
-      "profile_id" => system_prompt.profile_id,
+      "persona_id" => system_prompt.persona_id,
       "is_active" => system_prompt.is_active
     }
     
@@ -164,19 +164,19 @@ defmodule AshChatWeb.ProfilesLive do
     {:noreply, 
      socket
      |> assign(
-       show_profile_form: false,
+       show_persona_form: false,
        show_system_prompt_form: false,
-       editing_profile: nil,
+       editing_persona: nil,
        editing_system_prompt: nil
      )}
   end
 
-  defp load_profiles do
-    AshChat.Resources.Profile.read!()
+  defp load_personas do
+    AshChat.Resources.Persona.read!()
   end
 
   defp load_system_prompts do
     AshChat.Resources.SystemPrompt.read!()
-    |> Ash.load!([:profile])
+    |> Ash.load!([:persona])
   end
 end

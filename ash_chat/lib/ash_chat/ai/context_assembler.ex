@@ -45,12 +45,9 @@ defmodule AshChat.AI.ContextAssembler do
     |> Enum.map(&convert_component_to_message/1)
     |> List.flatten()
     
-    # Ensure we always have at least one message
-    if Enum.empty?(messages) do
-      [%LangChainMessage{role: :system, content: "You are a helpful AI assistant."}]
-    else
-      messages
-    end
+    # Return messages as-is, even if empty
+    # The LLM will handle cases with no system prompt
+    messages
   end
 
   def build_for_room(room, agent_card, user_message_content, opts \\ []) do
@@ -67,18 +64,23 @@ defmodule AshChat.AI.ContextAssembler do
     if Keyword.get(opts, :include_system_message, true) do
       # Load SystemPrompt if it exists
       system_content = case agent_card.system_prompt_id do
-        nil -> "You are a helpful AI assistant."
+        nil -> nil  # No default prompt
         system_prompt_id ->
           case Ash.get(AshChat.Resources.SystemPrompt, system_prompt_id) do
             {:ok, system_prompt} -> system_prompt.content
-            _ -> "You are a helpful AI assistant."
+            _ -> nil  # No fallback
           end
       end
       
-      add_component(assembler, :system_message, system_content,
-        priority: 10,
-        metadata: %{agent_card: agent_card.name, source: "system_prompt"}
-      )
+      # Only add system message if we have content
+      if system_content do
+        add_component(assembler, :system_message, system_content,
+          priority: 10,
+          metadata: %{agent_card: agent_card.name, source: "system_prompt"}
+        )
+      else
+        assembler
+      end
     else
       assembler
     end
