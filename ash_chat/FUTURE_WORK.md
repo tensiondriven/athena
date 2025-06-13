@@ -151,3 +151,19 @@
 - Other journal entries worth sharing publicly
 - Create publication workflow for insights
 - Balance transparency with working notes
+
+### Advanced Context Management System
+- **Context Presets**: Named configurations of context pieces
+  - Shareable across agents
+  - Tool-generated pieces (list managers, monitors)
+  - User-created custom blocks
+  - Enable/disable individual pieces
+  - Drag-and-drop reordering
+- **Dynamic Context Manager**: Background process after each message
+  - Compacts and summarizes conversation context
+  - Identifies and preserves highly relevant information
+  - Prevents context window overflow
+- **Tool Context Registration**: API for tools to register context pieces
+  - Dynamic updates when tool data changes
+  - Examples: todo summaries, project status, error logs
+- Start simple with database-backed pieces, add complexity as needed
