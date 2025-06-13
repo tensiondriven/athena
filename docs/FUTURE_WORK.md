@@ -40,6 +40,23 @@ Example: When I add something to glossary after being asked, UI suggests #bias-f
 - Inline concept previews (hover over glossary terms)
 
 ## AI Improvements
+
+### Ollama Model Loading Status Detection
+**Priority: Medium**
+
+Currently, when switching between inference backends (OpenRouter vs Ollama), there's no visibility into whether Ollama models are loaded or need to be loaded. This can cause delays or failures when attempting to use Ollama-based agents.
+
+**Proposed Implementation:**
+- Add `OllamaModelStatus` module in `lib/ash_chat/ai/`
+- Status detection: Check if required models are loaded before routing requests
+- Proactive loading: Auto-load models when agents are activated
+- UI feedback: Show loading status in profiles/backend selection interface  
+- Graceful fallback: Switch to OpenRouter temporarily if Ollama models aren't ready
+- Extend inference config system to include model readiness checks
+
+**Benefits:** Improved UX with clear feedback, reduced latency, better reliability through fallback mechanisms, enhanced debugging for inference pipeline issues.
+
+### Advanced Context Management
 - Better context management for long conversations
 - Automatic concept extraction and relationship mapping
 - Pattern detection across multiple conversations
