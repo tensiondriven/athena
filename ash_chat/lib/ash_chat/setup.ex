@@ -56,13 +56,18 @@ defmodule AshChat.Setup do
     })
 
     # Create demo users
-    alice = User.create!(%{
-      name: "Alice",
-      email: "alice@example.com",
-      display_name: "Alice (Demo User)",
-      avatar_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alice"
+    jonathan = User.create!(%{
+      name: "Jonathan",
+      email: "jonathan@athena.local",
+      display_name: "Jonathan",
+      avatar_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jonathan",
+      preferences: %{
+        "theme" => "system",
+        "notification_level" => "all"
+      }
     })
 
+    # Keep Bob as a second demo user if needed
     bob = User.create!(%{
       name: "Bob",
       email: "bob@example.com", 
@@ -203,7 +208,7 @@ defmodule AshChat.Setup do
 
     # Create room memberships
     RoomMembership.create!(%{
-      user_id: alice.id,
+      user_id: jonathan.id,
       room_id: general_room.id,
       role: "admin"
     })
@@ -215,20 +220,20 @@ defmodule AshChat.Setup do
     })
 
     RoomMembership.create!(%{
-      user_id: alice.id,
+      user_id: jonathan.id,
       room_id: creative_room.id,
       role: "moderator"
     })
 
     RoomMembership.create!(%{
-      user_id: alice.id,
+      user_id: jonathan.id,
       room_id: story_room.id,
       role: "admin"
     })
 
     # Add users to conversation room
     RoomMembership.create!(%{
-      user_id: alice.id,
+      user_id: jonathan.id,
       room_id: conversation_room.id,
       role: "admin"
     })
@@ -289,7 +294,7 @@ defmodule AshChat.Setup do
       room_id: general_room.id,
       content: "Welcome to the demo chat! This is Alice testing the multi-user system.",
       role: :user,
-      user_id: alice.id
+      user_id: jonathan.id
     })
 
     Message.create_text_message!(%{
@@ -303,7 +308,7 @@ defmodule AshChat.Setup do
       room_id: creative_room.id,
       content: "I'd like to start a collaborative story about time travel. Any ideas for an opening scene?",
       role: :user,
-      user_id: alice.id
+      user_id: jonathan.id
     })
 
     # Add conversation starter to test agent-to-agent dialogue
@@ -311,7 +316,7 @@ defmodule AshChat.Setup do
       room_id: conversation_room.id,
       content: "Hi everyone! How's everyone doing today?",
       role: :user,
-      user_id: alice.id
+      user_id: jonathan.id
     })
 
     profiles_list = if default_profile.provider == "openrouter" do
@@ -328,13 +333,13 @@ defmodule AshChat.Setup do
 
     %{
       profiles: profiles_list,
-      users: [alice, bob],
+      users: [jonathan, bob],
       agent_cards: [helpful_assistant, creative_writer, research_assistant, coding_mentor, brainstorm_buddy, sam, maya],
       rooms: [general_room, creative_room, story_room, conversation_room],
       demo_summary: """
       Demo data created successfully!
       
-      👥 Users: Alice (admin), Bob (member)
+      👥 Users: Jonathan (admin), Bob (member)
       🤖 Agent Cards: Helpful Assistant, Creative Writer, Research Assistant, Coding Mentor, Brainstorm Buddy, Sam, Maya
       🏠 Rooms: General Chat, Creative Writing Workshop, Story Collaboration (sub-room), Conversation Lounge
       💬 Sample messages in each room with conversation starter
