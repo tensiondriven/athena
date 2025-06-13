@@ -128,11 +128,10 @@ defmodule AshChat.AI.AgentConversation do
   end
   
   defp create_agent_message(agent_card, room_id, content) do
-    Message.create(%{
+    Message.create_text_message(%{
       room_id: room_id,
       role: :assistant,
       content: content,
-      agent_card_id: agent_card.id,
       metadata: %{
         agent_id: agent_card.id,
         agent_name: agent_card.name,

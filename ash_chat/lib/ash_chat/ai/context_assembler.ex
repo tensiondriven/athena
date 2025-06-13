@@ -65,11 +65,19 @@ defmodule AshChat.AI.ContextAssembler do
 
   defp maybe_add_system_message(assembler, agent_card, opts) do
     if Keyword.get(opts, :include_system_message, true) do
-      system_content = agent_card.system_message || "You are a helpful AI assistant."
+      # Load SystemPrompt if it exists
+      system_content = case agent_card.system_prompt_id do
+        nil -> "You are a helpful AI assistant."
+        system_prompt_id ->
+          case Ash.get(AshChat.Resources.SystemPrompt, system_prompt_id) do
+            {:ok, system_prompt} -> system_prompt.content
+            _ -> "You are a helpful AI assistant."
+          end
+      end
       
       add_component(assembler, :system_message, system_content,
         priority: 10,
-        metadata: %{agent_card: agent_card.name, source: "agent_card"}
+        metadata: %{agent_card: agent_card.name, source: "system_prompt"}
       )
     else
       assembler

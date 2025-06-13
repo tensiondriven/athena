@@ -75,7 +75,7 @@ defmodule AshChat.Setup do
       auto_respond: seed_data["memberships"]["agent_auto_respond"]
     })
 
-    backend_info = if profile.provider == "openrouter" do
+    _backend_info = if profile.provider == "openrouter" do
       "OpenRouter (Cloud)"
     else
       "Local Ollama"
