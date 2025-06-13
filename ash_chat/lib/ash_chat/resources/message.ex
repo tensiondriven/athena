@@ -24,6 +24,7 @@ defmodule AshChat.Resources.Message do
     attribute :metadata, :map, default: %{}
     attribute :user_id, :uuid  # Which user sent this message (for user messages)
     attribute :profile_id, :uuid  # Which profile generated this message (for assistant messages)
+    attribute :agent_card_id, :uuid  # Which agent sent this message (for assistant messages)
     create_timestamp :created_at
     update_timestamp :updated_at
   end
@@ -36,6 +37,10 @@ defmodule AshChat.Resources.Message do
     end
     belongs_to :profile, AshChat.Resources.Profile do
       source_attribute :profile_id
+      destination_attribute :id
+    end
+    belongs_to :agent_card, AshChat.Resources.AgentCard do
+      source_attribute :agent_card_id
       destination_attribute :id
     end
   end

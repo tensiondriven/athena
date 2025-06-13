@@ -81,7 +81,8 @@ defmodule AshChat.AI.ContextAssembler do
       room_context = %{
         room_title: room.title,
         room_id: room.id,
-        created_at: room.created_at
+        created_at: room.created_at,
+        participants: get_room_participants(room.id)
       }
       
       add_component(assembler, :room_context, room_context,
@@ -91,6 +92,45 @@ defmodule AshChat.AI.ContextAssembler do
     else
       assembler
     end
+  end
+  
+  defp get_room_participants(room_id) do
+    # Get human participants
+    human_participants = case AshChat.Resources.RoomMembership.for_room(%{room_id: room_id}) do
+      {:ok, memberships} ->
+        Enum.map(memberships, fn membership ->
+          case Ash.get(AshChat.Resources.User, membership.user_id) do
+            {:ok, user} ->
+              %{
+                name: user.display_name || user.name,
+                type: :human,
+                role: membership.role
+              }
+            _ -> nil
+          end
+        end) |> Enum.filter(&(&1))
+      _ -> []
+    end
+    
+    # Get AI participants
+    ai_participants = case AshChat.Resources.AgentMembership.for_room(%{room_id: room_id}) do
+      {:ok, memberships} ->
+        Enum.map(memberships, fn membership ->
+          case Ash.get(AshChat.Resources.AgentCard, membership.agent_card_id) do
+            {:ok, agent} ->
+              %{
+                name: agent.name,
+                type: :ai,
+                role: membership.role,
+                description: agent.description
+              }
+            _ -> nil
+          end
+        end) |> Enum.filter(&(&1))
+      _ -> []
+    end
+    
+    human_participants ++ ai_participants
   end
 
   defp maybe_add_conversation_history(assembler, room, opts) do
@@ -127,9 +167,21 @@ defmodule AshChat.AI.ContextAssembler do
   end
 
   defp convert_component_to_message(%{type: :room_context, content: context}) do
+    participants_info = if context[:participants] && length(context.participants) > 0 do
+      participants = Enum.map(context.participants, fn p ->
+        type_label = if p.type == :human, do: "Human", else: "AI Agent"
+        desc = if p[:description] && p.type == :ai, do: " - #{p.description}", else: ""
+        "  • #{p.name} (#{type_label})#{desc}"
+      end) |> Enum.join("\n")
+      
+      "\nParticipants in this conversation:\n#{participants}"
+    else
+      ""
+    end
+    
     context_text = """
     Room: #{context.room_title}
-    Created: #{Calendar.strftime(context.created_at, "%B %d, %Y at %I:%M %p")}
+    Created: #{Calendar.strftime(context.created_at, "%B %d, %Y at %I:%M %p")}#{participants_info}
     """
     
     %LangChainMessage{role: :system, content: "Context: " <> String.trim(context_text)}
@@ -140,21 +192,45 @@ defmodule AshChat.AI.ContextAssembler do
     Logger.info("Converting #{length(messages)} conversation history messages")
     
     Enum.map(messages, fn msg ->
+      # Add sender information to the content
+      sender_info = case msg.role do
+        :user ->
+          if msg.user_id do
+            case Ash.get(AshChat.Resources.User, msg.user_id) do
+              {:ok, user} -> "[#{user.display_name || user.name} (Human)]: "
+              _ -> "[User]: "
+            end
+          else
+            "[User]: "
+          end
+        :assistant ->
+          if msg.agent_card_id do
+            case Ash.get(AshChat.Resources.AgentCard, msg.agent_card_id) do
+              {:ok, agent} -> "[#{agent.name} (AI)]: "
+              _ -> "[Assistant]: "
+            end
+          else
+            "[Assistant]: "
+          end
+        _ ->
+          "[System]: "
+      end
+      
       case msg.message_type do
         :text ->
           %LangChainMessage{
             role: msg.role,
-            content: msg.content
+            content: sender_info <> msg.content
           }
         
         :image ->
           content = if msg.image_url do
             [
-              %{type: "text", text: msg.content},
+              %{type: "text", text: sender_info <> msg.content},
               %{type: "image_url", image_url: %{url: msg.image_url}}
             ]
           else
-            msg.content
+            sender_info <> msg.content
           end
           
           %LangChainMessage{
@@ -165,7 +241,7 @@ defmodule AshChat.AI.ContextAssembler do
         _ ->
           %LangChainMessage{
             role: msg.role,
-            content: msg.content
+            content: sender_info <> msg.content
           }
       end
     end)
