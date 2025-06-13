@@ -128,6 +128,10 @@ defmodule AshChat.AI.ChatAgent do
     # Filter tools based on agent card's available_tools
     available_tools = filter_tools_for_agent(agent_card.available_tools)
     
+    # NOTE: We always use Ollama through remote API at http://10.1.2.200:11434
+    # Some Ollama models may not support tool calling, but we still provide them
+    # The LLM chain will handle tool calling errors gracefully
+    
     %{
       llm: chat_model,
       tools: available_tools,
@@ -292,6 +296,41 @@ defmodule AshChat.AI.ChatAgent do
           {:error, reason}
       end
     rescue
+      # Handle Ollama tool calling errors specifically
+      error in FunctionClauseError ->
+        if String.contains?(inspect(error), "get_tools_for_api") do
+          Logger.warning("Model doesn't support tool calling, retrying without tools")
+          # Retry without tools
+          agent_without_tools = %{agent_with_messages | tools: []}
+          case LLMChain.run(agent_without_tools) do
+            {:ok, updated_chain} ->
+              assistant_response = updated_chain.last_message
+              metadata = context_opts[:metadata] || %{}
+              
+              agent_message = Message.create_text_message!(%{
+                room_id: room.id,
+                content: assistant_response.content,
+                role: :assistant,
+                metadata: Map.put(metadata, "tools_disabled", true)
+              })
+              
+              Phoenix.PubSub.broadcast(
+                AshChat.PubSub, 
+                "room:#{room.id}", 
+                {:new_agent_message, agent_message}
+              )
+              
+              {:ok, assistant_response.content}
+              
+            {:error, reason} ->
+              Logger.error("Retry without tools failed: #{inspect(reason)}")
+              {:error, reason}
+          end
+        else
+          Logger.error("Function clause error: #{inspect(error)}")
+          {:error, error}
+        end
+      
       error ->
         Logger.error("Exception in message processing: #{inspect(error)}")
         {:error, error}

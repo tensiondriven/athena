@@ -26,7 +26,7 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:messages, [])
       |> assign(:current_message, "")
       |> assign(:system_prompt, "You are a helpful AI assistant.")
-      |> assign(:processing, false)
+      |> assign(:agents_thinking, %{})
       |> assign(:page_title, "AshChat")
       |> assign(:sidebar_expanded, true)
       |> assign(:rooms, load_rooms())
@@ -48,6 +48,7 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:room_members, [])
       |> assign(:room_participants, [])
       |> assign(:available_entities, [])
+      |> assign(:current_provider, get_current_provider())
 
     {:ok, socket}
   end
@@ -113,10 +114,35 @@ defmodule AshChatWeb.ChatLive do
       String.trim(content) == "" ->
         {:noreply, socket}
       true ->
-        socket = assign(socket, :processing, true)
-        
         # Re-enabled AI response system with multi-agent support
         Task.start(fn ->
+          # Get agent memberships first to know who might respond
+          agent_memberships = case AshChat.Resources.AgentMembership.auto_responders_for_room(%{room_id: socket.assigns.room.id}) do
+            {:ok, memberships} -> memberships
+            _ -> []
+          end
+          
+          # Broadcast that agents are starting to think
+          for membership <- agent_memberships do
+            case Ash.get(AshChat.Resources.AgentCard, membership.agent_card_id) do
+              {:ok, agent_card} ->
+                thinking_msg = case agent_card.name do
+                  "Sam" -> "Sam is noodling..."
+                  "Maya" -> "Maya is pondering..."
+                  "Creative Writer" -> "Creative Writer is crafting words..."
+                  "Research Assistant" -> "Research Assistant is analyzing..."
+                  "Coding Mentor" -> "Coding Mentor is debugging thoughts..."
+                  _ -> "#{agent_card.name} is thinking..."
+                end
+                
+                Phoenix.PubSub.broadcast(
+                  AshChat.PubSub,
+                  "room:#{socket.assigns.room.id}",
+                  {:agent_thinking, agent_card.id, thinking_msg}
+                )
+              _ -> nil
+            end
+          end
           # Send user message first
           ChatAgent.send_text_message(
             socket.assigns.room.id,
@@ -144,14 +170,34 @@ defmodule AshChatWeb.ChatLive do
                 Process.sleep(response.delay_ms)
               end
               
+              # Clear thinking state for this agent
+              Phoenix.PubSub.broadcast(
+                AshChat.PubSub,
+                "room:#{socket.assigns.room.id}",
+                {:agent_done_thinking, response.agent_card.id}
+              )
+              
               # Message is already created by process_agent_responses
               Logger.info("Agent #{response.agent_card.name} responded")
             end
+            
+            # Clear thinking states for agents that didn't respond
+            responding_agent_ids = MapSet.new(agent_responses, & &1.agent_card.id)
+            for membership <- agent_memberships do
+              if !MapSet.member?(responding_agent_ids, membership.agent_card_id) do
+                Phoenix.PubSub.broadcast(
+                  AshChat.PubSub,
+                  "room:#{socket.assigns.room.id}",
+                  {:agent_done_thinking, membership.agent_card_id}
+                )
+              end
+            end
           end
           
+          # Clear the processing state
           Phoenix.PubSub.broadcast(
-            AshChat.PubSub, 
-            "room:#{socket.assigns.room.id}", 
+            AshChat.PubSub,
+            "room:#{socket.assigns.room.id}",
             {:message_processed}
           )
         end)
@@ -863,10 +909,20 @@ defmodule AshChatWeb.ChatLive do
   def handle_info({:message_processed}, socket) do
     socket = 
       socket
-      |> assign(:processing, false)
+      |> assign(:agents_thinking, %{})
       |> update_messages()
 
     {:noreply, socket}
+  end
+  
+  def handle_info({:agent_thinking, agent_id, thinking_msg}, socket) do
+    agents_thinking = Map.put(socket.assigns.agents_thinking, agent_id, thinking_msg)
+    {:noreply, assign(socket, :agents_thinking, agents_thinking)}
+  end
+  
+  def handle_info({:agent_done_thinking, agent_id}, socket) do
+    agents_thinking = Map.delete(socket.assigns.agents_thinking, agent_id)
+    {:noreply, assign(socket, :agents_thinking, agents_thinking)}
   end
   
   def handle_info({:new_agent_message, message}, socket) do
@@ -909,7 +965,7 @@ defmodule AshChatWeb.ChatLive do
   def handle_info({:error, error}, socket) do
     socket = 
       socket
-      |> assign(:processing, false)
+      |> assign(:agents_thinking, %{})
       |> put_flash(:error, error)
 
     {:noreply, socket}
@@ -1435,7 +1491,25 @@ defmodule AshChatWeb.ChatLive do
           <div class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
             <div>
               <h1 class="text-xl font-semibold text-gray-900"><%= @room.title %></h1>
-              <p class="text-sm text-gray-500">Using <%= @current_model %></p>
+              <div class="flex items-center gap-4">
+                <p class="text-sm text-gray-500">Using <%= @current_model %></p>
+                <div class="flex items-center gap-2 text-sm">
+                  <span class={"inline-flex items-center px-2 py-1 rounded-full text-xs font-medium #{if @current_provider.type == :cloud, do: "bg-blue-100 text-blue-800", else: "bg-green-100 text-green-800"}"}>
+                    <%= if @current_provider.type == :cloud do %>
+                      <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M5.5 16a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 16h-8z"></path>
+                      </svg>
+                    <% else %>
+                      <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clip-rule="evenodd"></path>
+                      </svg>
+                    <% end %>
+                    <%= @current_provider.name %>
+                  </span>
+                  <span class={"w-2 h-2 rounded-full #{if @current_provider.status == :connected, do: "bg-green-500", else: "bg-red-500"}"}></span>
+                  <span class="text-xs text-gray-500"><%= @current_provider.model %></span>
+                </div>
+              </div>
             </div>
             <div class="flex items-center gap-2">
               <button 
@@ -1509,12 +1583,18 @@ defmodule AshChatWeb.ChatLive do
               </div>
             <% end %>
 
-            <%= if @processing do %>
-              <div class="flex justify-start">
-                <div class="bg-white text-gray-900 border border-gray-200 max-w-xs lg:max-w-md px-4 py-2 rounded-lg">
+            <%= for {_agent_id, thinking_msg} <- @agents_thinking do %>
+              <div class="flex justify-start mb-2">
+                <div class="bg-gray-100 text-gray-700 border border-gray-300 max-w-xs lg:max-w-md px-4 py-2 rounded-lg">
                   <div class="flex items-center space-x-2">
-                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                    <span class="text-sm">AI is thinking...</span>
+                    <div class="animate-pulse">
+                      <div class="flex space-x-1">
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0s"></div>
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                      </div>
+                    </div>
+                    <span class="text-sm italic"><%= thinking_msg %></span>
                   </div>
                 </div>
               </div>
@@ -1537,12 +1617,12 @@ defmodule AshChatWeb.ChatLive do
                 value={@current_message}
                 placeholder="Type your message..."
                 class="flex-1"
-                disabled={@processing}
+                disabled={false}
               />
               
               <button
                 type="submit"
-                disabled={@processing or String.trim(@current_message) == ""}
+                disabled={String.trim(@current_message) == ""}
                 class="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition-colors"
               >
                 Send
@@ -2008,6 +2088,38 @@ defmodule AshChatWeb.ChatLive do
       </div>
     <% end %>
     """
+  end
+  
+  defp get_current_provider do
+    use_openrouter = Application.get_env(:ash_chat, :use_openrouter, true)
+    openrouter_key = Application.get_env(:langchain, :openrouter_key)
+    
+    cond do
+      use_openrouter && openrouter_key ->
+        %{
+          name: "OpenRouter",
+          type: :cloud,
+          model: "qwen/qwen-2.5-72b-instruct",
+          status: :connected
+        }
+      true ->
+        %{
+          name: "Ollama",
+          type: :local,
+          model: "qwen2.5:latest",
+          status: check_ollama_status()
+        }
+    end
+  end
+  
+  defp check_ollama_status do
+    base_url = Application.get_env(:langchain, :ollama_url, "http://10.1.2.200:11434")
+    case HTTPoison.get("#{base_url}/api/tags", [], timeout: 1000, recv_timeout: 1000) do
+      {:ok, %HTTPoison.Response{status_code: 200}} -> :connected
+      _ -> :disconnected
+    end
+  rescue
+    _ -> :disconnected
   end
 end
 

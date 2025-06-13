@@ -72,6 +72,10 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
+# Set timezone to Chicago
+config :elixir, :time_zone_database, Tzdata.TimeZoneDatabase
+config :ash_chat, :timezone, "America/Chicago"
+
 # Configure AshAI
 config :ash_ai, :vector_store, 
   module: AshAi.VectorStores.Ets,  # Use ETS for development
