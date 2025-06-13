@@ -43,7 +43,7 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:creating_new_agent, false)
       |> assign(:selected_template, nil)
       |> assign(:agent_memberships, [])
-      |> assign(:show_members, true)
+      |> assign(:show_members_modal, false)
       |> assign(:show_experimental_menu, false)
       |> assign(:room_members, [])
       |> assign(:room_participants, [])
@@ -791,7 +791,11 @@ defmodule AshChatWeb.ChatLive do
   end
 
   def handle_event("toggle_members", _params, socket) do
-    {:noreply, assign(socket, :show_members, !socket.assigns.show_members)}
+    {:noreply, assign(socket, :show_members_modal, !socket.assigns.show_members_modal)}
+  end
+  
+  def handle_event("hide_members_modal", _params, socket) do
+    {:noreply, assign(socket, :show_members_modal, false)}
   end
 
   def handle_event("toggle_experimental_menu", _params, socket) do
@@ -800,6 +804,146 @@ defmodule AshChatWeb.ChatLive do
 
   def handle_event("hide_experimental_menu", _params, socket) do
     {:noreply, assign(socket, :show_experimental_menu, false)}
+  end
+
+  def handle_event("retrigger_last_message", _params, socket) do
+    if socket.assigns.room do
+      # Get the last message in the room
+      case Message.for_room(%{room_id: socket.assigns.room.id}) do
+        {:ok, messages} when messages != [] ->
+          last_message = List.last(messages)
+          
+          # Only retrigger if there are agents in the room
+          agent_memberships = case AshChat.Resources.AgentMembership.auto_responders_for_room(%{room_id: socket.assigns.room.id}) do
+            {:ok, memberships} -> memberships
+            {:error, _} -> []
+          end
+          
+          if agent_memberships == [] do
+            {:noreply, put_error_flash(socket, "No agents in room to respond")}
+          else
+            # Start thinking states for all agents
+            for membership <- agent_memberships do
+              agent_card = case Ash.get(AshChat.Resources.AgentCard, membership.agent_card_id) do
+                {:ok, card} -> card
+                _ -> nil
+              end
+              
+              if agent_card do
+                thinking_msg = generate_thinking_message(agent_card.name)
+                Phoenix.PubSub.broadcast(
+                  AshChat.PubSub,
+                  "room:#{socket.assigns.room.id}",
+                  {:agent_thinking, membership.agent_card_id, thinking_msg}
+                )
+              end
+            end
+            
+            # Process agent responses asynchronously
+            Task.start(fn ->
+              # Process agent responses using the existing system
+              agent_responses = AgentConversation.process_agent_responses(
+                socket.assigns.room.id,
+                last_message,
+                [user_id: socket.assigns.current_user.id]
+              )
+              
+              # Send agent responses with delays
+              for response <- agent_responses do
+                if response.delay_ms > 0 do
+                  Process.sleep(response.delay_ms)
+                end
+                
+                # Clear thinking state for this agent
+                Phoenix.PubSub.broadcast(
+                  AshChat.PubSub,
+                  "room:#{socket.assigns.room.id}",
+                  {:agent_done_thinking, response.agent_card.id}
+                )
+                
+                Logger.info("Agent #{response.agent_card.name} responded to retrigger")
+              end
+              
+              # Clear thinking states for agents that didn't respond
+              responding_agent_ids = MapSet.new(agent_responses, & &1.agent_card.id)
+              for membership <- agent_memberships do
+                if !MapSet.member?(responding_agent_ids, membership.agent_card_id) do
+                  Phoenix.PubSub.broadcast(
+                    AshChat.PubSub,
+                    "room:#{socket.assigns.room.id}",
+                    {:agent_done_thinking, membership.agent_card_id}
+                  )
+                end
+              end
+            end)
+            
+            {:noreply, put_flash(socket, :info, "Retriggering agents to consider responding...")}
+          end
+          
+        _ ->
+          {:noreply, put_error_flash(socket, "No messages in room to retrigger")}
+      end
+    else
+      {:noreply, put_error_flash(socket, "Select a room first")}
+    end
+  end
+  
+  def handle_event("poke_agent", %{"agent-id" => agent_card_id}, socket) do
+    if socket.assigns.room do
+      # Check if there are messages in the room
+      case Message.for_room(%{room_id: socket.assigns.room.id}) do
+        {:ok, messages} when messages != [] ->
+          # Get the specific agent membership
+          case AshChat.Resources.AgentMembership.for_agent_and_room(%{agent_card_id: agent_card_id, room_id: socket.assigns.room.id}) do
+            {:ok, [membership | _]} when membership.auto_respond ->
+              # Get agent card
+              case Ash.get(AshChat.Resources.AgentCard, agent_card_id) do
+                {:ok, agent_card} ->
+                  # Start thinking state for this agent
+                  thinking_msg = generate_thinking_message(agent_card.name)
+                  Phoenix.PubSub.broadcast(
+                    AshChat.PubSub,
+                    "room:#{socket.assigns.room.id}",
+                    {:agent_thinking, agent_card_id, thinking_msg}
+                  )
+                  
+                  # Process just this agent's response asynchronously
+                  Task.start(fn ->
+                    # Trigger agent response (it will check if it should respond)
+                    case AgentConversation.trigger_agent_response(agent_card_id, socket.assigns.room.id) do
+                      {:ok, _message} ->
+                        Logger.info("Agent #{agent_card.name} responded to poke")
+                      {:error, reason} ->
+                        Logger.info("Agent #{agent_card.name} did not respond: #{reason}")
+                    end
+                    
+                    # Clear thinking state
+                    Phoenix.PubSub.broadcast(
+                      AshChat.PubSub,
+                      "room:#{socket.assigns.room.id}",
+                      {:agent_done_thinking, agent_card_id}
+                    )
+                  end)
+                  
+                  {:noreply, socket}
+                  
+                {:error, _} ->
+                  {:noreply, put_error_flash(socket, "Agent not found")}
+              end
+              
+            {:ok, [membership | _]} ->
+              {:noreply, put_error_flash(socket, "Agent has auto-respond disabled")}
+              
+            _ ->
+              {:noreply, put_error_flash(socket, "Agent not in this room")}
+          end
+          
+        _ ->
+          {:noreply, put_error_flash(socket, "No messages in room to respond to")}
+      end
+    else
+      {:noreply, put_error_flash(socket, "Select a room first")}
+    end
   end
 
   def handle_event("trigger_agent_conversation", _params, socket) do
@@ -1327,7 +1471,7 @@ defmodule AshChatWeb.ChatLive do
                   </div>
                 </div>
                 <span class="text-xs text-gray-500">
-                  <%= Calendar.strftime(room.created_at, "%b %d, %I:%M %p") %>
+                  <%= format_room_time(room.created_at) %>
                 </span>
               </div>
             <% end %>
@@ -1385,80 +1529,6 @@ defmodule AshChatWeb.ChatLive do
           </select>
         </div>
 
-        <!-- Members Panel -->
-        <%= if @room do %>
-          <div class="p-4 border-t border-gray-200">
-            <div class="flex justify-between items-center mb-2">
-              <label class="text-sm font-medium text-gray-700">Members</label>
-              <button 
-                phx-click="toggle_members"
-                class="p-1 hover:bg-gray-100 rounded transition-colors"
-              >
-                <svg class={"w-4 h-4 transition-transform #{if @show_members, do: "rotate-180", else: ""}"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                </svg>
-              </button>
-            </div>
-            
-            <%= if @show_members do %>
-              <div class="space-y-2">
-                <!-- Current User (Always First) -->
-                <%= if @current_user do %>
-                  <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                    <span class="text-sm font-medium"><%= @current_user.display_name || @current_user.name %> (You)</span>
-                    <button 
-                      phx-click={if @is_room_member, do: "leave_room", else: "join_room"}
-                      class={"text-xs px-3 py-1 rounded transition-colors #{if @is_room_member, do: "bg-red-500 hover:bg-red-600 text-white", else: "bg-green-500 hover:bg-green-600 text-white"}"}
-                    >
-                      <%= if @is_room_member, do: "Leave", else: "Enter" %>
-                    </button>
-                  </div>
-                <% end %>
-                
-                <!-- Room Participants (In Room) -->
-                <%= for participant <- @room_participants do %>
-                  <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
-                    <span class="text-sm">
-                      <%= participant.name %>
-                      <%= if participant.type == :ai do %>
-                        <span class="text-xs text-gray-500">(AI)</span>
-                      <% end %>
-                    </span>
-                    <button 
-                      phx-click="remove_from_room"
-                      phx-value-entity-id={participant.id}
-                      phx-value-entity-type={Atom.to_string(participant.type)}
-                      class="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded transition-colors"
-                    >
-                      Kick
-                    </button>
-                  </div>
-                <% end %>
-                
-                <!-- Available Entities (Not in Room) -->
-                <%= for entity <- @available_entities do %>
-                  <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
-                    <span class="text-sm text-gray-600">
-                      <%= entity.name %>
-                      <%= if entity.type == :ai do %>
-                        <span class="text-xs text-gray-500">(AI)</span>
-                      <% end %>
-                    </span>
-                    <button 
-                      phx-click="add_to_room"
-                      phx-value-entity-id={entity.id}
-                      phx-value-entity-type={Atom.to_string(entity.type)}
-                      class="text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors"
-                    >
-                      Add
-                    </button>
-                  </div>
-                <% end %>
-              </div>
-            <% end %>
-          </div>
-        <% end %>
-        
         <!-- Reset Panel -->
         <div class="p-4 border-t border-gray-200">
           <button 
@@ -1513,6 +1583,16 @@ defmodule AshChatWeb.ChatLive do
             </div>
             <div class="flex items-center gap-2">
               <button 
+                phx-click="retrigger_last_message"
+                class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Retrigger last message"
+              >
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                </svg>
+              </button>
+              
+              <button 
                 phx-click="show_system_prompt"
                 class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                 title="System Prompt"
@@ -1549,6 +1629,44 @@ defmodule AshChatWeb.ChatLive do
                 <% end %>
               </div>
             </div>
+            
+            <!-- Participants List (moved from sidebar) -->
+            <%= if length(@room_participants) > 0 do %>
+              <div class="mt-3 pt-3 border-t border-gray-100">
+                <div class="flex items-center gap-2 text-sm text-gray-600">
+                  <span class="font-medium">Participants:</span>
+                  <div class="flex flex-wrap gap-1">
+                    <%= for participant <- @room_participants do %>
+                      <div class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                        <span><%= participant.name %></span>
+                        <%= if participant.type == :ai do %>
+                          <span class="text-gray-500">(AI)</span>
+                          <button 
+                            phx-click="poke_agent"
+                            phx-value-agent-id={participant.id}
+                            class="ml-1 p-0.5 hover:bg-gray-200 rounded transition-colors"
+                            title="Poke #{participant.name} to consider responding"
+                          >
+                            <svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                          </button>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                  <button 
+                    phx-click="toggle_members"
+                    class="ml-auto p-1 hover:bg-gray-100 rounded transition-colors"
+                    title="Manage members"
+                  >
+                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            <% end %>
           </div>
         <% else %>
           <!-- No Room Selected Header -->
@@ -1591,7 +1709,7 @@ defmodule AshChatWeb.ChatLive do
                       <% end %>
                     </span>
                     <span class="text-xs text-gray-500">
-                      <%= Calendar.strftime(message.created_at, "%I:%M %p") %>
+                      <%= format_message_time(message.created_at) %>
                     </span>
                   </div>
                   
@@ -2117,6 +2235,103 @@ defmodule AshChatWeb.ChatLive do
         </div>
       </div>
     <% end %>
+    
+    <!-- Members Management Modal -->
+    <%= if @show_members_modal && @room do %>
+      <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" phx-click="hide_members_modal">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" phx-click="stop_propagation">
+          <div class="p-6">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-semibold text-gray-900">Manage Room Members</h2>
+              <button 
+                phx-click="hide_members_modal"
+                class="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+            
+            <div class="space-y-4">
+              <!-- Current User Section -->
+              <%= if @current_user do %>
+                <div class="border-b pb-4">
+                  <h3 class="text-sm font-medium text-gray-700 mb-2">Your Status</h3>
+                  <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                    <span class="font-medium"><%= @current_user.display_name || @current_user.name %> (You)</span>
+                    <button 
+                      phx-click={if @is_room_member, do: "leave_room", else: "join_room"}
+                      class={"px-4 py-2 rounded transition-colors #{if @is_room_member, do: "bg-red-500 hover:bg-red-600 text-white", else: "bg-green-500 hover:bg-green-600 text-white"}"}
+                    >
+                      <%= if @is_room_member, do: "Leave Room", else: "Enter Room" %>
+                    </button>
+                  </div>
+                </div>
+              <% end %>
+              
+              <!-- Current Members Section -->
+              <div class="border-b pb-4">
+                <h3 class="text-sm font-medium text-gray-700 mb-2">Current Members</h3>
+                <%= if length(@room_participants) > 0 do %>
+                  <div class="space-y-2">
+                    <%= for participant <- @room_participants do %>
+                      <div class="flex justify-between items-center p-3 hover:bg-gray-50 rounded">
+                        <div>
+                          <span class="font-medium"><%= participant.name %></span>
+                          <%= if participant.type == :ai do %>
+                            <span class="text-sm text-gray-500 ml-2">(AI Agent)</span>
+                          <% end %>
+                        </div>
+                        <button 
+                          phx-click="remove_from_room"
+                          phx-value-entity-id={participant.id}
+                          phx-value-entity-type={Atom.to_string(participant.type)}
+                          class="px-3 py-1 bg-red-500 hover:bg-red-600 text-white text-sm rounded transition-colors"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    <% end %>
+                  </div>
+                <% else %>
+                  <p class="text-sm text-gray-500">No members in this room yet.</p>
+                <% end %>
+              </div>
+              
+              <!-- Available to Add Section -->
+              <div>
+                <h3 class="text-sm font-medium text-gray-700 mb-2">Available to Add</h3>
+                <%= if length(@available_entities) > 0 do %>
+                  <div class="space-y-2">
+                    <%= for entity <- @available_entities do %>
+                      <div class="flex justify-between items-center p-3 hover:bg-gray-50 rounded">
+                        <div>
+                          <span class="font-medium"><%= entity.name %></span>
+                          <%= if entity.type == :ai do %>
+                            <span class="text-sm text-gray-500 ml-2">(AI Agent)</span>
+                          <% end %>
+                        </div>
+                        <button 
+                          phx-click="add_to_room"
+                          phx-value-entity-id={entity.id}
+                          phx-value-entity-type={Atom.to_string(entity.type)}
+                          class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded transition-colors"
+                        >
+                          Add to Room
+                        </button>
+                      </div>
+                    <% end %>
+                  </div>
+                <% else %>
+                  <p class="text-sm text-gray-500">All available members are already in the room.</p>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
     """
   end
   
@@ -2158,6 +2373,35 @@ defmodule AshChatWeb.ChatLive do
     end
   rescue
     _ -> :disconnected
+  end
+  
+  defp format_message_time(datetime) do
+    datetime
+    |> DateTime.shift_zone!("America/Chicago")
+    |> Calendar.strftime("%I:%M %p")
+  end
+  
+  defp format_room_time(datetime) do
+    datetime
+    |> DateTime.shift_zone!("America/Chicago")
+    |> Calendar.strftime("%b %d, %I:%M %p")
+  end
+  
+  defp generate_thinking_message(agent_name) do
+    messages = [
+      "#{agent_name} is thinking",
+      "#{agent_name} is pondering",
+      "#{agent_name} is considering",
+      "#{agent_name} is reflecting",
+      "#{agent_name} is processing",
+      "#{agent_name} is analyzing",
+      "#{agent_name} is contemplating",
+      "#{agent_name} is formulating a response",
+      "#{agent_name} is gathering thoughts",
+      "#{agent_name} is noodling"
+    ]
+    
+    Enum.random(messages)
   end
 end
 
