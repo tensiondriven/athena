@@ -1,0 +1,117 @@
+
+# 2025-05-22 00:41:37.065553
++Yes
+
+# 2025-05-22 00:42:38.994163
++Y
+
+# 2025-05-22 00:43:20.042128
++y
+
+# 2025-05-22 00:43:45.162678
++Let's change the model to gemini free
+
+# 2025-05-22 00:44:04.544726
++/set
+
+# 2025-05-22 00:44:15.061141
++/settings help
+
+# 2025-05-22 00:44:20.633827
++ls
+
+# 2025-05-22 00:46:50.688162
++D
+
+# 2025-05-22 00:47:05.508340
++Let's add these markdown files and commit.
+
+# 2025-05-22 00:49:50.076983
++Run aider --help and capture the output to a file, we need to get some good defaults going.
+
+# 2025-05-22 00:49:58.227139
++D
+
+# 2025-05-22 00:50:01.282294
++;s
+
+# 2025-05-22 00:50:04.510073
++ls
+
+# 2025-05-22 00:50:10.156791
++D
+
+# 2025-05-22 00:51:01.097125
++Please read the readme files and ask me questions to clarify, then update accordingly. Let's do that until you're satisfied that the plan is good. 
+
+# 2025-05-22 00:51:15.954505
++D
+
+# 2025-05-22 00:51:49.434746
++List the files, then examine the markdown files.  Summarize what this project is about.
+
+# 2025-05-22 00:52:36.777408
++/add ./aider_help_output.txt
+
+# 2025-05-22 00:52:46.259530
++Can you read that file?
+
+# 2025-05-22 00:53:18.703748
++I'd like you to write a config file that will use openrouter. i also need to see a list of the availble models.
+
+# 2025-05-22 00:53:43.318482
++Y
+
+# 2025-05-22 00:53:43.323709
++/run curl -s https://openrouter.ai/api/v1/models -H "Authorization: Bearer YOUR_OPENROUTER_API_KEY" | jq
+
+# 2025-05-22 00:53:43.323855
++/run curl -s https://openrouter.ai/api/v1/models -H "Authorization: Bearer YOUR_OPENROUTER_API_KEY" | jq
+
+# 2025-05-22 00:53:46.724933
++/run aider --list-models all
+
+# 2025-05-22 00:53:46.725187
++/run aider --list-models all
+
+# 2025-05-22 00:54:01.915102
++/run aider --config .aider.conf.yml
+
+# 2025-05-22 00:54:01.915303
++/run aider --config .aider.conf.yml
+
+# 2025-05-22 00:54:09.567547
++;s
+
+# 2025-05-22 00:54:24.821088
++n
+
+# 2025-05-22 00:57:11.123294
++/drop
+
+# 2025-05-22 00:57:17.288553
++/add 
+
+# 2025-05-22 01:01:57.579412
++Hello, testing configuration
+
+# 2025-05-22 01:01:57.579549
++Hello, testing configuration
+
+# 2025-05-22 01:02:13.789824
++Hello, testing configuration
+
+# 2025-05-22 01:02:13.789886
++Hello, testing configuration
+
+# 2025-05-22 01:02:20.507403
++Create a simple Python file called hello.py that prints 'Hello, World\!'
+
+# 2025-05-22 01:02:20.507712
++Create a simple Python file called hello.py that prints 'Hello, World\!'
+
+# 2025-05-22 01:02:47.797539
++Hello?
+
+# 2025-05-22 01:03:14.353964
++/list-models

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(aider:*)",
+      "Bash(/opt/homebrew/Cellar/aider/0.82.2/libexec/bin/python -m pip install --upgrade --upgrade-strategy only-if-needed 'aider-chat[browser]')",
+      "Bash(pip3 install:*)",
+      "Bash(brew install:*)",
+      "Bash(pipx install:*)",
+      "Bash(brew update:*)",
+      "Bash(brew upgrade:*)"
+    ],
+    "deny": []
+  }
+}

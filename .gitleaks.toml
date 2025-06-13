@@ -26,11 +26,12 @@ regex = '''github_pat_[0-9A-Za-z]{36,}'''
 keywords = ["github_pat_"]
 
 [[rules]]
-description = "Ignore Python package hashes in uv.lock"
+description = "Ignore Python package hashes and similar patterns"
 id = "ignore-python-hashes"
 regex = '''[a-f0-9]{40,64}'''
 [rules.allowlist]
 paths = [
     '''.*uv\.lock''',
-    '''chat-history/.*\.jsonl'''
+    '''chat-history/.*\.jsonl''',
+    '''dev-tools/.*'''
 ]

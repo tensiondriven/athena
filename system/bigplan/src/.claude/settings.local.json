@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(jq:*)",
+      "Bash(python:*)",
+      "Bash(pip3 install:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(rm:*)",
+      "Bash(tree:*)",
+      "Bash(pip install:*)"
+    ]
+  },
+  "enableAllProjectMcpServers": false
+}
