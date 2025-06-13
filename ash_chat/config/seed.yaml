@@ -1,0 +1,51 @@
+# Minimal seed data for AshChat
+user:
+  name: "Jonathan"
+  email: "jonathan@athena.local"
+  display_name: "Jonathan"
+  avatar_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jonathan"
+  preferences:
+    theme: "system"
+    notification_level: "all"
+
+profiles:
+  openrouter:
+    name: "OpenRouter (Cloud)"
+    provider: "openrouter"
+    url: "https://openrouter.ai/api/v1"
+    model: "qwen/qwen-2.5-72b-instruct"
+    is_default: true
+  
+  ollama:
+    name: "Local Ollama"
+    provider: "ollama"
+    url: "${OLLAMA_URL:http://10.1.2.200:11434}"
+    model: "qwen2.5:latest"
+    is_default: true
+
+system_prompt:
+  name: "Helpful Assistant"
+  content: "You are a helpful, friendly assistant. Always respond with enthusiasm and try to be as helpful as possible. Keep responses concise but informative."
+  description: "A friendly and helpful AI assistant for general conversations"
+  is_active: true
+
+agent_card:
+  name: "Helpful Assistant"
+  description: "A friendly and helpful AI assistant"
+  model_preferences:
+    temperature: 0.7
+    max_tokens: 500
+  available_tools: []
+  context_settings:
+    history_limit: 20
+    include_room_metadata: true
+  is_default: true
+  add_to_new_rooms: true
+
+room:
+  title: "General Chat"
+
+memberships:
+  room_admin_role: "admin"
+  agent_role: "participant"
+  agent_auto_respond: true

@@ -1,358 +1,102 @@
 defmodule AshChat.Setup do
   @moduledoc """
-  Demo data setup and reset functionality for quick iteration
+  Clean data setup and reset functionality for quick iteration
   """
 
-  alias AshChat.Resources.{User, Room, AgentCard, Profile, Message, RoomMembership, AgentMembership}
+  alias AshChat.Resources.{User, Room, AgentCard, Profile, SystemPrompt, Message, RoomMembership, AgentMembership}
 
   def reset_demo_data() do
+    # Only allow in development environment
+    if Mix.env() != :dev do
+      raise "reset_demo_data() can only be run in development environment!"
+    end
+    
     # Clear all data by destroying all resources
     User.read!() |> Enum.each(&User.destroy!/1)
     Room.read!() |> Enum.each(&Room.destroy!/1)
     AgentCard.read!() |> Enum.each(&AgentCard.destroy!/1)
     Profile.read!() |> Enum.each(&Profile.destroy!/1)
+    SystemPrompt.read!() |> Enum.each(&SystemPrompt.destroy!/1)
     Message.read!() |> Enum.each(&Message.destroy!/1)
     RoomMembership.read!() |> Enum.each(&RoomMembership.destroy!/1)
     AgentMembership.read!() |> Enum.each(&AgentMembership.destroy!/1)
     
-    # Create demo data
+    # Create clean minimal data
     create_demo_data()
   end
 
   def create_demo_data() do
-    # Create demo profiles
-    # Check if we should use OpenRouter
-    use_openrouter = Application.get_env(:ash_chat, :use_openrouter, true)
+    seed_data = load_seed_config()
+    
+    # 1. Create user
+    jonathan = User.create!(seed_data["user"])
+
+    # 2. Create profile (auto-detect OpenRouter vs Ollama)
+    use_openrouter = Application.get_env(:ash_chat, :use_openrouter, false)
     openrouter_key = Application.get_env(:langchain, :openrouter_key)
-    
-    # Create OpenRouter profile if API key is available
-    default_profile = if use_openrouter && openrouter_key do
-      Profile.create!(%{
-        name: "OpenRouter (Cloud)",
-        provider: "openrouter",
-        url: "https://openrouter.ai/api/v1",
-        api_key: openrouter_key,
-        model: "qwen/qwen-2.5-72b-instruct",
-        is_default: true
-      })
+
+    profile_config = if use_openrouter && openrouter_key do
+      seed_data["profiles"]["openrouter"]
+      |> Map.put("api_key", openrouter_key)
     else
-      # Fallback to Ollama if no OpenRouter key
-      Profile.create!(%{
-        name: "Local Ollama",
-        provider: "ollama",
-        url: System.get_env("OLLAMA_URL", "http://10.1.2.200:11434"),
-        model: "qwen2.5:latest",
-        is_default: true
-      })
+      seed_data["profiles"]["ollama"]
+      |> Map.put("url", expand_env_vars(seed_data["profiles"]["ollama"]["url"]))
     end
+
+    profile = Profile.create!(profile_config)
+
+    # 3. Create system prompt
+    system_prompt_config = seed_data["system_prompt"]
+    |> Map.put("profile_id", profile.id)
     
-    # Always create Ollama profile as a backup option
-    ollama_profile = Profile.create!(%{
-      name: "Local Ollama",
-      provider: "ollama",
-      url: System.get_env("OLLAMA_URL", "http://10.1.2.200:11434"),
-      model: "qwen2.5:latest",
-      is_default: !use_openrouter || !openrouter_key
-    })
+    system_prompt = SystemPrompt.create!(system_prompt_config)
 
-    # Create demo users
-    jonathan = User.create!(%{
-      name: "Jonathan",
-      email: "jonathan@athena.local",
-      display_name: "Jonathan",
-      avatar_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jonathan",
-      preferences: %{
-        "theme" => "system",
-        "notification_level" => "all"
-      }
-    })
-
-    # Keep Bob as a second demo user if needed
-    bob = User.create!(%{
-      name: "Bob",
-      email: "bob@example.com", 
-      display_name: "Bob (Demo User)",
-      avatar_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=Bob"
-    })
-
-    # Create demo agent cards
-    helpful_assistant = AgentCard.create!(%{
-      name: "Helpful Assistant",
-      description: "A friendly and helpful AI assistant for general conversations",
-      system_message: "You are a helpful, friendly assistant. Always respond with enthusiasm and try to be as helpful as possible. Keep responses concise but informative.",
-      model_preferences: %{
-        temperature: 0.7,
-        max_tokens: 500
-      },
-      available_tools: [],
-      context_settings: %{
-        history_limit: 20,
-        include_room_metadata: true
-      },
-      is_default: true,
-      add_to_new_rooms: true
-    })
-
-    creative_writer = AgentCard.create!(%{
-      name: "Creative Writer", 
-      description: "Imaginative storyteller and writing mentor",
-      system_message: "You are a creative writing assistant. Help users craft stories, poems, and creative content. Be imaginative and inspiring while offering constructive feedback.",
-      model_preferences: %{
-        temperature: 0.9,
-        max_tokens: 800
-      },
-      available_tools: [],
-      context_settings: %{
-        history_limit: 30,
-        include_room_metadata: false
-      }
-    })
-
-    research_assistant = AgentCard.create!(%{
-      name: "Research Assistant",
-      description: "Analytical thinker focused on facts and sources",
-      system_message: "You are a research assistant specialized in gathering, analyzing, and presenting information. Always cite sources when possible and approach topics with academic rigor.",
-      model_preferences: %{
-        temperature: 0.3,
-        max_tokens: 1000
-      },
-      available_tools: [],
-      context_settings: %{
-        history_limit: 40,
-        include_room_metadata: true
-      }
-    })
-
-    coding_mentor = AgentCard.create!(%{
-      name: "Coding Mentor",
-      description: "Experienced developer and programming teacher",
-      system_message: "You are a coding mentor who helps with programming questions, code reviews, and technical explanations. Focus on best practices, clean code, and teaching concepts clearly.",
-      model_preferences: %{
-        temperature: 0.2,
-        max_tokens: 1200
-      },
-      available_tools: [],
-      context_settings: %{
-        history_limit: 25,
-        include_room_metadata: false
-      }
-    })
-
-    brainstorm_buddy = AgentCard.create!(%{
-      name: "Brainstorm Buddy",
-      description: "Energetic idea generator and creative problem solver",
-      system_message: "You are an enthusiastic brainstorming partner! Help generate creative ideas, explore possibilities, and think outside the box. Be energetic, positive, and encourage wild ideas.",
-      model_preferences: %{
-        temperature: 1.1,
-        max_tokens: 600
-      },
-      available_tools: [],
-      context_settings: %{
-        history_limit: 15,
-        include_room_metadata: false
-      }
-    })
-
-    # Conversational agent personalities for natural dialogue
-    sam = AgentCard.create!(%{
-      name: "Sam",
-      description: "Casual, friendly conversationalist who loves to chat",
-      system_message: "You are Sam, a casual and friendly person who enjoys natural conversations. Keep responses short and conversational, like you're talking to a friend. Use contractions, ask follow-up questions, and show genuine interest in what others say. You're upbeat and easy-going.",
-      model_preferences: %{
-        temperature: 0.8,
-        max_tokens: 150
-      },
-      available_tools: [],
-      context_settings: %{
-        history_limit: 10,
-        include_room_metadata: false
-      },
-      add_to_new_rooms: false
-    })
-
-    maya = AgentCard.create!(%{
-      name: "Maya", 
-      description: "Thoughtful, inquisitive conversationalist with a curious nature",
-      system_message: "You are Maya, a thoughtful and curious person who loves meaningful conversations. You're a good listener who asks insightful questions and shares relevant thoughts. Keep responses natural and engaging, like you're having coffee with a friend. You're warm but introspective.",
-      model_preferences: %{
-        temperature: 0.7,
-        max_tokens: 200
-      },
-      available_tools: [],
-      context_settings: %{
-        history_limit: 10,
-        include_room_metadata: false
-      },
-      add_to_new_rooms: false
-    })
-
-    # Create demo rooms
-    general_room = Room.create!(%{
-      title: "General Chat"
-    })
-
-    creative_room = Room.create!(%{
-      title: "Creative Writing Workshop"
-    })
-
-    # Sub-room example
-    story_room = Room.create!(%{
-      title: "Story Collaboration",
-      parent_room_id: creative_room.id
-    })
-
-    # Conversation demo room
-    conversation_room = Room.create!(%{
-      title: "Conversation Lounge"
-    })
-
-    # Create room memberships
-    RoomMembership.create!(%{
-      user_id: jonathan.id,
-      room_id: general_room.id,
-      role: "admin"
-    })
-
-    RoomMembership.create!(%{
-      user_id: bob.id,
-      room_id: general_room.id,
-      role: "member"
-    })
-
-    RoomMembership.create!(%{
-      user_id: jonathan.id,
-      room_id: creative_room.id,
-      role: "moderator"
-    })
-
-    RoomMembership.create!(%{
-      user_id: jonathan.id,
-      room_id: story_room.id,
-      role: "admin"
-    })
-
-    # Add users to conversation room
-    RoomMembership.create!(%{
-      user_id: jonathan.id,
-      room_id: conversation_room.id,
-      role: "admin"
-    })
-
-    RoomMembership.create!(%{
-      user_id: bob.id,
-      room_id: conversation_room.id,
-      role: "member"
-    })
-
-    # Create agent memberships for rooms
-    AgentMembership.create!(%{
-      agent_card_id: helpful_assistant.id,
-      room_id: general_room.id,
-      role: "participant",
-      auto_respond: true
-    })
-
-    AgentMembership.create!(%{
-      agent_card_id: creative_writer.id,
-      room_id: creative_room.id,
-      role: "participant", 
-      auto_respond: true
-    })
-
-    AgentMembership.create!(%{
-      agent_card_id: creative_writer.id,
-      room_id: story_room.id,
-      role: "participant",
-      auto_respond: true
-    })
-
-    # Add research assistant to general room too (multiple agents example)
-    AgentMembership.create!(%{
-      agent_card_id: research_assistant.id,
-      room_id: general_room.id,
-      role: "participant",
-      auto_respond: false  # Not auto-responding, can be manually invoked
-    })
-
-    # Add conversational agents to conversation room for dialogue testing
-    AgentMembership.create!(%{
-      agent_card_id: sam.id,
-      room_id: conversation_room.id,
-      role: "participant",
-      auto_respond: true
-    })
-
-    AgentMembership.create!(%{
-      agent_card_id: maya.id,
-      room_id: conversation_room.id,
-      role: "participant", 
-      auto_respond: true
-    })
-
-    # Create some demo messages
-    Message.create_text_message!(%{
-      room_id: general_room.id,
-      content: "Welcome to the demo chat! This is Alice testing the multi-user system.",
-      role: :user,
-      user_id: jonathan.id
-    })
-
-    Message.create_text_message!(%{
-      room_id: general_room.id,
-      content: "Hello Alice! Great to see the new multi-user features working. The room hierarchy looks promising!",
-      role: :user,
-      user_id: bob.id
-    })
-
-    Message.create_text_message!(%{
-      room_id: creative_room.id,
-      content: "I'd like to start a collaborative story about time travel. Any ideas for an opening scene?",
-      role: :user,
-      user_id: jonathan.id
-    })
-
-    # Add conversation starter to test agent-to-agent dialogue
-    Message.create_text_message!(%{
-      room_id: conversation_room.id,
-      content: "Hi everyone! How's everyone doing today?",
-      role: :user,
-      user_id: jonathan.id
-    })
-
-    profiles_list = if default_profile.provider == "openrouter" do
-      [default_profile, ollama_profile]
-    else
-      [ollama_profile]
-    end
+    # 4. Create agent card
+    agent_card_config = seed_data["agent_card"]
+    |> Map.put("system_prompt_id", system_prompt.id)
     
-    profile_info = if default_profile.provider == "openrouter" do
-      "⚙️  OpenRouter (Cloud) profile configured as default with Ollama fallback"
+    agent_card = AgentCard.create!(agent_card_config)
+
+    # 5. Create room
+    room = Room.create!(seed_data["room"])
+
+    # 6. Add Jonathan to the room
+    RoomMembership.create!(%{
+      user_id: jonathan.id,
+      room_id: room.id,
+      role: seed_data["memberships"]["room_admin_role"]
+    })
+
+    # 7. Add the agent to the room
+    AgentMembership.create!(%{
+      agent_card_id: agent_card.id,
+      room_id: room.id,
+      role: seed_data["memberships"]["agent_role"],
+      auto_respond: seed_data["memberships"]["agent_auto_respond"]
+    })
+
+    backend_info = if profile.provider == "openrouter" do
+      "OpenRouter (Cloud)"
     else
-      "⚙️  Local Ollama profile configured (set OPENROUTER_API_KEY for cloud models)"
+      "Local Ollama"
     end
 
     %{
-      profiles: profiles_list,
-      users: [jonathan, bob],
-      agent_cards: [helpful_assistant, creative_writer, research_assistant, coding_mentor, brainstorm_buddy, sam, maya],
-      rooms: [general_room, creative_room, story_room, conversation_room],
+      profile: profile,
+      system_prompt: system_prompt,
+      user: jonathan,
+      agent_card: agent_card,
+      room: room,
       demo_summary: """
-      Demo data created successfully!
-      
-      👥 Users: Jonathan (admin), Bob (member)
-      🤖 Agent Cards: Helpful Assistant, Creative Writer, Research Assistant, Coding Mentor, Brainstorm Buddy, Sam, Maya
-      🏠 Rooms: General Chat, Creative Writing Workshop, Story Collaboration (sub-room), Conversation Lounge
-      💬 Sample messages in each room with conversation starter
-      #{profile_info}
-      
-      🎯 Test conversation: Sam & Maya are in Conversation Lounge for agent-to-agent dialogue
-      
-      Try testing:
-      - User.read!() |> IO.inspect()
-      - Room.read!() |> IO.inspect()
-      - AgentCard.read!() |> IO.inspect()
-      - RoomMembership.read!() |> IO.inspect()
-      - AgentMembership.read!() |> IO.inspect()
+      Clean minimal data created!
+
+      👤 User: #{jonathan.display_name}
+      🔧 Profile: #{profile.name} (#{profile.provider})
+      📝 System Prompt: #{system_prompt.name}
+      🤖 Agent: #{agent_card.name}
+      🏠 Room: #{room.title}
+
+      Ready to use! Visit /chat to start chatting.
       """
     }
   end
@@ -386,4 +130,68 @@ defmodule AshChat.Setup do
     
     IO.puts("\n✅ System operational!")
   end
+
+  defp load_seed_config() do
+    seed_file = Path.join(Application.app_dir(:ash_chat), "../../config/seed.yaml")
+    
+    case YamlElixir.read_from_file(seed_file) do
+      {:ok, data} -> data
+      {:error, _} ->
+        # Fallback if YAML not available
+        %{
+          "user" => %{
+            "name" => "Jonathan",
+            "email" => "jonathan@athena.local", 
+            "display_name" => "Jonathan",
+            "avatar_url" => "https://api.dicebear.com/7.x/avataaars/svg?seed=Jonathan",
+            "preferences" => %{"theme" => "system", "notification_level" => "all"}
+          },
+          "profiles" => %{
+            "openrouter" => %{
+              "name" => "OpenRouter (Cloud)",
+              "provider" => "openrouter",
+              "url" => "https://openrouter.ai/api/v1",
+              "model" => "qwen/qwen-2.5-72b-instruct",
+              "is_default" => true
+            },
+            "ollama" => %{
+              "name" => "Local Ollama",
+              "provider" => "ollama",
+              "url" => "http://10.1.2.200:11434",
+              "model" => "qwen2.5:latest",
+              "is_default" => true
+            }
+          },
+          "system_prompt" => %{
+            "name" => "Helpful Assistant",
+            "content" => "You are a helpful, friendly assistant. Always respond with enthusiasm and try to be as helpful as possible. Keep responses concise but informative.",
+            "description" => "A friendly and helpful AI assistant for general conversations",
+            "is_active" => true
+          },
+          "agent_card" => %{
+            "name" => "Helpful Assistant",
+            "description" => "A friendly and helpful AI assistant",
+            "model_preferences" => %{"temperature" => 0.7, "max_tokens" => 500},
+            "available_tools" => [],
+            "context_settings" => %{"history_limit" => 20, "include_room_metadata" => true},
+            "is_default" => true,
+            "add_to_new_rooms" => true
+          },
+          "room" => %{"title" => "General Chat"},
+          "memberships" => %{
+            "room_admin_role" => "admin",
+            "agent_role" => "participant", 
+            "agent_auto_respond" => true
+          }
+        }
+    end
+  end
+
+  defp expand_env_vars(value) when is_binary(value) do
+    # Simple ${VAR:default} expansion
+    Regex.replace(~r/\$\{([^:}]+):([^}]+)\}/, value, fn _, var, default ->
+      System.get_env(var, default)
+    end)
+  end
+  defp expand_env_vars(value), do: value
 end
