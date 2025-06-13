@@ -494,55 +494,6 @@ defmodule AshChatWeb.ChatLive do
     end
   end
 
-  def handle_event("remove_from_room", %{"entity-id" => entity_id, "entity-type" => entity_type}, socket) do
-    if socket.assigns.room do
-      result = case entity_type do
-        "human" ->
-          case AshChat.Resources.RoomMembership.for_user_and_room(%{
-            user_id: entity_id,
-            room_id: socket.assigns.room.id
-          }) do
-            {:ok, [membership | _]} ->
-              case AshChat.Resources.RoomMembership.destroy(membership) do
-                :ok -> {:ok, "User removed"}
-                error -> error
-              end
-            _ -> {:error, "Not a member"}
-          end
-          
-        "ai" ->
-          case AshChat.Resources.AgentMembership.for_room(%{room_id: socket.assigns.room.id}) do
-            {:ok, memberships} ->
-              case Enum.find(memberships, &(&1.agent_card_id == entity_id)) do
-                nil -> {:error, "Agent not in room"}
-                membership ->
-                  case AshChat.Resources.AgentMembership.destroy(membership) do
-                    :ok -> {:ok, "Agent removed"}
-                    error -> error
-                  end
-              end
-            _ -> {:error, "Failed to load memberships"}
-          end
-          
-        _ ->
-          {:error, "Unknown entity type"}
-      end
-      
-      case result do
-        {:ok, msg} ->
-          socket = 
-            socket
-            |> reload_participants()
-            |> put_flash(:info, msg)
-          {:noreply, socket}
-        {:error, msg} ->
-          {:noreply, put_error_flash(socket, msg)}
-      end
-    else
-      {:noreply, put_error_flash(socket, "No room selected")}
-    end
-  end
-
   def handle_event("remove_user_from_room", %{"user-id" => user_id}, socket) do
     # Redirect to unified handler
     handle_event("remove_from_room", %{"entity-id" => user_id, "entity-type" => "human"}, socket)
@@ -931,7 +882,7 @@ defmodule AshChatWeb.ChatLive do
                   {:noreply, put_error_flash(socket, "Agent not found")}
               end
               
-            {:ok, [membership | _]} ->
+            {:ok, [_membership | _]} ->
               {:noreply, put_error_flash(socket, "Agent has auto-respond disabled")}
               
             _ ->
