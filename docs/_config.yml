@@ -25,3 +25,4 @@ exclude:
   - CONVERSATION_ARCHAEOLOGY.md
   - _config.yml.internal
   - SECRET_REDACTION.md
+  - public/

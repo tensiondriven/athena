@@ -33,7 +33,7 @@ The system follows a domain-driven design:
 
 ## Documentation
 
-- [System Architecture](architecture/SYSTEM_ARCHITECTURE.md)
+- [Architecture Summary](architecture/architecture_summary.md)
 - [Event Types](architecture/EVENT_TYPES.md)
 - [Quick Start Guide](QUICK_START.md)
 
