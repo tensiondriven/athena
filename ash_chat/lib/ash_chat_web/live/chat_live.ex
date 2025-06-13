@@ -4,6 +4,7 @@ defmodule AshChatWeb.ChatLive do
 
   alias AshChat.AI.{ChatAgent, AgentConversation}
   alias AshChat.Resources.{Room, User, Message}
+  alias AshChatWeb.FlashLogger
 
   @impl true
   def mount(_params, _session, socket) do
@@ -104,11 +105,11 @@ defmodule AshChatWeb.ChatLive do
     # Guard: Don't process messages if no room is selected, no user, or not a member
     cond do
       socket.assigns.room == nil ->
-        {:noreply, put_flash(socket, :error, "Please select a room first")}
+        {:noreply, put_error_flash(socket, "Please select a room first")}
       socket.assigns.current_user == nil ->
-        {:noreply, put_flash(socket, :error, "No user selected - please refresh the page")}
+        {:noreply, put_error_flash(socket, "No user selected - please refresh the page")}
       !socket.assigns.is_room_member ->
-        {:noreply, put_flash(socket, :error, "You must join the room before sending messages")}
+        {:noreply, put_error_flash(socket, "You must join the room before sending messages")}
       String.trim(content) == "" ->
         {:noreply, socket}
       true ->
@@ -235,7 +236,7 @@ defmodule AshChatWeb.ChatLive do
         socket = assign(socket, :rooms, load_rooms())
         {:noreply, put_flash(socket, :info, "Room deleted successfully")}
       {:error, error} ->
-        {:noreply, put_flash(socket, :error, "Failed to delete room: #{inspect(error)}")}
+        {:noreply, put_error_flash(socket, "Failed to delete room: #{inspect(error)}")}
     end
   end
   
@@ -287,7 +288,7 @@ defmodule AshChatWeb.ChatLive do
       {:noreply, socket}
     rescue
       error ->
-        {:noreply, put_flash(socket, :error, "Failed to reset demo data: #{inspect(error)}")}
+        {:noreply, put_error_flash(socket, "Failed to reset demo data: #{inspect(error)}")}
     end
   end
 
@@ -327,10 +328,10 @@ defmodule AshChatWeb.ChatLive do
             |> put_flash(:info, "#{name} added to room successfully")
           {:noreply, socket}
         _ ->
-          {:noreply, put_flash(socket, :error, "Failed to add participant to room")}
+          {:noreply, put_error_flash(socket, "Failed to add participant to room")}
       end
     else
-      {:noreply, put_flash(socket, :error, "No room selected")}
+      {:noreply, put_error_flash(socket, "No room selected")}
     end
   end
 
@@ -354,10 +355,10 @@ defmodule AshChatWeb.ChatLive do
             |> put_flash(:info, "Welcome to the room! You can now send messages.")
           {:noreply, socket}
         {:error, _} ->
-          {:noreply, put_flash(socket, :error, "Failed to join room (you may already be a member)")}
+          {:noreply, put_error_flash(socket, "Failed to join room (you may already be a member)")}
       end
     else
-      {:noreply, put_flash(socket, :error, "No room or user selected")}
+      {:noreply, put_error_flash(socket, "No room or user selected")}
     end
   end
 
@@ -383,13 +384,13 @@ defmodule AshChatWeb.ChatLive do
                 |> put_flash(:info, "You have left the room")
               {:noreply, socket}
             {:error, _} ->
-              {:noreply, put_flash(socket, :error, "Failed to leave room")}
+              {:noreply, put_error_flash(socket, "Failed to leave room")}
           end
         _ ->
-          {:noreply, put_flash(socket, :error, "You are not a member of this room")}
+          {:noreply, put_error_flash(socket, "You are not a member of this room")}
       end
     else
-      {:noreply, put_flash(socket, :error, "No room or user selected")}
+      {:noreply, put_error_flash(socket, "No room or user selected")}
     end
   end
 
@@ -440,10 +441,10 @@ defmodule AshChatWeb.ChatLive do
             |> put_flash(:info, "#{name} has been removed from the room")
           {:noreply, socket}
         _ ->
-          {:noreply, put_flash(socket, :error, "Failed to remove participant from room")}
+          {:noreply, put_error_flash(socket, "Failed to remove participant from room")}
       end
     else
-      {:noreply, put_flash(socket, :error, "No room selected")}
+      {:noreply, put_error_flash(socket, "No room selected")}
     end
   end
 
@@ -489,10 +490,10 @@ defmodule AshChatWeb.ChatLive do
             |> put_flash(:info, msg)
           {:noreply, socket}
         {:error, msg} ->
-          {:noreply, put_flash(socket, :error, msg)}
+          {:noreply, put_error_flash(socket, msg)}
       end
     else
-      {:noreply, put_flash(socket, :error, "No room selected")}
+      {:noreply, put_error_flash(socket, "No room selected")}
     end
   end
 
@@ -542,7 +543,7 @@ defmodule AshChatWeb.ChatLive do
     
     case List.first(agent_memberships) do
       nil ->
-        {:noreply, put_flash(socket, :error, "No agents in this room to update")}
+        {:noreply, put_error_flash(socket, "No agents in this room to update")}
       
       agent_membership ->
           case Ash.get(AshChat.Resources.AgentCard, agent_membership.agent_card_id) do
@@ -560,11 +561,11 @@ defmodule AshChatWeb.ChatLive do
                   {:noreply, socket}
                 
                 {:error, _error} ->
-                  {:noreply, put_flash(socket, :error, "Failed to update agent card")}
+                  {:noreply, put_error_flash(socket, "Failed to update agent card")}
               end
             
             {:error, _} ->
-              {:noreply, put_flash(socket, :error, "Agent card not found")}
+              {:noreply, put_error_flash(socket, "Agent card not found")}
           end
     end
   end
@@ -600,10 +601,10 @@ defmodule AshChatWeb.ChatLive do
           {:noreply, socket}
         
         {:error, _error} ->
-          {:noreply, put_flash(socket, :error, "Failed to assign agent to room")}
+          {:noreply, put_error_flash(socket, "Failed to assign agent to room")}
       end
     else
-      {:noreply, put_flash(socket, :error, "No room selected")}
+      {:noreply, put_error_flash(socket, "No room selected")}
     end
   end
 
@@ -637,11 +638,11 @@ defmodule AshChatWeb.ChatLive do
             {:noreply, socket}
           
           {:error, _error} ->
-            {:noreply, put_flash(socket, :error, "Failed to remove agent from room")}
+            {:noreply, put_error_flash(socket, "Failed to remove agent from room")}
         end
       
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Agent membership not found")}
+        {:noreply, put_error_flash(socket, "Agent membership not found")}
     end
   end
 
@@ -664,11 +665,11 @@ defmodule AshChatWeb.ChatLive do
             {:noreply, socket}
           
           {:error, _error} ->
-            {:noreply, put_flash(socket, :error, "Failed to toggle auto-respond")}
+            {:noreply, put_error_flash(socket, "Failed to toggle auto-respond")}
         end
       
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Agent membership not found")}
+        {:noreply, put_error_flash(socket, "Agent membership not found")}
     end
   end
 
@@ -701,7 +702,7 @@ defmodule AshChatWeb.ChatLive do
         {:noreply, socket}
       
       {:error, _} ->
-        {:noreply, put_flash(socket, :error, "Failed to export agent")}
+        {:noreply, put_error_flash(socket, "Failed to export agent")}
     end
   end
 
@@ -730,16 +731,16 @@ defmodule AshChatWeb.ChatLive do
             {:noreply, socket}
           
           {:error, _error} ->
-            {:noreply, put_flash(socket, :error, "Failed to create imported agent")}
+            {:noreply, put_error_flash(socket, "Failed to create imported agent")}
         end
       else
-        {:noreply, put_flash(socket, :error, "Invalid agent file: missing #{Enum.join(missing_fields, ", ")}")}
+        {:noreply, put_error_flash(socket, "Invalid agent file: missing #{Enum.join(missing_fields, ", ")}")}
       end
     rescue
       Jason.DecodeError ->
-        {:noreply, put_flash(socket, :error, "Invalid JSON file format")}
+        {:noreply, put_error_flash(socket, "Invalid JSON file format")}
       error ->
-        {:noreply, put_flash(socket, :error, "Import failed: #{inspect(error)}")}
+        {:noreply, put_error_flash(socket, "Import failed: #{inspect(error)}")}
     end
   end
 
@@ -766,10 +767,10 @@ defmodule AshChatWeb.ChatLive do
     
     cond do
       curious == nil ->
-        {:noreply, put_flash(socket, :error, "Curious Explorer not found in room. Please add it first.")}
+        {:noreply, put_error_flash(socket, "Curious Explorer not found in room. Please add it first.")}
         
       thoughtful == nil ->
-        {:noreply, put_flash(socket, :error, "Thoughtful Analyst not found in room. Please add it first.")}
+        {:noreply, put_error_flash(socket, "Thoughtful Analyst not found in room. Please add it first.")}
         
       true ->
         # Trigger agent conversation
@@ -849,7 +850,7 @@ defmodule AshChatWeb.ChatLive do
         {:noreply, socket}
       
       {:error, _error} ->
-        {:noreply, put_flash(socket, :error, "Failed to create agent")}
+        {:noreply, put_error_flash(socket, "Failed to create agent")}
     end
   end
 
@@ -912,6 +913,20 @@ defmodule AshChatWeb.ChatLive do
       |> put_flash(:error, error)
 
     {:noreply, socket}
+  end
+
+  # Helper to log error flashes
+  defp put_error_flash(socket, message) do
+    # Log to flash error file
+    metadata = %{
+      view: "ChatLive",
+      room_id: socket.assigns[:room] && socket.assigns.room.id,
+      user_id: socket.assigns[:current_user] && socket.assigns.current_user.id
+    }
+    FlashLogger.log_flash_error(message, metadata)
+    
+    # Put the flash as normal
+    put_error_flash(socket, message)
   end
 
   defp update_messages(socket) do
