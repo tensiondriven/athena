@@ -124,3 +124,21 @@ secret-patterns.txt
 
 # AI Workspace - true scratch space for free thinking
 /workspace/dev-tools/ashchat.log
+
+# Log files
+*.log
+collector.log
+terminal-mcp.log
+github-pages-status.log
+
+# SQLite databases  
+*.sqlite
+*.db
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Temporary system directories
+system/ash-ai/~/
+EOF < /dev/null
