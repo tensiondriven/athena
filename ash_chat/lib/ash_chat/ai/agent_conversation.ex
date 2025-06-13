@@ -129,14 +129,34 @@ defmodule AshChat.AI.AgentConversation do
   end
   
   defp detecting_loop?(recent_messages, agent_id) do
-    # Simple loop detection: Check if this agent has responded in the last 3 messages
-    recent_messages
-    |> Enum.take(-3)
-    |> Enum.any?(fn msg ->
-      msg.role == :assistant && 
-      msg.metadata && 
-      Map.get(msg.metadata, "agent_id") == agent_id
-    end)
+    # Improved loop detection: Check if agent is responding repeatedly without user input
+    # Look at the last few messages to see if there's a pattern of agent-only conversation
+    
+    last_messages = Enum.take(recent_messages, -5)
+    
+    # If there are less than 2 messages, no loop possible
+    if length(last_messages) < 2 do
+      false
+    else
+      # Check if the last 2 assistant messages are from the same agent with no user message between
+      assistant_messages = last_messages
+      |> Enum.with_index()
+      |> Enum.filter(fn {msg, _idx} -> 
+        msg.role == :assistant && 
+        msg.metadata && 
+        Map.get(msg.metadata, "agent_id") == agent_id
+      end)
+      
+      case assistant_messages do
+        # If we have 2+ consecutive assistant messages from this agent, check for user input between
+        [{_msg1, idx1}, {_msg2, idx2} | _] when idx2 == idx1 + 1 ->
+          # Two consecutive messages from same agent - that's a loop
+          true
+        _ ->
+          # Otherwise, no loop detected
+          false
+      end
+    end
   end
   
   @doc """
