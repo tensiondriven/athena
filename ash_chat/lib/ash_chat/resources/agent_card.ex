@@ -17,6 +17,7 @@ defmodule AshChat.Resources.AgentCard do
     attribute :avatar_url, :string, public?: true # Optional character avatar
     attribute :is_default, :boolean, default: false, public?: true
     attribute :add_to_new_rooms, :boolean, default: false, public?: true # Auto-join new rooms
+    attribute :default_persona_id, :uuid, public?: true # Which persona this agent prefers
     create_timestamp :created_at
     update_timestamp :updated_at
   end
@@ -28,8 +29,8 @@ defmodule AshChat.Resources.AgentCard do
       description "The system prompt this agent uses"
     end
 
-    belongs_to :default_profile, AshChat.Resources.Profile do
-      source_attribute :default_profile_id
+    belongs_to :default_persona, AshChat.Resources.Persona do
+      source_attribute :default_persona_id
       destination_attribute :id
     end
     
@@ -54,7 +55,7 @@ defmodule AshChat.Resources.AgentCard do
 
     create :create do
       accept [:name, :description, :system_prompt_id, :model_preferences, 
-              :available_tools, :context_settings, :avatar_url, :is_default, :add_to_new_rooms, :default_profile_id]
+              :available_tools, :context_settings, :avatar_url, :is_default, :add_to_new_rooms, :default_persona_id]
       
       change fn changeset, _context ->
         # If this is being set as default, unset other defaults

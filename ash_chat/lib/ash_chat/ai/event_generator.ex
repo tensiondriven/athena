@@ -90,6 +90,41 @@ defmodule AshChat.AI.EventGenerator do
     )
   end
   
+  @doc """
+  Generate an event when Claude OneShot CLI execution fails
+  """
+  def claude_oneshot_failure(exit_code, error_message, metadata \\ %{}) do
+    create_agent_event(
+      "tool.claude_oneshot.failure",
+      "claude_oneshot_cli",
+      "CLI process exited with code #{exit_code}: #{error_message}",
+      "Claude OneShot CLI execution failed",
+      1.0,
+      Map.merge(metadata, %{
+        exit_code: exit_code,
+        stderr: error_message,
+        event_type: "tool_failure"
+      })
+    )
+  end
+  
+  @doc """
+  Generate an event when Claude OneShot CLI execution succeeds
+  """
+  def claude_oneshot_success(response_length, metadata \\ %{}) do
+    create_agent_event(
+      "tool.claude_oneshot.success",
+      "claude_oneshot_cli",
+      "CLI completed successfully, response: #{response_length} characters",
+      "Claude OneShot CLI execution succeeded",
+      1.0,
+      Map.merge(metadata, %{
+        response_length: response_length,
+        event_type: "tool_success"
+      })
+    )
+  end
+  
   defp create_agent_event(event_type, source_id, content, description, confidence, metadata) do
     event_args = %{
       timestamp: DateTime.utc_now(),

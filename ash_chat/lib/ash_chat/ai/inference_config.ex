@@ -200,6 +200,10 @@ defmodule AshChat.AI.InferenceConfig do
           stream: validated_config.stream
         })
 
+      "claude_oneshot" ->
+        # Claude OneShot uses CLI execution - special handling
+        create_claude_oneshot_model(validated_config)
+
       _ ->
         # Default to OpenRouter if available, otherwise Ollama
         if Application.get_env(:langchain, :openrouter_key) do
@@ -258,4 +262,13 @@ defmodule AshChat.AI.InferenceConfig do
     end
   end
   defp validate_optional_integer(_), do: nil
+  
+  # Claude OneShot CLI integration
+  defp create_claude_oneshot_model(config) do
+    %AshChat.AI.ClaudeOneshotModel{
+      model: config.model || "claude-3-5-sonnet-20241022",
+      temperature: config.temperature,
+      max_tokens: config.max_tokens
+    }
+  end
 end

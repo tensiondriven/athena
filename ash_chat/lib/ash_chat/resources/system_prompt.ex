@@ -44,10 +44,10 @@ defmodule AshChat.Resources.SystemPrompt do
   end
 
   relationships do
-    belongs_to :profile, AshChat.Resources.Profile do
+    belongs_to :persona, AshChat.Resources.Persona do
       public? true
       allow_nil? false
-      description "Which backend profile (provider) to use with this prompt"
+      description "Which backend persona (provider) to use with this prompt"
     end
 
     has_many :agent_cards, AshChat.Resources.AgentCard do
@@ -66,20 +66,20 @@ defmodule AshChat.Resources.SystemPrompt do
     defaults [:read, :destroy]
 
     create :create do
-      accept [:name, :content, :description, :profile_id, :is_active]
+      accept [:name, :content, :description, :persona_id, :is_active]
     end
     
     update :update do
-      accept [:name, :content, :description, :profile_id, :is_active]
+      accept [:name, :content, :description, :persona_id, :is_active]
     end
     
     read :active do
       filter expr(is_active == true)
     end
 
-    read :by_profile do
-      argument :profile_id, :uuid, allow_nil?: false
-      filter expr(profile_id == ^arg(:profile_id) and is_active == true)
+    read :by_persona do
+      argument :persona_id, :uuid, allow_nil?: false
+      filter expr(persona_id == ^arg(:persona_id) and is_active == true)
     end
   end
 
@@ -90,6 +90,6 @@ defmodule AshChat.Resources.SystemPrompt do
     define :update
     define :destroy
     define :active
-    define :by_profile, args: [:profile_id]
+    define :by_persona, args: [:persona_id]
   end
 end

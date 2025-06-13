@@ -5,7 +5,7 @@ defmodule AshChat.AI.ChatAgent do
 
   alias LangChain.Chains.LLMChain
   alias LangChain.Message, as: LangChainMessage
-  alias AshChat.Resources.{Room, Message, Profile}
+  alias AshChat.Resources.{Room, Message, Persona}
   alias AshChat.Tools
   alias AshChat.AI.InferenceConfig
   alias AshChat.AI.ContextAssembler
@@ -610,22 +610,22 @@ defmodule AshChat.AI.ChatAgent do
   end
 
   defp get_profile_for_agent_card(agent_card) do
-    case agent_card.default_profile_id do
+    case agent_card.default_persona_id do
       nil ->
         # Use default profile
         case AshChat.Setup.get_default_profile() do
           {:ok, profile} -> profile
           _ -> 
             # Fallback to first available profile
-            case Profile.read() do
+            case Persona.read() do
               {:ok, [profile | _]} -> profile
               _ -> raise "No profiles available"
             end
         end
       profile_id ->
-        case Profile.get(profile_id) do
+        case Persona.get(profile_id) do
           {:ok, profile} -> profile
-          _ -> get_profile_for_agent_card(%{agent_card | default_profile_id: nil})
+          _ -> get_profile_for_agent_card(%{agent_card | default_persona_id: nil})
         end
     end
   end

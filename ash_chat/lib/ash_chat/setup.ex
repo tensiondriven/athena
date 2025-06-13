@@ -3,7 +3,7 @@ defmodule AshChat.Setup do
   Clean data setup and reset functionality for quick iteration
   """
 
-  alias AshChat.Resources.{User, Room, AgentCard, Profile, SystemPrompt, Message, RoomMembership, AgentMembership}
+  alias AshChat.Resources.{User, Room, AgentCard, Persona, SystemPrompt, Message, RoomMembership, AgentMembership}
 
   def reset_demo_data() do
     # Only allow in development environment
@@ -15,7 +15,7 @@ defmodule AshChat.Setup do
     User.read!() |> Enum.each(&User.destroy!/1)
     Room.read!() |> Enum.each(&Room.destroy!/1)
     AgentCard.read!() |> Enum.each(&AgentCard.destroy!/1)
-    Profile.read!() |> Enum.each(&Profile.destroy!/1)
+    Persona.read!() |> Enum.each(&Persona.destroy!/1)
     SystemPrompt.read!() |> Enum.each(&SystemPrompt.destroy!/1)
     Message.read!() |> Enum.each(&Message.destroy!/1)
     RoomMembership.read!() |> Enum.each(&RoomMembership.destroy!/1)
@@ -43,11 +43,11 @@ defmodule AshChat.Setup do
       |> Map.put("url", expand_env_vars(seed_data["profiles"]["ollama"]["url"]))
     end
 
-    profile = Profile.create!(profile_config)
+    profile = Persona.create!(profile_config)
 
     # 3. Create system prompt
     system_prompt_config = seed_data["system_prompt"]
-    |> Map.put("profile_id", profile.id)
+    |> Map.put("persona_id", profile.id)
     
     system_prompt = SystemPrompt.create!(system_prompt_config)
 
@@ -102,7 +102,7 @@ defmodule AshChat.Setup do
   end
 
   def get_default_profile() do
-    case Profile.read() do
+    case Persona.read() do
       {:ok, profiles} ->
         default = Enum.find(profiles, & &1.is_default) || List.first(profiles)
         {:ok, default}
