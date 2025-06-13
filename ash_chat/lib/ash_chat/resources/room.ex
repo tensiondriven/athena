@@ -10,6 +10,12 @@ defmodule AshChat.Resources.Room do
   attributes do
     uuid_primary_key :id
     attribute :title, :string, default: "New Room"
+    attribute :description, :string do
+      description "Optional room description explaining its purpose"
+    end
+    attribute :current_task, :string do
+      description "Current active task or objective for this room"
+    end
     attribute :hidden, :boolean, default: false
     attribute :parent_room_id, :uuid
     attribute :starting_message, :string do
@@ -58,7 +64,7 @@ defmodule AshChat.Resources.Room do
     defaults [:read, :update, :destroy]
 
     create :create do
-      accept [:title, :parent_room_id, :starting_message, :hidden]
+      accept [:title, :description, :current_task, :parent_room_id, :starting_message, :hidden]
       
       # Add persistence hook
       change fn changeset, _context ->

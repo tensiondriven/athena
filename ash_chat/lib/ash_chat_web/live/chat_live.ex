@@ -1361,16 +1361,33 @@ defmodule AshChatWeb.ChatLive do
         
         <!-- Room List -->
         <div class="flex-1 overflow-y-auto p-3">
-          <!-- New Room Button -->
-          <button 
-            phx-click="create_room"
-            class="w-full mb-3 p-2.5 border-2 border-dashed border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-800"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            New Room
-          </button>
+          <!-- New Room Dropdown -->
+          <div class="relative mb-3" phx-hook="Dropdown" id="new-room-dropdown">
+            <button 
+              class="w-full p-2.5 border-2 border-dashed border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-800"
+              onclick="this.nextElementSibling.classList.toggle('hidden')"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              New Room
+              <svg class="w-4 h-4 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            <div class="hidden absolute top-full left-0 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10">
+              <button 
+                phx-click="create_room"
+                class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                onclick="this.parentElement.classList.add('hidden')"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                New Room
+              </button>
+            </div>
+          </div>
           
           <!-- Room List Items -->
           <% filtered_rooms = filter_rooms(@rooms, @show_hidden_rooms) %>
@@ -1406,40 +1423,54 @@ defmodule AshChatWeb.ChatLive do
                      else: "hover:bg-gray-50")
                 ]}
               >
-                <div class="flex justify-between items-center">
+                <div class="flex justify-between items-center min-w-0">
                   <span class={[
-                    "text-sm font-medium flex-1",
+                    "text-sm font-medium truncate",
                     if(@room && @room.id == room.id, do: "text-blue-700", else: "text-gray-700")
                   ]}>
                     <%= room.title %>
                   </span>
-                  <div class="opacity-0 group-hover:opacity-100 flex gap-1">
-                    <button 
-                      phx-click="hide_room" 
-                      phx-value-room-id={room.id}
-                      class="p-1 hover:bg-gray-200 rounded-sm transition-all"
-                      title="Hide room"
-                    >
-                      <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
-                      </svg>
-                    </button>
-                    <button 
-                      phx-click="delete_room" 
-                      phx-value-room-id={room.id}
-                      class="p-1 hover:bg-red-100 rounded-sm transition-all"
-                      title="Delete room"
-                      onclick="return confirm('Are you sure you want to delete this room? This action cannot be undone.')"
-                    >
-                      <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                      </svg>
-                    </button>
+                  <div class="flex items-center gap-2 ml-2 flex-shrink-0">
+                    <span class="text-xs text-gray-500">
+                      <%= format_room_time(room.created_at) %>
+                    </span>
+                    <div class="relative opacity-0 group-hover:opacity-100">
+                      <button 
+                        class="p-1 hover:bg-gray-200 rounded-sm transition-all"
+                        onclick="event.stopPropagation(); this.nextElementSibling.classList.toggle('hidden')"
+                        title="Room options"
+                      >
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                        </svg>
+                      </button>
+                      <div class="hidden absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-20 min-w-[120px]">
+                        <button 
+                          phx-click="hide_room" 
+                          phx-value-room-id={room.id}
+                          class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                          onclick="this.parentElement.classList.add('hidden')"
+                        >
+                          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                          </svg>
+                          Hide Room
+                        </button>
+                        <button 
+                          phx-click="delete_room" 
+                          phx-value-room-id={room.id}
+                          class="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-gray-100"
+                          onclick="if(confirm('Are you sure you want to delete this room? This action cannot be undone.')) { this.parentElement.classList.add('hidden'); } else { event.stopPropagation(); }"
+                        >
+                          <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                          </svg>
+                          Delete Room
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <span class="text-xs text-gray-500">
-                  <%= format_room_time(room.created_at) %>
-                </span>
               </div>
             <% end %>
           <% end %>
@@ -1457,43 +1488,6 @@ defmodule AshChatWeb.ChatLive do
               <% end %>
             </button>
           <% end %>
-        </div>
-        
-        <!-- Model Selector Panel -->
-        <div class="p-4 border-t border-gray-200">
-          <div class="flex justify-between items-center mb-2">
-            <label class="block text-sm font-medium text-gray-700">AI Model</label>
-            <button 
-              phx-click="refresh_models"
-              class={"text-xs hover:text-blue-800 #{if @loading_models, do: "text-gray-400 cursor-not-allowed", else: "text-blue-600"}"}
-              title="Refresh model list"
-              disabled={@loading_models}
-            >
-              <%= if @loading_models do %>
-                ⏳ Loading...
-              <% else %>
-                🔄 Refresh
-              <% end %>
-            </button>
-          </div>
-          <select 
-            phx-change="change_model"
-            name="model"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={@loading_models}
-          >
-            <!-- Current Model Option (always first) -->
-            <option value="current" selected={@current_model == "current"}>
-              Current Model (<%= @current_loaded_model || "None" %>)
-            </option>
-            
-            <!-- Available Models -->
-            <%= for model <- @available_models do %>
-              <option value={model} selected={model == @current_model}>
-                <%= model %>
-              </option>
-            <% end %>
-          </select>
         </div>
 
         <!-- Reset Panel -->

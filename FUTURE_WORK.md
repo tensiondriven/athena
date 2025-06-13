@@ -1,5 +1,14 @@
 # Future Work
 
+## Room Task Management
+*Added: 2025-06-13*
+
+**Task Stack System**: Evolve `current_task` field into a full task stack
+- Push/pop tasks as conversation focus shifts  
+- Visual task history and context switching
+- Task completion tracking and progress indicators
+- Integration with AI agents for task-aware responses
+
 ## Stance Polarity UI Sliders
 *Added: 2025-06-13*
 

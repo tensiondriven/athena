@@ -78,7 +78,7 @@ defmodule AshChat.Setup do
     _backend_info = if profile.provider == "openrouter" do
       "OpenRouter (Cloud)"
     else
-      "Local Ollama"
+      "Ollama HTTP"
     end
 
     %{
@@ -155,7 +155,7 @@ defmodule AshChat.Setup do
               "is_default" => true
             },
             "ollama" => %{
-              "name" => "Local Ollama",
+              "name" => "Ollama HTTP",
               "provider" => "ollama",
               "url" => "http://10.1.2.200:11434",
               "model" => "qwen2.5:latest",

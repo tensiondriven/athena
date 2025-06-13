@@ -22,8 +22,8 @@ defmodule AshChat.Resources.Profile do
   validations do
     validate present(:name), message: "Profile name is required"
     validate present(:provider), message: "Provider is required"
-    validate one_of(:provider, ["ollama", "openai", "anthropic"]), 
-      message: "Provider must be ollama, openai, or anthropic"
+    validate one_of(:provider, ["ollama", "openrouter", "claude_oneshot"]), 
+      message: "Provider must be ollama, openrouter, or claude_oneshot"
   end
 
   actions do
