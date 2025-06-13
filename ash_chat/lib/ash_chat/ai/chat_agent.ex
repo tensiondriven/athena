@@ -255,12 +255,12 @@ defmodule AshChat.AI.ChatAgent do
     # Create agent with agent card settings
     agent = create_ai_agent_with_agent_card(room, agent_card, context_opts)
     
+    # Add messages to the chain before running (like in process_message_with_system_prompt)
+    agent_with_messages = Enum.reduce(all_messages, agent, fn msg, chain ->
+      LLMChain.add_message(chain, msg)
+    end)
+    
     try do
-      # Add messages to the chain before running (like in process_message_with_system_prompt)
-      agent_with_messages = Enum.reduce(all_messages, agent, fn msg, chain ->
-        LLMChain.add_message(chain, msg)
-      end)
-      
       case LLMChain.run(agent_with_messages) do
         {:ok, updated_chain} ->
           # Get the assistant's response (last message should be the response)

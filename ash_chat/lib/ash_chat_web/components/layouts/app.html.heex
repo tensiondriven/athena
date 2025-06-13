@@ -1,49 +1,58 @@
-<header class="px-4 sm:px-6 lg:px-8">
-  <div class="flex items-center justify-between border-b border-zinc-100 py-3 text-sm">
-    <div class="flex items-center gap-4">
-      <a href="/" class="flex items-center gap-2">
-        <img src={~p"/images/logo.svg"} width="36" />
-        <span class="font-semibold text-lg text-zinc-900">Athena AI</span>
-      </a>
-    </div>
-    
-    <!-- Navigation Menu -->
-    <nav class="flex items-center gap-6">
-      <.link 
-        navigate={~p"/chat"} 
-        class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50"
-      >
-        💬 Chat
-      </.link>
-      
-      <.link 
-        navigate={~p"/events"} 
-        class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50"
-      >
-        📊 Events
-      </.link>
-      
-      
-      <.link 
-        navigate={~p"/system"} 
-        class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50"
-      >
-        ⚙️ System
-      </.link>
-    </nav>
-    
-    <!-- Status Indicator -->
-    <div class="flex items-center gap-2">
-      <div class="flex items-center gap-1">
-        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-        <span class="text-xs text-zinc-500">Live</span>
-      </div>
-    </div>
-  </div>
-</header>
-<main class="px-4 py-6 sm:px-6 lg:px-8">
-  <div class="mx-auto max-w-7xl">
+<%= if @socket.view == AshChatWeb.ChatLive do %>
+  <!-- Full-screen layout for chat -->
+  <div class="h-screen flex flex-col">
     <.flash_group flash={@flash} />
     {@inner_content}
   </div>
-</main>
+<% else %>
+  <!-- Standard layout for other pages -->
+  <header class="px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between border-b border-zinc-100 py-3 text-sm">
+      <div class="flex items-center gap-4">
+        <a href="/" class="flex items-center gap-2">
+          <img src={~p"/images/logo.svg"} width="36" />
+          <span class="font-semibold text-lg text-zinc-900">Athena AI</span>
+        </a>
+      </div>
+      
+      <!-- Navigation Menu -->
+      <nav class="flex items-center gap-6">
+        <.link 
+          navigate={~p"/chat"} 
+          class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50"
+        >
+          💬 Chat
+        </.link>
+        
+        <.link 
+          navigate={~p"/events"} 
+          class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50"
+        >
+          📊 Events
+        </.link>
+        
+        
+        <.link 
+          navigate={~p"/system"} 
+          class="px-3 py-2 rounded-md text-sm font-medium transition-colors text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50"
+        >
+          ⚙️ System
+        </.link>
+      </nav>
+      
+      <!-- Status Indicator -->
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1">
+          <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span class="text-xs text-zinc-500">Live</span>
+        </div>
+      </div>
+    </div>
+  </header>
+  <main class="px-4 py-6 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-7xl">
+      <.flash_group flash={@flash} />
+      {@inner_content}
+    </div>
+  </main>
+<% end %>

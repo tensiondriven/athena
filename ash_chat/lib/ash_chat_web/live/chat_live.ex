@@ -1560,41 +1560,68 @@ defmodule AshChatWeb.ChatLive do
 
         <%= if @room do %>
           <!-- Messages Area -->
-          <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+          <div class="flex-1 overflow-y-auto p-4 space-y-2">
             <%= for message <- @messages do %>
-              <div class={[
-                "flex",
-                if(message.role == :user, do: "justify-end", else: "justify-start")
-              ]}>
-                <div class={[
-                  "max-w-xs lg:max-w-md px-4 py-2 rounded-lg",
-                  if(message.role == :user, 
-                     do: "bg-blue-500 text-white", 
-                     else: "bg-white text-gray-900 border border-gray-200")
-                ]}>
-                  <p class="text-sm whitespace-pre-wrap"><%= message.content %></p>
+              <!-- Slack-style message row -->
+              <div class="flex items-start gap-3 hover:bg-gray-50 px-2 py-1 rounded">
+                <!-- Avatar -->
+                <div class="flex-shrink-0">
+                  <%= if message.role == :user do %>
+                    <!-- User avatar -->
+                    <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center text-white text-sm font-semibold">
+                      <%= String.first(@current_user.name || "U") %>
+                    </div>
+                  <% else %>
+                    <!-- AI agent avatar -->
+                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-md flex items-center justify-center text-white text-xs">
+                      AI
+                    </div>
+                  <% end %>
+                </div>
+                
+                <!-- Message content -->
+                <div class="flex-1 min-w-0">
+                  <!-- Name and timestamp -->
+                  <div class="flex items-baseline gap-2">
+                    <span class="font-semibold text-sm text-gray-900">
+                      <%= if message.role == :user do %>
+                        <%= @current_user.display_name || @current_user.name %>
+                      <% else %>
+                        <%= get_agent_name_from_message(message) %>
+                      <% end %>
+                    </span>
+                    <span class="text-xs text-gray-500">
+                      <%= Calendar.strftime(message.created_at, "%I:%M %p") %>
+                    </span>
+                  </div>
+                  
+                  <!-- Message text -->
                   <div class={[
-                    "text-xs mt-1",
-                    if(message.role == :user, do: "text-blue-100", else: "text-gray-500")
+                    "text-sm text-gray-800 mt-0.5",
+                    if(message.role == :user, do: "", else: "")
                   ]}>
-                    <%= Calendar.strftime(message.created_at, "%I:%M %p") %>
+                    <%= message.content %>
                   </div>
                 </div>
               </div>
             <% end %>
 
             <%= for {_agent_id, thinking_msg} <- @agents_thinking do %>
-              <div class="flex justify-start mb-2">
-                <div class="bg-gray-100 text-gray-700 border border-gray-300 max-w-xs lg:max-w-md px-4 py-2 rounded-lg">
-                  <div class="flex items-center space-x-2">
-                    <div class="animate-pulse">
-                      <div class="flex space-x-1">
-                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0s"></div>
-                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                        <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                      </div>
+              <!-- Thinking indicator Slack-style -->
+              <div class="flex items-start gap-3 px-2 py-1">
+                <div class="flex-shrink-0">
+                  <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-md flex items-center justify-center text-white text-xs animate-pulse">
+                    AI
+                  </div>
+                </div>
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <div class="flex space-x-1">
+                      <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
+                      <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                      <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
                     </div>
-                    <span class="text-sm italic"><%= thinking_msg %></span>
+                    <span class="text-sm text-gray-500 italic"><%= thinking_msg %></span>
                   </div>
                 </div>
               </div>
@@ -1602,30 +1629,33 @@ defmodule AshChatWeb.ChatLive do
           </div>
 
           <!-- Message Input -->
-          <div class="bg-white border-t border-gray-200 px-6 py-4">
+          <div class="border-t border-gray-200 px-4 py-3">
             <.form 
               for={%{}}
               as={:message}
               id="message-form"
               phx-submit="send_message"
               phx-change="validate_message"
-              class="flex space-x-2"
+              class="relative"
             >
               <.input
                 type="text"
                 name="message[content]"
                 value={@current_message}
-                placeholder="Type your message..."
-                class="flex-1"
+                placeholder={"Message ##{@room.title}"}
+                class="w-full pl-3 pr-10 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 disabled={false}
               />
               
               <button
                 type="submit"
                 disabled={String.trim(@current_message) == ""}
-                class="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg transition-colors"
+                class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 disabled:text-gray-300 transition-colors"
+                title="Send message"
               >
-                Send
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                </svg>
               </button>
             </.form>
           </div>
@@ -2088,6 +2118,14 @@ defmodule AshChatWeb.ChatLive do
       </div>
     <% end %>
     """
+  end
+  
+  defp get_agent_name_from_message(message) do
+    # Check if message has agent metadata
+    case message.metadata do
+      %{"agent_name" => name} when is_binary(name) -> name
+      _ -> "AI Assistant"
+    end
   end
   
   defp get_current_provider do
