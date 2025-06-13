@@ -229,8 +229,34 @@ notify_claude() {
     # Record this notification
     record_notification "$message"
     
-    # Use osascript inline to find iTerm and send the message with Enter
-    osascript <<EOF
+    # First check if a "claude" session exists before sending the message
+    local has_claude_session=$(osascript -e '
+tell application "iTerm"
+    tell current window
+        -- Try current tab first
+        repeat with aSession in sessions of current tab
+            if name of aSession contains "claude" then
+                return "yes"
+            end if
+        end repeat
+        
+        -- Check all tabs if not found
+        repeat with aTab in tabs
+            repeat with aSession in sessions of aTab
+                if name of aSession contains "claude" then
+                    return "yes"
+                end if
+            end repeat
+        end repeat
+        
+        return "no"
+    end tell
+end tell' 2>/dev/null)
+    
+    # Only send the message if we found a claude session
+    if [ "$has_claude_session" = "yes" ]; then
+        # Use osascript inline to find iTerm and send the message with Enter
+        osascript <<EOF
 tell application "iTerm"
     tell current window
         set found_session to false
@@ -262,14 +288,12 @@ tell application "iTerm"
                 end if
             end repeat
         end repeat
-        
-        -- If no claude session found, do nothing (noop)
-        if not found_session then
-            return
-        end if
     end tell
 end tell
 EOF
+    else
+        echo -e "${YELLOW}⏭️  No 'claude' session found in iTerm - skipping notification${NC}"
+    fi
 }
 
 # Initialize last position

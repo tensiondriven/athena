@@ -77,12 +77,11 @@ end)
 
 # 6. Create initial message
 IO.puts("\n6. Creating initial message...")
-{:ok, message} = AshChat.Resources.Message.create(%{
-  room_id: room.id,
-  user_id: user.id,
-  role: :user,
-  content: "Hello everyone! I'm excited to test the new retrigger and poke features. What do you all think about having the ability to nudge agents to reconsider responding?"
-})
+_message = AshChat.AI.ChatAgent.send_text_message(
+  room.id,
+  "Hello everyone! I'm excited to test the new retrigger and poke features. What do you all think about having the ability to nudge agents to reconsider responding?",
+  user.id
+)
 IO.puts("   ✓ Message created")
 
 IO.puts("\n=== DEMO SETUP COMPLETE ===")
