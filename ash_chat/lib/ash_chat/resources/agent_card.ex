@@ -126,7 +126,7 @@ defmodule AshChat.Resources.AgentCard do
           avatar_url TEXT,
           is_default INTEGER DEFAULT 0,
           add_to_new_rooms INTEGER DEFAULT 0,
-          default_profile_id TEXT,
+          default_persona_id TEXT,
           created_at TEXT NOT NULL
         )
         """)
@@ -135,7 +135,7 @@ defmodule AshChat.Resources.AgentCard do
         {:ok, statement} = Exqlite.Sqlite3.prepare(conn, """
         INSERT OR REPLACE INTO agent_cards 
         (id, name, description, system_prompt_id, model_preferences, available_tools, 
-         context_settings, avatar_url, is_default, add_to_new_rooms, default_profile_id, created_at)
+         context_settings, avatar_url, is_default, add_to_new_rooms, default_persona_id, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """)
         
@@ -150,7 +150,7 @@ defmodule AshChat.Resources.AgentCard do
           agent_card.avatar_url || "",
           if(agent_card.is_default, do: 1, else: 0),
           if(agent_card.add_to_new_rooms, do: 1, else: 0),
-          agent_card.default_profile_id || "",
+          agent_card.default_persona_id || "",
           DateTime.to_iso8601(agent_card.created_at)
         ])
         

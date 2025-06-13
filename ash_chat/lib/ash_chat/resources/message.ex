@@ -82,7 +82,7 @@ defmodule AshChat.Resources.Message do
       argument :content, :string, allow_nil?: false
       argument :role, :atom, default: :user
       argument :user_id, :uuid
-      argument :profile_id, :uuid
+      argument :persona_id, :uuid
       argument :metadata, :map, default: %{}
 
       change set_attribute(:room_id, arg(:room_id))
@@ -90,7 +90,7 @@ defmodule AshChat.Resources.Message do
       change set_attribute(:role, arg(:role))
       change set_attribute(:message_type, :text)
       change set_attribute(:user_id, arg(:user_id))
-      change set_attribute(:profile_id, arg(:profile_id))
+      change set_attribute(:persona_id, arg(:persona_id))
       change set_attribute(:metadata, arg(:metadata))
       
       # Add persistence hook
@@ -112,7 +112,7 @@ defmodule AshChat.Resources.Message do
       argument :image_data, :binary
       argument :role, :atom, default: :user
       argument :user_id, :uuid
-      argument :profile_id, :uuid
+      argument :persona_id, :uuid
 
       change set_attribute(:room_id, arg(:room_id))
       change set_attribute(:content, arg(:content))
@@ -121,7 +121,7 @@ defmodule AshChat.Resources.Message do
       change set_attribute(:image_url, arg(:image_url))
       change set_attribute(:image_data, arg(:image_data))
       change set_attribute(:user_id, arg(:user_id))
-      change set_attribute(:profile_id, arg(:profile_id))
+      change set_attribute(:persona_id, arg(:persona_id))
     end
   end
 
