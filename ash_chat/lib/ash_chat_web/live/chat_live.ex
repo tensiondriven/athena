@@ -644,7 +644,7 @@ defmodule AshChatWeb.ChatLive do
   end
 
   def handle_event("toggle_agent_auto_respond", %{"membership_id" => membership_id}, socket) do
-    case AshChat.Resources.AgentMembership.get(membership_id) do
+    case AshChat.Resources.AgentMembership.get(id: membership_id) do
       {:ok, membership} ->
         case AshChat.Resources.AgentMembership.toggle_auto_respond(membership) do
           {:ok, _updated_membership} ->

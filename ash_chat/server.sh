@@ -9,6 +9,11 @@ PORT=4000
 PID_FILE="$SCRIPT_DIR/tmp/server.pid"
 ERROR_LOG="$SCRIPT_DIR/tmp/error.log"
 
+# Load environment variables if .env exists
+if [ -f .env ]; then
+    export $(cat .env | grep -v '^#' | xargs)
+fi
+
 # Colors for output
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -40,6 +45,12 @@ start_server() {
         echo -e "${YELLOW}Server already running${NC}"
         check_server
         return 1
+    fi
+    
+    # Check for OPENROUTER_API_KEY if using OpenRouter
+    if [ "$USE_OPENROUTER" = "true" ] && [ -z "$OPENROUTER_API_KEY" ]; then
+        echo -e "${YELLOW}Warning: OPENROUTER_API_KEY not set. Using Ollama instead.${NC}"
+        export USE_OPENROUTER=false
     fi
     
     echo -e "${GREEN}Starting server...${NC}"
@@ -117,6 +128,23 @@ errors() {
     fi
 }
 
+reset_db() {
+    echo -e "${YELLOW}Resetting database...${NC}"
+    rm -f ash_chat.db ash_chat.db-journal
+    echo -e "${GREEN}✓ Database reset complete${NC}"
+    echo "Database will be recreated on next server start"
+}
+
+demo() {
+    echo -e "${GREEN}Running demo setup...${NC}"
+    if ! check_server >/dev/null 2>&1; then
+        echo "Starting server first..."
+        start_server
+        sleep 3
+    fi
+    mix run demo_retrigger_features.exs
+}
+
 case "$1" in
     start)
         start_server
@@ -136,15 +164,23 @@ case "$1" in
     errors)
         errors
         ;;
+    reset-db)
+        reset_db
+        ;;
+    demo)
+        demo
+        ;;
     *)
-        echo "Usage: $0 {start|stop|restart|status|logs|errors}"
+        echo "Usage: $0 {start|stop|restart|status|logs|errors|reset-db|demo}"
         echo ""
-        echo "  start   - Start the Phoenix server"
-        echo "  stop    - Stop the Phoenix server"
-        echo "  restart - Restart the Phoenix server"
-        echo "  status  - Check if server is running"
-        echo "  logs    - Tail the server logs"
-        echo "  errors  - Show error log"
+        echo "  start    - Start the Phoenix server"
+        echo "  stop     - Stop the Phoenix server"
+        echo "  restart  - Restart the Phoenix server"
+        echo "  status   - Check if server is running"
+        echo "  logs     - Tail the server logs"
+        echo "  errors   - Show error log"
+        echo "  reset-db - Reset the SQLite database"
+        echo "  demo     - Run demo setup with test data"
         exit 1
         ;;
 esac

@@ -233,9 +233,12 @@ notify_claude() {
     osascript <<EOF
 tell application "iTerm"
     tell current window
+        set found_session to false
+        
         -- Try current tab first
         repeat with aSession in sessions of current tab
             if name of aSession contains "claude" then
+                set found_session to true
                 tell aSession
                     write text "$message"
                     delay 0.1
@@ -249,6 +252,7 @@ tell application "iTerm"
         repeat with aTab in tabs
             repeat with aSession in sessions of aTab
                 if name of aSession contains "claude" then
+                    set found_session to true
                     tell aSession
                         write text "$message"
                         delay 0.1
@@ -258,6 +262,11 @@ tell application "iTerm"
                 end if
             end repeat
         end repeat
+        
+        -- If no claude session found, do nothing (noop)
+        if not found_session then
+            return
+        end if
     end tell
 end tell
 EOF
