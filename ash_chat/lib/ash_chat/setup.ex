@@ -149,6 +149,7 @@ defmodule AshChat.Setup do
           "profiles" => %{
             "openrouter" => %{
               "name" => "OpenRouter (Cloud)",
+              "persona_type" => "Role",
               "provider" => "openrouter",
               "url" => "https://openrouter.ai/api/v1",
               "model" => "qwen/qwen-2.5-72b-instruct",
@@ -156,6 +157,7 @@ defmodule AshChat.Setup do
             },
             "ollama" => %{
               "name" => "Ollama HTTP",
+              "persona_type" => "Role",
               "provider" => "ollama",
               "url" => "http://10.1.2.200:11434",
               "model" => "qwen2.5:latest",
