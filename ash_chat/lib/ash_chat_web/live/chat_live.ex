@@ -1313,14 +1313,14 @@ defmodule AshChatWeb.ChatLive do
         if(@sidebar_expanded, do: "w-64", else: "w-0 overflow-hidden")
       ]}>
         <!-- Sidebar Header -->
-        <div class="h-20 border-b border-gray-200 px-4 py-2">
+        <div class="border-b border-gray-200 px-3 py-4 space-y-3">
           <!-- User Selector -->
-          <div class="mb-2">
+          <div>
             <label class="block text-xs font-medium text-gray-700 mb-1">Current User</label>
             <select 
               phx-change="switch_user"
               name="user_id"
-              class="w-full text-sm px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+              class="w-full text-sm px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
             >
               <%= for user <- @available_users do %>
                 <option value={user.id} selected={user.id == @current_user.id}>
@@ -1331,12 +1331,12 @@ defmodule AshChatWeb.ChatLive do
           </div>
           
           <!-- Profiles Button -->
-          <div class="mb-2">
+          <div>
             <a 
               href={~p"/profiles"}
-              class="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+              class="w-full flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
               </svg>
@@ -1345,13 +1345,14 @@ defmodule AshChatWeb.ChatLive do
           </div>
           
           <!-- Rooms Header -->
-          <div class="flex items-center justify-between">
-            <h2 class="font-semibold text-gray-800">Rooms</h2>
+          <div class="flex items-center justify-between pt-1">
+            <h2 class="text-sm font-semibold text-gray-800">Rooms</h2>
             <button 
               phx-click="toggle_sidebar"
-              class="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+              class="p-1 hover:bg-gray-100 rounded-md transition-colors"
+              title="Hide sidebar"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
@@ -1359,13 +1360,13 @@ defmodule AshChatWeb.ChatLive do
         </div>
         
         <!-- Room List -->
-        <div class="flex-1 overflow-y-auto p-2">
+        <div class="flex-1 overflow-y-auto p-3">
           <!-- New Room Button -->
           <button 
             phx-click="create_room"
-            class="w-full mb-2 p-3 border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800"
+            class="w-full mb-3 p-2.5 border-2 border-dashed border-gray-300 rounded-md hover:border-gray-400 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-800"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
             </svg>
             New Room
@@ -1399,7 +1400,7 @@ defmodule AshChatWeb.ChatLive do
                 phx-click="select_room" 
                 phx-value-room-id={room.id}
                 class={[
-                  "p-3 mb-1 rounded-lg cursor-pointer transition-colors group",
+                  "p-2 mb-1 rounded-md cursor-pointer transition-colors group",
                   if(@room && @room.id == room.id, 
                      do: "bg-blue-50 border border-blue-200",
                      else: "hover:bg-gray-50")
@@ -1416,7 +1417,7 @@ defmodule AshChatWeb.ChatLive do
                     <button 
                       phx-click="hide_room" 
                       phx-value-room-id={room.id}
-                      class="p-1 hover:bg-gray-200 rounded transition-all"
+                      class="p-1 hover:bg-gray-200 rounded-sm transition-all"
                       title="Hide room"
                     >
                       <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1426,7 +1427,7 @@ defmodule AshChatWeb.ChatLive do
                     <button 
                       phx-click="delete_room" 
                       phx-value-room-id={room.id}
-                      class="p-1 hover:bg-red-100 rounded transition-all"
+                      class="p-1 hover:bg-red-100 rounded-sm transition-all"
                       title="Delete room"
                       onclick="return confirm('Are you sure you want to delete this room? This action cannot be undone.')"
                     >
