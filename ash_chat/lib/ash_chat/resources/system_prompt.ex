@@ -59,7 +59,7 @@ defmodule AshChat.Resources.SystemPrompt do
   validations do
     validate present(:name), message: "System prompt name is required"
     validate present(:content), message: "System prompt content is required"
-    validate present(:profile_id), message: "Profile (backend) is required"
+    validate present(:persona_id), message: "Persona (backend) is required"
   end
 
   actions do
