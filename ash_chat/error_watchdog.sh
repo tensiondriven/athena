@@ -289,16 +289,34 @@ check_for_errors() {
                 ERROR_LINE=$(echo "$NEW_CONTENT" | grep -E "\.ex:[0-9]+" | tail -1 | grep -oE "[^/]+\.ex:[0-9]+")
                 ERROR_TYPE=$(echo "$NEW_CONTENT" | grep -E "\*\* \(" | tail -1 | sed -E 's/.*\*\* \(([^)]+)\).*/\1/')
                 
+                # Get the full file path and line number
+                FULL_PATH=$(echo "$NEW_CONTENT" | grep -E "\.ex:[0-9]+" | tail -1 | grep -oE "\([^)]+\.ex:[0-9]+\)" | tr -d '()')
+                
                 # Get the most recent error line for context
                 FIRST_ERROR=$(echo "$NEW_CONTENT" | grep -E "(Error|Exception|\*\*)" | tail -1 | sed 's/^[[:space:]]*//' | cut -c1-80)
                 
-                # Create simple notification message
+                # Create formatted notification message with better context
                 if [ -n "$ERROR_LINE" ] && [ -n "$ERROR_TYPE" ]; then
-                    MESSAGE="Check errors: ${ERROR_TYPE} in ${ERROR_LINE}"
+                    # Extract the error details and value if present
+                    ERROR_MSG=$(echo "$NEW_CONTENT" | grep -A2 "Got value:" | tail -1 | sed 's/^[[:space:]]*//' | cut -c1-60)
+                    TIMESTAMP=$(echo "$NEW_CONTENT" | grep -oE "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}" | tail -1)
+                    
+                    MESSAGE=$'\n\nAn error just occurred, but it might be a duplicate:'
+                    MESSAGE="${MESSAGE}"$'\n'"Type: ${ERROR_TYPE}"
+                    MESSAGE="${MESSAGE}"$'\n'"File: ${ERROR_LINE}"
+                    if [ -n "$FULL_PATH" ]; then
+                        MESSAGE="${MESSAGE}"$'\n'"Path: ${FULL_PATH}"
+                    fi
+                    if [ -n "$TIMESTAMP" ]; then
+                        MESSAGE="${MESSAGE}"$'\n'"Time: ${TIMESTAMP}"
+                    fi
+                    if [ -n "$ERROR_MSG" ] && [ "$ERROR_MSG" != "" ]; then
+                        MESSAGE="${MESSAGE}"$'\n'"Value: ${ERROR_MSG}..."
+                    fi
                 elif [ -n "$FIRST_ERROR" ]; then
-                    MESSAGE="Check errors: ${FIRST_ERROR}"
+                    MESSAGE=$'\n\nAn error just occurred, but it might be a duplicate:\n'"${FIRST_ERROR}"
                 else
-                    MESSAGE="Check errors: new exception in error.log"
+                    MESSAGE=$'\n\nAn error just occurred, but it might be a duplicate:\n'"Check error.log for details"
                 fi
                 
                 echo -e "${YELLOW}📨 Notifying Claude: ${MESSAGE}${NC}"
