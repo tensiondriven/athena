@@ -93,7 +93,10 @@ config :langchain, :ollama_url, System.get_env("OLLAMA_URL", "http://10.1.2.200:
 
 # Configure OpenRouter (preferred over direct Ollama)
 config :langchain, :openrouter_key, System.get_env("OPENROUTER_API_KEY")
-config :ash_chat, :use_openrouter, System.get_env("USE_OPENROUTER", "true") == "true"
+# Only use OpenRouter if API key is available
+config :ash_chat, :use_openrouter, 
+  System.get_env("USE_OPENROUTER", "auto") == "true" or 
+  (System.get_env("USE_OPENROUTER", "auto") == "auto" and not is_nil(System.get_env("OPENROUTER_API_KEY")))
 
 # Configure provider defaults
 config :ash_chat, :llm_providers, %{
