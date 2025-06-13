@@ -1211,7 +1211,7 @@ defmodule AshChatWeb.ChatLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="flex h-screen bg-gray-50">
+    <div class="flex h-full bg-white">
       <!-- Sidebar -->
       <div class={[
         "bg-white border-r border-gray-200 transition-all duration-300 flex flex-col",
@@ -1661,7 +1661,7 @@ defmodule AshChatWeb.ChatLive do
           </div>
         <% else %>
           <!-- No Room Selected Content -->
-          <div class="flex-1 flex items-center justify-center bg-gray-50">
+          <div class="flex-1 flex items-center justify-center bg-white">
             <div class="text-center max-w-md">
               <div class="mb-6">
                 <svg class="w-20 h-20 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,6 +1,6 @@
 <%= if @socket.view == AshChatWeb.ChatLive do %>
   <!-- Full-screen layout for chat -->
-  <div class="h-screen flex flex-col">
+  <div class="h-screen flex flex-col overflow-hidden">
     <.flash_group flash={@flash} />
     {@inner_content}
   </div>
