@@ -1,0 +1,38 @@
+[2025-06-08T21:52:15.689827] Terminal MCP Server started
+[2025-06-08T21:52:15.689917] INPUT: {"jsonrpc": "2.0", "method": "tools/call", "params": {"name": "execute_command", "arguments": {"command": "echo Testing Terminal MCP logging"}}, "id": 999}
+[2025-06-08T21:52:15.693730] OUTPUT: {"jsonrpc": "2.0", "id": 999, "result": {"content": [{"type": "text", "text": "\u2705 Command executed successfully: echo Testing Terminal MCP logging\n\ud83d\udce4 STDOUT:\nTesting Terminal MCP logging\n"}]}}
+[2025-06-08T21:52:35.310498] Terminal MCP Server started
+[2025-06-08T21:52:35.310584] INPUT: {"jsonrpc": "2.0", "method": "tools/call", "params": {"name": "execute_command", "arguments": {"command": "date && pwd"}}, "id": 1}
+[2025-06-08T21:52:35.317880] OUTPUT: {"jsonrpc": "2.0", "id": 1, "result": {"content": [{"type": "text", "text": "\u2705 Command executed successfully: date && pwd\n\ud83d\udce4 STDOUT:\nSun Jun  8 21:52:35 CDT 2025\n/Users/j/Code/athena/dev-tools\n"}]}}
+[2025-06-08T21:54:52.838324] Terminal MCP Server started
+[2025-06-08T21:54:52.838423] INPUT: {"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{"roots":{}},"clientInfo":{"name":"claude","version":"0.1.0"}},"jsonrpc":"2.0","id":0}
+[2025-06-08T21:54:52.838482] OUTPUT: {"jsonrpc": "2.0", "id": 0, "result": {"error": "Unknown method: initialize"}}
+[2025-06-08T21:55:18.410268] Terminal MCP Server started
+[2025-06-08T21:57:22.859972] Terminal MCP Server started
+[2025-06-08T21:57:22.860064] INPUT: {"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{"roots":{}},"clientInfo":{"name":"claude","version":"0.1.0"}},"jsonrpc":"2.0","id":0}
+[2025-06-08T21:57:22.860111] OUTPUT: {"jsonrpc": "2.0", "id": 0, "result": {"error": "Unknown method: initialize"}}
+[2025-06-08T21:57:54.372530] Terminal MCP Server started
+[2025-06-08T21:57:54.372651] INPUT: {"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1}
+[2025-06-08T21:57:54.372868] OUTPUT: {"jsonrpc": "2.0", "id": 1, "result": {"tools": [{"name": "execute_command", "description": "Execute a bash command and return output", "parameters": {"type": "object", "properties": {"command": {"type": "string", "description": "The bash command to execute"}, "working_directory": {"type": "string", "description": "Directory to execute command in (optional)"}, "timeout": {"type": "integer", "description": "Timeout in seconds (default: 30)", "default": 30}, "shell": {"type": "boolean", "description": "Execute via shell (default: true)", "default": true}}, "required": ["command"]}}]}}
+[2025-06-08T21:58:30.370008] Terminal MCP Server started
+[2025-06-08T21:58:30.370109] INPUT: {"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{"roots":{}},"clientInfo":{"name":"claude","version":"0.1.0"}},"jsonrpc":"2.0","id":0}
+[2025-06-08T21:58:30.370162] OUTPUT: {"jsonrpc": "2.0", "id": 0, "result": {"error": "Unknown method: initialize"}}
+[2025-06-08T21:59:35.317278] Terminal MCP Server started
+[2025-06-08T21:59:35.317381] INPUT: {"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{"roots":{}},"clientInfo":{"name":"claude","version":"0.1.0"}},"jsonrpc":"2.0","id":0}
+[2025-06-08T21:59:35.317431] OUTPUT: {"jsonrpc": "2.0", "id": 0, "result": {"error": "Unknown method: initialize"}}
+[2025-06-08T22:00:00.725051] Terminal MCP Server started
+[2025-06-08T22:00:00.725144] INPUT: {"jsonrpc": "2.0", "method": "tools/list", "params": {}, "id": 1}
+[2025-06-08T22:00:00.725194] OUTPUT: {"jsonrpc": "2.0", "id": 1, "result": {"tools": [{"name": "execute_command", "description": "Execute a bash command and return output", "parameters": {"type": "object", "properties": {"command": {"type": "string", "description": "The bash command to execute"}, "working_directory": {"type": "string", "description": "Directory to execute command in (optional)"}, "timeout": {"type": "integer", "description": "Timeout in seconds (default: 30)", "default": 30}, "shell": {"type": "boolean", "description": "Execute via shell (default: true)", "default": true}}, "required": ["command"]}}]}}
+[2025-06-08T22:02:54.241874] Terminal MCP Server started
+[2025-06-08T22:02:54.241994] INPUT: {"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{"roots":{}},"clientInfo":{"name":"claude","version":"0.1.0"}},"jsonrpc":"2.0","id":0}
+[2025-06-08T22:02:54.242209] OUTPUT: {"jsonrpc": "2.0", "id": 0, "result": {"error": "Unknown method: initialize"}}
+[2025-06-08T22:50:33.520742] Terminal MCP Server started
+[2025-06-08T22:51:04.131640] Terminal MCP Server started
+[2025-06-08T22:51:37.931302] Terminal MCP Server started
+[2025-06-08T22:52:24.710997] Terminal MCP Server started
+[2025-06-08T22:52:49.631984] Terminal MCP Server started
+[2025-06-08T22:53:37.488933] Terminal MCP Server started
+[2025-06-08T22:54:40.435054] Terminal MCP Server started
+[2025-06-08T22:54:54.298910] Terminal MCP Server started
+[2025-06-08T22:55:22.075696] Terminal MCP Server started
+[2025-06-08T22:55:41.695943] Terminal MCP Server started

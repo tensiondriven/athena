@@ -301,6 +301,9 @@ check_for_errors() {
                     ERROR_MSG=$(echo "$NEW_CONTENT" | grep -A2 "Got value:" | tail -1 | sed 's/^[[:space:]]*//' | cut -c1-60)
                     TIMESTAMP=$(echo "$NEW_CONTENT" | grep -oE "[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}" | tail -1)
                     
+                    # Extract first 3 lines of stack trace
+                    STACK_TRACE=$(echo "$NEW_CONTENT" | grep -A3 -E "\.ex:[0-9]+:" | grep -E "^\s+\(" | head -3 | sed 's/^[[:space:]]*/  /')
+                    
                     MESSAGE=$'\n\nAn error just occurred, but it might be a duplicate:'
                     MESSAGE="${MESSAGE}"$'\n'"Type: ${ERROR_TYPE}"
                     MESSAGE="${MESSAGE}"$'\n'"File: ${ERROR_LINE}"
@@ -312,6 +315,9 @@ check_for_errors() {
                     fi
                     if [ -n "$ERROR_MSG" ] && [ "$ERROR_MSG" != "" ]; then
                         MESSAGE="${MESSAGE}"$'\n'"Value: ${ERROR_MSG}..."
+                    fi
+                    if [ -n "$STACK_TRACE" ]; then
+                        MESSAGE="${MESSAGE}"$'\n'"Stack:"$'\n'"${STACK_TRACE}"
                     fi
                 elif [ -n "$FIRST_ERROR" ]; then
                     MESSAGE=$'\n\nAn error just occurred, but it might be a duplicate:\n'"${FIRST_ERROR}"

@@ -1,0 +1,305 @@
+Starting Athena macOS Collector 
+Data directory: /Users/j/.athena-collector
+Files directory: /Users/j/.athena-collector/files
+Database: /Users/j/.athena-collector/collector.sqlite
+Claude collector URL: http://localhost:4000/webhook/test
+✅ Started event sync worker (every 30s)
+✅ Logged collector startup event
+Monitoring: claude_code_logs -> /Users/j/.claude-code/logs
+Monitoring: claude_projects_logs -> /Users/j/.claude/projects
+Monitoring: desktop -> /Users/j/Desktop
+Monitoring: downloads -> /Users/j/Downloads
+Monitoring Chrome bookmarks: /Users/j/Library/Application Support/Google/Chrome/Default
+🔄 Running as daemon... Press Ctrl+C to stop
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State
+📤 Syncing 1 unsent events...
+⚠️ Could not read file content: argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'NoneType'
+✅ Sent event: system.filesystem.collector_startup (athena-collector-macos)
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/History-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Favicons-journal
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal
+Collecting created: /Users/j/Library/Application Support/Google/Chrome/Default/.com.google.Chrome.bToLAR
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/History-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Favicons-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Cookies-journal
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting created: /Users/j/Library/Application Support/Google/Chrome/Default/.com.google.Chrome.ZfIC16
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/History-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Favicons-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Cookies-journal
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/History-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Shortcuts-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Shortcuts-journal
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/History-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Favicons-journal
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/History-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Favicons-journal
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Cookies-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Reporting and NEL-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+📤 Syncing 1 unsent events...
+⚠️ Could not read file content: argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'NoneType'
+✅ Sent event: system.filesystem.heartbeat (athena-collector-macos)
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/History-journal
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/History-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Favicons-journal
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+📤 Syncing 2 unsent events...
+✅ Sent event: system.filesystem.moved (/Users/j/Library/Application Support/Google/Chrome/Default/Preferences)
+✅ Sent event: system.filesystem.moved (/Users/j/Library/Application Support/Google/Chrome/Default/Preferences)
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Cookies-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/History-journal
+Collecting created: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+📤 Syncing 10 unsent events...
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.moved (/Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State)
+✅ Sent event: system.filesystem.moved (/Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/History-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Favicons-journal
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Cookies-journal
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+📤 Syncing 2 unsent events...
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+📤 Syncing 7 unsent events...
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+⚠️ Could not read file content: argument should be a str or an os.PathLike object where __fspath__ returns a str, not 'NoneType'
+✅ Sent event: system.filesystem.heartbeat (athena-collector-macos)
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting created: /Users/j/.claude-code/logs/claude-test-1749447485.jsonl
+Collecting modified: /Users/j/.claude-code/logs/claude-test-1749447485.jsonl
+📤 Syncing 17 unsent events...
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)pplication Support/Google/Chrome/Default/Preferences)
+✅ Sent event: system.filesystem.moved (/Users/j/Library/Application Support/Google/Chrome/Default/Preferences)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal)
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Cookies-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/History-journal
+📤 Syncing 6 unsent events...
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/Cookies-journal)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/Cookies-journal)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/History-journal)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/History-journal)
+Collecting created: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State
+📤 Syncing 20 unsent events...
+✅ Sent event: system.filesystem.created (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.created (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/History-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Favicons-journal
+📤 Syncing 8 unsent events...
+✅ Sent event: system.filesystem.moved (/Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State)
+✅ Sent event: system.filesystem.moved (/Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State)
+✅ Sent event: system.filesystem.moved (/Users/j/Library/Application Support/Google/Chrome/Default/Preferences)
+✅ Sent event: system.filesystem.moved (/Users/j/Library/Application Support/Google/Chrome/Default/Preferences)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/History-journal)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/History-journal)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/Favicons-journal)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/Favicons-journal)
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal
+Collecting modified: /Users/j/Library/Application Support/Google/Chrome/Default/Cookies-journal
+📤 Syncing 6 unsent events...
+✅ Sent event: system.filesystem.moved (/Users/j/Library/Application Support/Google/Chrome/Default/Preferences)
+✅ Sent event: system.filesystem.moved (/Users/j/Library/Application Support/Google/Chrome/Default/Preferences)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/Network Action Predictor-journal)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/Cookies-journal)
+✅ Sent event: system.filesystem.modified (/Users/j/Library/Application Support/Google/Chrome/Default/Cookies-journal)
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+📤 Syncing 14 unsent events...
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.moved (/Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State)
+✅ Sent event: system.filesystem.moved (/Users/j/Library/Application Support/Google/Chrome/Default/Network Persistent State)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+📤 Syncing 20 unsent events...
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+✅ Sent event: system.filesystem.modified (/Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl)
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting moved: /Users/j/Library/Application Support/Google/Chrome/Default/Preferences
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl
+Collecting modified: /Users/j/.claude/projects/-Users-j-Code-athena/2a40da63-f8b3-4f54-b0ae-a344f0990c1b.jsonl

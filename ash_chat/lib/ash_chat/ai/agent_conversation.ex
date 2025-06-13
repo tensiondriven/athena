@@ -99,6 +99,47 @@ defmodule AshChat.AI.AgentConversation do
     end)
   end
   
+  @doc """
+  Manually trigger an agent to send a message or respond
+  """
+  def trigger_agent_response(agent_card_id, room_id, content \\ nil) do
+    with {:ok, agent_card} <- Ash.get(AgentCard, agent_card_id) do
+      if content do
+        # Agent initiates with specific content
+        create_agent_message(agent_card, room_id, content)
+      else
+        # Agent responds to last message
+        recent_messages = get_recent_messages(room_id, 10)
+        last_message = List.last(recent_messages)
+        
+        if last_message do
+          response = generate_agent_response(agent_card, room_id, last_message, [])
+          
+          if response do
+            create_agent_message(agent_card, room_id, response.content)
+          else
+            {:error, "Agent chose not to respond"}
+          end
+        else
+          {:error, "No messages to respond to"}
+        end
+      end
+    end
+  end
+  
+  defp create_agent_message(agent_card, room_id, content) do
+    Message.create(%{
+      room_id: room_id,
+      role: :assistant,
+      content: content,
+      metadata: %{
+        agent_id: agent_card.id,
+        agent_name: agent_card.name,
+        triggered_manually: true
+      }
+    })
+  end
+  
   defp agent_wants_to_respond?(agent_card, message, _recent_messages) do
     # For now, simple heuristic - agent responds if:
     # 1. Message mentions their name

@@ -45,3 +45,4 @@ send_to_claude.applescript
 config/jonathan_setup.yaml
 config/*_setup.yaml
 
+dev-tools/ashchat.log

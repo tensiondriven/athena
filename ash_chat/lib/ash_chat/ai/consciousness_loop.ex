@@ -12,7 +12,6 @@ defmodule AshChat.AI.ConsciousnessLoop do
   """
   
   alias AshChat.AI.{StanceTracker, ContextAssembler, ContextAssemblerImprovements}
-  alias AshChat.Resources.AgentCard
   require Logger
   
   defstruct agent_card: nil,
@@ -140,7 +139,7 @@ defmodule AshChat.AI.ConsciousnessLoop do
     end)
   end
   
-  defp detect_and_emit_events(agent_card, content, metadata) do
+  defp detect_and_emit_events(agent_card, content, _metadata) do
     # TODO: Integrate with EventGenerator when available
     cond do
       String.contains?(content, ["oh!", "aha!", "discovered", "realized"]) ->

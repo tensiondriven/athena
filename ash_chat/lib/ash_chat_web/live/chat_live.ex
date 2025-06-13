@@ -42,6 +42,11 @@ defmodule AshChatWeb.ChatLive do
       |> assign(:creating_new_agent, false)
       |> assign(:selected_template, nil)
       |> assign(:agent_memberships, [])
+      |> assign(:show_members, true)
+      |> assign(:show_experimental_menu, false)
+      |> assign(:room_members, [])
+      |> assign(:room_participants, [])
+      |> assign(:available_entities, [])
 
     {:ok, socket}
   end
@@ -67,6 +72,11 @@ defmodule AshChatWeb.ChatLive do
           {:ok, memberships} -> memberships
           {:error, _} -> []
         end
+        
+        # Load all participants (humans and AI)
+        room_participants = load_all_participants(room_id)
+        current_user_id = if socket.assigns.current_user, do: socket.assigns.current_user.id, else: nil
+        available_entities = load_available_entities(current_user_id, room_participants)
 
         socket = 
           socket
@@ -75,6 +85,8 @@ defmodule AshChatWeb.ChatLive do
           |> assign(:current_model, "current")
           |> assign(:is_room_member, is_member)
           |> assign(:agent_memberships, agent_memberships)
+          |> assign(:room_participants, room_participants)
+          |> assign(:available_entities, available_entities)
 
         {:noreply, socket}
       
@@ -279,17 +291,52 @@ defmodule AshChatWeb.ChatLive do
     end
   end
 
-  def handle_event("add_user_to_room", %{"user-id" => user_id}, socket) do
+  def handle_event("add_to_room", %{"entity-id" => entity_id, "entity-type" => entity_type}, socket) do
     if socket.assigns.room do
-      case AshChat.Resources.RoomMembership.create(%{user_id: user_id, room_id: socket.assigns.room.id, role: "member"}) do
-        {:ok, _membership} ->
-          {:noreply, put_flash(socket, :info, "User added to room successfully")}
-        {:error, _} ->
-          {:noreply, put_flash(socket, :error, "Failed to add user to room")}
+      result = case entity_type do
+        "human" ->
+          case AshChat.Resources.RoomMembership.create(%{user_id: entity_id, room_id: socket.assigns.room.id, role: "member"}) do
+            {:ok, _membership} ->
+              {:ok, user} = Ash.get(User, entity_id)
+              {:ok, user.display_name || user.name}
+            error -> error
+          end
+          
+        "ai" ->
+          case AshChat.Resources.AgentMembership.create(%{
+            agent_card_id: entity_id, 
+            room_id: socket.assigns.room.id, 
+            role: "participant",
+            auto_respond: false
+          }) do
+            {:ok, _membership} ->
+              {:ok, agent} = Ash.get(AshChat.Resources.AgentCard, entity_id)
+              {:ok, agent.name}
+            error -> error
+          end
+          
+        _ ->
+          {:error, "Unknown entity type"}
+      end
+      
+      case result do
+        {:ok, name} ->
+          socket = 
+            socket
+            |> reload_participants()
+            |> put_flash(:info, "#{name} added to room successfully")
+          {:noreply, socket}
+        _ ->
+          {:noreply, put_flash(socket, :error, "Failed to add participant to room")}
       end
     else
       {:noreply, put_flash(socket, :error, "No room selected")}
     end
+  end
+
+  def handle_event("add_user_to_room", %{"user-id" => user_id}, socket) do
+    # Redirect to unified handler
+    handle_event("add_to_room", %{"entity-id" => user_id, "entity-type" => "human"}, socket)
   end
 
   def handle_event("join_room", _params, socket) do
@@ -303,6 +350,7 @@ defmodule AshChatWeb.ChatLive do
           socket = 
             socket
             |> assign(:is_room_member, true)
+            |> reload_participants()
             |> put_flash(:info, "Welcome to the room! You can now send messages.")
           {:noreply, socket}
         {:error, _} ->
@@ -318,8 +366,143 @@ defmodule AshChatWeb.ChatLive do
     handle_event("join_room", %{}, socket)
   end
 
+  def handle_event("leave_room", _params, socket) do
+    if socket.assigns.room && socket.assigns.current_user do
+      # Find the membership
+      case AshChat.Resources.RoomMembership.for_user_and_room(%{
+        user_id: socket.assigns.current_user.id,
+        room_id: socket.assigns.room.id
+      }) do
+        {:ok, [membership | _]} ->
+          case AshChat.Resources.RoomMembership.destroy(membership) do
+            :ok ->
+              socket = 
+                socket
+                |> assign(:is_room_member, false)
+                |> reload_participants()
+                |> put_flash(:info, "You have left the room")
+              {:noreply, socket}
+            {:error, _} ->
+              {:noreply, put_flash(socket, :error, "Failed to leave room")}
+          end
+        _ ->
+          {:noreply, put_flash(socket, :error, "You are not a member of this room")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "No room or user selected")}
+    end
+  end
+
+  def handle_event("remove_from_room", %{"entity-id" => entity_id, "entity-type" => entity_type}, socket) do
+    if socket.assigns.room do
+      result = case entity_type do
+        "human" ->
+          case AshChat.Resources.RoomMembership.for_user_and_room(%{
+            user_id: entity_id,
+            room_id: socket.assigns.room.id
+          }) do
+            {:ok, [membership | _]} ->
+              case AshChat.Resources.RoomMembership.destroy(membership) do
+                :ok ->
+                  {:ok, user} = Ash.get(User, entity_id)
+                  {:ok, user.display_name || user.name}
+                error -> error
+              end
+            _ -> {:error, "Not a member"}
+          end
+          
+        "ai" ->
+          # Find the agent membership
+          case AshChat.Resources.AgentMembership.for_room(%{room_id: socket.assigns.room.id}) do
+            {:ok, memberships} ->
+              case Enum.find(memberships, & &1.agent_card_id == entity_id) do
+                nil -> {:error, "Not a member"}
+                membership ->
+                  case AshChat.Resources.AgentMembership.destroy(membership) do
+                    :ok ->
+                      {:ok, agent} = Ash.get(AshChat.Resources.AgentCard, entity_id)
+                      {:ok, agent.name}
+                    error -> error
+                  end
+              end
+            _ -> {:error, "Failed to load memberships"}
+          end
+          
+        _ ->
+          {:error, "Unknown entity type"}
+      end
+      
+      case result do
+        {:ok, name} ->
+          socket = 
+            socket
+            |> reload_participants()
+            |> put_flash(:info, "#{name} has been removed from the room")
+          {:noreply, socket}
+        _ ->
+          {:noreply, put_flash(socket, :error, "Failed to remove participant from room")}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "No room selected")}
+    end
+  end
+
+  def handle_event("remove_from_room", %{"entity-id" => entity_id, "entity-type" => entity_type}, socket) do
+    if socket.assigns.room do
+      result = case entity_type do
+        "human" ->
+          case AshChat.Resources.RoomMembership.for_user_and_room(%{
+            user_id: entity_id,
+            room_id: socket.assigns.room.id
+          }) do
+            {:ok, [membership | _]} ->
+              case AshChat.Resources.RoomMembership.destroy(membership) do
+                :ok -> {:ok, "User removed"}
+                error -> error
+              end
+            _ -> {:error, "Not a member"}
+          end
+          
+        "ai" ->
+          case AshChat.Resources.AgentMembership.for_room(%{room_id: socket.assigns.room.id}) do
+            {:ok, memberships} ->
+              case Enum.find(memberships, &(&1.agent_card_id == entity_id)) do
+                nil -> {:error, "Agent not in room"}
+                membership ->
+                  case AshChat.Resources.AgentMembership.destroy(membership) do
+                    :ok -> {:ok, "Agent removed"}
+                    error -> error
+                  end
+              end
+            _ -> {:error, "Failed to load memberships"}
+          end
+          
+        _ ->
+          {:error, "Unknown entity type"}
+      end
+      
+      case result do
+        {:ok, msg} ->
+          socket = 
+            socket
+            |> reload_participants()
+            |> put_flash(:info, msg)
+          {:noreply, socket}
+        {:error, msg} ->
+          {:noreply, put_flash(socket, :error, msg)}
+      end
+    else
+      {:noreply, put_flash(socket, :error, "No room selected")}
+    end
+  end
+
+  def handle_event("remove_user_from_room", %{"user-id" => user_id}, socket) do
+    # Redirect to unified handler
+    handle_event("remove_from_room", %{"entity-id" => user_id, "entity-type" => "human"}, socket)
+  end
+
   def handle_event("switch_user", %{"user-id" => user_id}, socket) do
-    case User.get(user_id) do
+    case Ash.get(User, user_id) do
       {:ok, user} ->
         {:noreply, assign(socket, :current_user, user)}
       {:error, _} ->
@@ -560,6 +743,71 @@ defmodule AshChatWeb.ChatLive do
     end
   end
 
+  def handle_event("toggle_members", _params, socket) do
+    {:noreply, assign(socket, :show_members, !socket.assigns.show_members)}
+  end
+
+  def handle_event("toggle_experimental_menu", _params, socket) do
+    {:noreply, assign(socket, :show_experimental_menu, !socket.assigns.show_experimental_menu)}
+  end
+
+  def handle_event("hide_experimental_menu", _params, socket) do
+    {:noreply, assign(socket, :show_experimental_menu, false)}
+  end
+
+  def handle_event("trigger_agent_conversation", _params, socket) do
+    # Get AI agents in the room
+    ai_participants = socket.assigns.room_participants
+    |> Enum.filter(&(&1.type == :ai))
+    
+    # Find Curious Explorer
+    curious = Enum.find(ai_participants, &String.contains?(&1.name, "Curious"))
+    thoughtful = Enum.find(ai_participants, &String.contains?(&1.name, "Thoughtful"))
+    
+    cond do
+      curious == nil ->
+        {:noreply, put_flash(socket, :error, "Curious Explorer not found in room. Please add it first.")}
+        
+      thoughtful == nil ->
+        {:noreply, put_flash(socket, :error, "Thoughtful Analyst not found in room. Please add it first.")}
+        
+      true ->
+        # Trigger agent conversation
+        Task.start(fn ->
+          :timer.sleep(500)  # Small delay for realism
+          
+          # Curious Explorer asks a question
+          case AgentConversation.trigger_agent_response(
+            curious.id,
+            socket.assigns.room.id,
+            "I've been wondering about the nature of curiosity itself. What drives us to ask questions?"
+          ) do
+            {:ok, _message} ->
+              Logger.info("Curious Explorer asked a question")
+              
+              # Thoughtful Analyst responds after a delay
+              :timer.sleep(2000)
+              
+              case AgentConversation.trigger_agent_response(
+                thoughtful.id,
+                socket.assigns.room.id,
+                nil  # Will respond to the previous message
+              ) do
+                {:ok, _} ->
+                  Logger.info("Thoughtful Analyst responded")
+                {:error, reason} ->
+                  Logger.error("Failed to get Thoughtful Analyst response: #{inspect(reason)}")
+              end
+              
+            {:error, reason} ->
+              Logger.error("Failed to trigger Curious Explorer: #{inspect(reason)}")
+          end
+        end)
+        
+        {:noreply, put_flash(socket, :info, "Triggering agent conversation...")}
+    end
+  end
+
   def handle_event("create_new_agent", %{"agent" => agent_params}, socket) do
     case AshChat.Resources.AgentCard.create(%{
       name: agent_params["name"],
@@ -725,6 +973,109 @@ defmodule AshChatWeb.ChatLive do
       {:ok, [_membership | _]} -> true
       _ -> false
     end
+  end
+
+
+  defp reload_participants(socket) do
+    if socket.assigns.room do
+      room_participants = load_all_participants(socket.assigns.room.id)
+      current_user_id = if socket.assigns.current_user, do: socket.assigns.current_user.id, else: nil
+      available_entities = load_available_entities(current_user_id, room_participants)
+      
+      socket
+      |> assign(:room_participants, room_participants)
+      |> assign(:available_entities, available_entities)
+    else
+      socket
+    end
+  end
+
+  defp load_all_participants(room_id) do
+    # Load human members
+    human_members = case AshChat.Resources.RoomMembership.for_room(%{room_id: room_id}) do
+      {:ok, memberships} -> 
+        Enum.map(memberships, fn membership ->
+          case Ash.get(AshChat.Resources.User, membership.user_id) do
+            {:ok, user} -> 
+              %{
+                id: user.id,
+                name: user.display_name || user.name,
+                type: :human,
+                in_room: true,
+                membership_id: membership.id
+              }
+            _ -> nil
+          end
+        end) |> Enum.filter(&(&1))
+      _ -> []
+    end
+    
+    # Load AI agents
+    ai_members = case AshChat.Resources.AgentMembership.for_room(%{room_id: room_id}) do
+      {:ok, memberships} ->
+        Enum.map(memberships, fn membership ->
+          case Ash.get(AshChat.Resources.AgentCard, membership.agent_card_id) do
+            {:ok, agent} ->
+              %{
+                id: agent.id,
+                name: agent.name,
+                type: :ai,
+                in_room: true,
+                membership_id: membership.id
+              }
+            _ -> nil
+          end
+        end) |> Enum.filter(&(&1))
+      _ -> []
+    end
+    
+    # Combine with humans first
+    human_members ++ ai_members
+  end
+
+  defp load_available_entities(current_user_id, room_participants) do
+    participant_ids = MapSet.new(room_participants, & &1.id)
+    
+    # Get all users not in room
+    all_users = case User.read() do
+      {:ok, users} -> users
+      _ -> []
+    end
+    
+    available_humans = all_users
+    |> Enum.reject(fn user -> 
+      user.id == current_user_id || MapSet.member?(participant_ids, user.id)
+    end)
+    |> Enum.map(fn user ->
+      %{
+        id: user.id,
+        name: user.display_name || user.name,
+        type: :human,
+        in_room: false
+      }
+    end)
+    
+    # Get all agent cards not in room
+    all_agents = case AshChat.Resources.AgentCard.read() do
+      {:ok, agents} -> agents
+      _ -> []
+    end
+    
+    available_ai = all_agents
+    |> Enum.reject(fn agent ->
+      MapSet.member?(participant_ids, agent.id)
+    end)
+    |> Enum.map(fn agent ->
+      %{
+        id: agent.id,
+        name: agent.name,
+        type: :ai,
+        in_room: false
+      }
+    end)
+    
+    # Return humans first, then AI
+    available_humans ++ available_ai
   end
 
   defp get_agent_templates do
@@ -963,39 +1314,77 @@ defmodule AshChatWeb.ChatLive do
           </select>
         </div>
 
-        <!-- User Management Panel -->
+        <!-- Members Panel -->
         <%= if @room do %>
           <div class="p-4 border-t border-gray-200">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Room Membership</label>
+            <div class="flex justify-between items-center mb-2">
+              <label class="text-sm font-medium text-gray-700">Members</label>
+              <button 
+                phx-click="toggle_members"
+                class="p-1 hover:bg-gray-100 rounded transition-colors"
+              >
+                <svg class={"w-4 h-4 transition-transform #{if @show_members, do: "rotate-180", else: ""}"} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+            </div>
             
-            <!-- Add yourself to room button -->
-            <%= if @current_user do %>
-              <div class="mb-3">
-                <button 
-                  phx-click="add_myself_to_room"
-                  class="w-full text-sm bg-green-500 text-white px-3 py-2 rounded hover:bg-green-600"
-                >
-                  ➕ Add Myself to Room
-                </button>
+            <%= if @show_members do %>
+              <div class="space-y-2">
+                <!-- Current User (Always First) -->
+                <%= if @current_user do %>
+                  <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                    <span class="text-sm font-medium"><%= @current_user.display_name || @current_user.name %> (You)</span>
+                    <button 
+                      phx-click={if @is_room_member, do: "leave_room", else: "join_room"}
+                      class={"text-xs px-3 py-1 rounded transition-colors #{if @is_room_member, do: "bg-red-500 hover:bg-red-600 text-white", else: "bg-green-500 hover:bg-green-600 text-white"}"}
+                    >
+                      <%= if @is_room_member, do: "Leave", else: "Enter" %>
+                    </button>
+                  </div>
+                <% end %>
+                
+                <!-- Room Participants (In Room) -->
+                <%= for participant <- @room_participants do %>
+                  <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                    <span class="text-sm">
+                      <%= participant.name %>
+                      <%= if participant.type == :ai do %>
+                        <span class="text-xs text-gray-500">(AI)</span>
+                      <% end %>
+                    </span>
+                    <button 
+                      phx-click="remove_from_room"
+                      phx-value-entity-id={participant.id}
+                      phx-value-entity-type={Atom.to_string(participant.type)}
+                      class="text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded transition-colors"
+                    >
+                      Kick
+                    </button>
+                  </div>
+                <% end %>
+                
+                <!-- Available Entities (Not in Room) -->
+                <%= for entity <- @available_entities do %>
+                  <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                    <span class="text-sm text-gray-600">
+                      <%= entity.name %>
+                      <%= if entity.type == :ai do %>
+                        <span class="text-xs text-gray-500">(AI)</span>
+                      <% end %>
+                    </span>
+                    <button 
+                      phx-click="add_to_room"
+                      phx-value-entity-id={entity.id}
+                      phx-value-entity-type={Atom.to_string(entity.type)}
+                      class="text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+                <% end %>
               </div>
             <% end %>
-            
-            <!-- Add other users -->
-            <div class="space-y-2">
-              <label class="block text-xs font-medium text-gray-600">Add Other Users:</label>
-              <%= for user <- @available_users do %>
-                <div class="flex justify-between items-center">
-                  <span class="text-sm"><%= user.display_name %></span>
-                  <button 
-                    phx-click="add_user_to_room"
-                    phx-value-user-id={user.id}
-                    class="text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600"
-                  >
-                    Add
-                  </button>
-                </div>
-              <% end %>
-            </div>
           </div>
         <% end %>
         
@@ -1044,6 +1433,32 @@ defmodule AshChatWeb.ChatLive do
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                 </svg>
               </button>
+              
+              <div class="relative">
+                <button 
+                  phx-click="toggle_experimental_menu"
+                  class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Experimental Features"
+                >
+                  <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
+                  </svg>
+                </button>
+                
+                <%= if @show_experimental_menu do %>
+                  <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50" phx-click-away="hide_experimental_menu">
+                    <button 
+                      phx-click="trigger_agent_conversation"
+                      class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    >
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                      </svg>
+                      Trigger Agents
+                    </button>
+                  </div>
+                <% end %>
+              </div>
             </div>
           </div>
         <% else %>

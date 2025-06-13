@@ -36,7 +36,7 @@ defmodule AshChat.AI.ContextAssemblerImprovements do
   @doc """
   Add agent's discovered patterns to context
   """
-  def add_agent_patterns(assembler, agent_card, opts \\ []) do
+  def add_agent_patterns(assembler, agent_card, _opts \\ []) do
     # Get patterns this agent has detected
     pattern_events = get_agent_pattern_events(agent_card.name)
     
@@ -59,7 +59,7 @@ defmodule AshChat.AI.ContextAssemblerImprovements do
   @doc """
   Add multi-agent interaction context
   """
-  def add_multi_agent_context(assembler, room, agent_card, opts \\ []) do
+  def add_multi_agent_context(assembler, room, agent_card, _opts \\ []) do
     # Get other agents in the room
     other_agents = get_other_agents_in_room(room.id, agent_card.id)
     

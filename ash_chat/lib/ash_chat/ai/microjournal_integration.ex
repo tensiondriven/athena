@@ -50,7 +50,7 @@ defmodule AshChat.AI.MicrojournalIntegration do
   @doc """
   Agent recalls relevant thoughts before responding
   """
-  def recall_context(agent_name, pattern \\ nil) do
+  def recall_context(agent_name, _pattern \\ nil) do
     # Would query MCP for relevant thoughts
     # For now, return example
     [
@@ -70,7 +70,7 @@ defmodule AshChat.AI.MicrojournalIntegration do
   @doc """
   Agent reflects on recent thinking patterns
   """
-  def reflect(agent_name) do
+  def reflect(_agent_name) do
     # Would call MCP reflect
     %{
       total_thoughts: 42,
