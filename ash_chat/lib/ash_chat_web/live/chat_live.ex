@@ -80,6 +80,24 @@ defmodule AshChatWeb.ChatLive do
         current_user_id = if socket.assigns.current_user, do: socket.assigns.current_user.id, else: nil
         available_entities = load_available_entities(current_user_id, room_participants)
 
+        # Generate room join event for agents to respond to
+        if socket.assigns.current_user do
+          Task.start(fn ->
+            AshChat.AI.EventGenerator.room_join(
+              socket.assigns.current_user.display_name || socket.assigns.current_user.name,
+              room.title,
+              %{
+                room_id: room_id,
+                user_id: socket.assigns.current_user.id,
+                participant_count: length(room_participants)
+              }
+            )
+            
+            # Trigger agent responses to room join
+            AshChat.AI.AgentConversation.process_room_join_responses(room_id, socket.assigns.current_user)
+          end)
+        end
+
         socket = 
           socket
           |> assign(:room, room)

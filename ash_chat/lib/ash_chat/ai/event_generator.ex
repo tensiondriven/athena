@@ -76,6 +76,20 @@ defmodule AshChat.AI.EventGenerator do
     )
   end
   
+  @doc """
+  Generate an event when a user joins a room
+  """
+  def room_join(user_name, room_title, metadata \\ %{}) do
+    create_agent_event(
+      "room_join",
+      "room_system",
+      "#{user_name} joined #{room_title}",
+      "User entered the conversation space",
+      1.0,
+      Map.merge(metadata, %{event_type: "room_join", user_name: user_name, room_title: room_title})
+    )
+  end
+  
   defp create_agent_event(event_type, source_id, content, description, confidence, metadata) do
     event_args = %{
       timestamp: DateTime.utc_now(),

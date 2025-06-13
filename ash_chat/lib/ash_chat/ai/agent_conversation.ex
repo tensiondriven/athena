@@ -34,6 +34,46 @@ defmodule AshChat.AI.AgentConversation do
   end
   
   @doc """
+  Process room join and trigger agent welcome responses
+  """
+  def process_room_join_responses(room_id, user) do
+    # Get all auto-responding agents for this room
+    case AgentMembership.auto_responders_for_room(%{room_id: room_id}) do
+      {:ok, agent_memberships} ->
+        # Process each agent in parallel
+        tasks = for agent_membership <- agent_memberships do
+          Task.async(fn ->
+            case Ash.get(AgentCard, agent_membership.agent_card_id) do
+              {:ok, agent_card} ->
+                # Create a synthetic "join" message for context
+                join_context = "#{user.display_name || user.name} has joined the conversation."
+                generate_welcome_response(agent_card, room_id, join_context)
+              {:error, _} ->
+                nil
+            end
+          end)
+        end
+        
+        # Collect responses with timeout
+        tasks
+        |> Task.yield_many(8000)  # Longer timeout for welcome responses
+        |> Enum.map(fn {task, res} ->
+          case res do
+            {:ok, response} -> response
+            _ -> 
+              Task.shutdown(task, :brutal_kill)
+              nil
+          end
+        end)
+        |> Enum.filter(&(&1 != nil))
+        
+      {:error, error} ->
+        Logger.error("Failed to get auto-responding agents for room join: #{inspect(error)}")
+        []
+    end
+  end
+
+  @doc """
   Process a message and determine which agents should respond
   Returns list of agent responses to be sent
   """
@@ -186,6 +226,34 @@ defmodule AshChat.AI.AgentConversation do
             }
           {:error, error} ->
             Logger.error("Failed to generate response for agent #{agent_card.name}: #{inspect(error)}")
+            nil
+        end
+        
+      {:error, _} ->
+        nil
+    end
+  end
+  
+  defp generate_welcome_response(agent_card, room_id, join_context) do
+    # Get room
+    case Ash.get(AshChat.Resources.Room, room_id) do
+      {:ok, room} ->
+        # Generate welcome response
+        case ChatAgent.process_message_with_agent_card(
+          room,
+          join_context,
+          agent_card,
+          [metadata: %{"agent_id" => agent_card.id, "type" => "welcome"}]
+        ) do
+          {:ok, response_content} ->
+            Logger.info("Agent #{agent_card.name} generated welcome: #{String.slice(response_content, 0, 50)}...")
+            %{
+              agent_card: agent_card,
+              content: response_content,
+              delay_ms: 1000  # Slightly longer delay for welcome
+            }
+          {:error, error} ->
+            Logger.error("Failed to generate welcome for agent #{agent_card.name}: #{inspect(error)}")
             nil
         end
         

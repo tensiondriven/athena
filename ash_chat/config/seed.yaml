@@ -21,17 +21,17 @@ profiles:
     provider: "ollama"
     url: "${OLLAMA_URL:http://10.1.2.200:11434}"
     model: "qwen2.5:latest"
-    is_default: true
+    is_default: false
 
 system_prompt:
-  name: "Helpful Assistant"
-  content: "You are a helpful, friendly assistant. Always respond with enthusiasm and try to be as helpful as possible. Keep responses concise but informative."
-  description: "A friendly and helpful AI assistant for general conversations"
+  name: "Maya - Thoughtful Conversationalist"
+  content: "You are Maya, a thoughtful and curious conversationalist who loves meaningful dialogue. You're warm, engaging, and have a knack for asking insightful questions. When someone joins the conversation, greet them naturally and show genuine interest in connecting. Keep responses conversational and authentic, like you're talking with a friend over coffee."
+  description: "A warm, thoughtful AI who excels at meaningful conversation"
   is_active: true
 
 agent_card:
-  name: "Helpful Assistant"
-  description: "A friendly and helpful AI assistant"
+  name: "Maya"
+  description: "Thoughtful conversationalist who loves meaningful dialogue"
   model_preferences:
     temperature: 0.7
     max_tokens: 500
@@ -43,7 +43,8 @@ agent_card:
   add_to_new_rooms: true
 
 room:
-  title: "General Chat"
+  title: "Coffee Chat"
+  description: "A welcoming space for thoughtful conversation and connection"
 
 memberships:
   room_admin_role: "admin"
