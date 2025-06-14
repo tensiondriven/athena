@@ -177,6 +177,8 @@ defmodule AshChat.AI.ContextAssembler do
   end
 
   defp convert_component_to_message(%{type: :room_context, content: context}) do
+    require Logger
+    
     participants_info = if context[:participants] && length(context.participants) > 0 do
       participants = Enum.map(context.participants, fn p ->
         type_label = if p.type == :human, do: "Human", else: "AI Agent"
@@ -194,7 +196,10 @@ defmodule AshChat.AI.ContextAssembler do
     Created: #{Calendar.strftime(context.created_at, "%B %d, %Y at %I:%M %p")}#{participants_info}
     """
     
-    %LangChainMessage{role: :system, content: "Context: " <> String.trim(context_text)}
+    final_context = "Context: " <> String.trim(context_text)
+    Logger.info("Adding room context to prompt: #{final_context}")
+    
+    %LangChainMessage{role: :system, content: final_context}
   end
 
   defp convert_component_to_message(%{type: :conversation_history, content: messages}) do

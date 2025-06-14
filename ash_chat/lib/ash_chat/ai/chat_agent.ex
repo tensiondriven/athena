@@ -302,6 +302,21 @@ defmodule AshChat.AI.ChatAgent do
       timestamp: DateTime.utc_now()
     }
     
+    # Log the context being sent to LLM for visibility
+    Logger.info("=== LLM Request Context for #{agent_card.name} ===")
+    Logger.info("Model: #{request_payload.model}")
+    Logger.info("Total messages: #{length(all_messages)}")
+    
+    # Log each message with proper formatting
+    Enum.each(all_messages, fn msg ->
+      role_label = String.upcase(to_string(msg.role))
+      content_preview = String.slice(msg.content, 0, 100)
+      content_suffix = if String.length(msg.content) > 100, do: "...", else: ""
+      Logger.info("[#{role_label}]: #{content_preview}#{content_suffix}")
+    end)
+    
+    Logger.info("=== End LLM Context ===")
+    
     try do
       case LLMChain.run(agent_with_messages) do
         {:ok, updated_chain} ->
