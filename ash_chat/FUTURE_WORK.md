@@ -167,3 +167,8 @@
   - Dynamic updates when tool data changes
   - Examples: todo summaries, project status, error logs
 - Start simple with database-backed pieces, add complexity as needed
+
+### LLM Request Router
+- Use small LLM to classify incoming requests as simple/complex
+- Route simple requests to cheap models, complex to expensive ones
+- Learn from failures when cheap model can't handle it

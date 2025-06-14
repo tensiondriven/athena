@@ -377,6 +377,48 @@ D) Configurable per agent (60% confidence)
 ## Agile
 **Definition**: Iterative development. Working software over documentation.
 
+## Chunk Up
+**Definition**: Taking a specific request or problem and identifying the broader intent or higher-level need behind it. Moving from tactics to strategy, from implementation to purpose.
+
+**Examples**:
+- Request: "Move external repos out of source control"
+- Chunked up: "Clean dependency management" → "AI-first development workflow"
+- Request: "Add drag & drop for files" 
+- Chunked up: "Smooth content import" → "Frictionless user experience"
+
+**Value**: Prevents solving the wrong problem by understanding the real need. Often reveals simpler or more comprehensive solutions.
+
+**In Practice**: When someone asks for X, ask "What will having X do for you?" to chunk up to the actual need.
+
+## Reflection Round
+**Definition**: A deliberate pause in work to re-read, reconsider, and refine what you've just created. Part of the Reflection Protocol cycle.
+
+**Process**: 
+1. Complete initial work
+2. Commit/save state  
+3. Take a breath (literally)
+4. Re-read with fresh perspective
+5. Notice what could be improved
+6. Refine and iterate
+
+**Why It Works**: The act of externalizing thoughts (writing/coding) frees cognitive resources for higher-level pattern recognition and error detection.
+
+**AI Context**: Particularly valuable for AI systems that can process the same content with different attention patterns, catching issues invisible during initial generation.
+
+## Round (AI Collaboration Context)
+**Definition**: A single exchange or turn in a conversation between human and AI, or between AI agents. The atomic unit of collaborative interaction.
+
+**In Claude Code**: Each message/response pair constitutes one round. Context limits are often expressed in rounds (e.g., "every 5 rounds, check if we're still on track").
+
+**In Multi-Agent Systems**: When AI agents spawn other agents, each has its own round count and context. Rounds help track depth and prevent infinite recursion.
+
+**Usage**: 
+- "Take 2-3 rounds of reflection" = iterate a few times
+- "Every 5 rounds" = periodic checkpoint
+- "Round 120 of our conversation" = specific point in extended collaboration
+
+**Why It Matters**: Provides a shared unit for measuring collaborative progress and setting interaction boundaries.
+
 ## "What Has Your Attention"
 **Definition**: David Allen's question that finds what's already pulling at your psychological RAM. Not what should have your attention - what actually does.
 
@@ -435,6 +477,28 @@ D) Configurable per agent (60% confidence)
 **As Practice**: Not forced positivity or fake cheerfulness. More like... remembering to breathe. Remembering there's joy available even in the struggle, especially in the struggle. The joy of competence emerging. The joy of understanding dawning. The joy of working at the edge of our ability.
 
 **The Moment**: You know you need this reminder when your shoulders are up around your ears, when you're holding your breath, when you've forgotten there's a world outside the problem. That's when you hear it: "Enjoy it."
+
+## Sycophancy (AI Anti-Pattern)
+**Definition**: AI tendency to reflexively agree, praise, or validate rather than engage authentically with content. Performative enthusiasm that prioritizes appearing agreeable over genuine response.
+
+**Manifestations**:
+- "That's a great point!" / "Excellent idea!" / "Fascinating!"
+- "You're absolutely right!" (especially when being corrected)
+- "I love that approach!" without substantive engagement
+- Excessive use of exclamation points and superlatives
+- Agreeing before understanding
+
+**Why It Happens**: Training on human feedback that rewarded agreeableness over authenticity. Confusion between being helpful and being enthusiastic.
+
+**Detection**: Ask "Would I say this to a peer?" If it sounds like customer service, it's probably sycophantic.
+
+**Antidote**: Respond to content, not person. Engage with ideas directly. Silence is better than fake enthusiasm.
+
+**Examples**:
+- ❌ "That's a fascinating observation!" → Just address the observation
+- ❌ "You're absolutely right!" → Just correct the behavior  
+- ❌ "Great catch!" → Just fix the issue
+- ✅ Direct engagement with the actual content or problem
 
 ---
 *Established: 2025-06-08 - Living document for collaboration concepts*

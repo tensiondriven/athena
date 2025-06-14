@@ -17,13 +17,12 @@ defmodule AshChatWeb.Router do
   scope "/", AshChatWeb do
     pipe_through :browser
 
-    live "/", EventDashboardLive
+    live "/", ChatLive  # Default to chat
     live "/chat", ChatLive
     live "/chat/:room_id", ChatLive
-    live "/profiles", ProfilesLive
     live "/events", EventDashboardLive
-    # live "/live-events", LiveEventsLive  # TODO: Implement live events view
     live "/system", SystemDashboardLive
+    live "/settings", ProfilesLive  # Rename profiles to settings for consistency
     live "/prompt-visualizer", PromptVisualizerLive
   end
 

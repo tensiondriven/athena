@@ -5,16 +5,13 @@ Development and testing utilities for the Athena project.
 ## Quick Start
 
 ```bash
-# Check what's installed
-./setup-dependencies.sh status
-
-# Install all external dependencies  
-./setup-dependencies.sh
+# Install external dependencies
+./setup-dependencies-simple.sh
 ```
 
 ## External Dependencies
 
-All external dependencies are managed in the `vendor/` directory and are **not** committed to source control. Use the setup script to install them.
+External dependencies are installed to `vendor/` (gitignored).
 
 ### Current Dependencies:
 
