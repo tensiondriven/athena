@@ -150,7 +150,7 @@ defmodule AshChat.AI.OllamaModelStatus do
       %HTTPoison.AsyncChunk{id: ^id, chunk: chunk} ->
         # Handle streaming JSON responses (one per line)
         new_buffer = buffer <> chunk
-        {remaining, processed} = process_json_lines(new_buffer, callback_fn)
+        {remaining, _processed} = process_json_lines(new_buffer, callback_fn)
         
         HTTPoison.stream_next(id)
         stream_pull_progress(id, callback_fn, remaining)

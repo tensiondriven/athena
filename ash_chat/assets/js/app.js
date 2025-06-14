@@ -40,6 +40,35 @@ Hooks.LocalStorage = {
   }
 }
 
+Hooks.MessageScroll = {
+  mounted() {
+    this.scrollToBottom()
+    // Observe changes to automatically scroll when new messages are added
+    this.observer = new MutationObserver(() => {
+      this.scrollToBottom()
+    })
+    this.observer.observe(this.el, { childList: true, subtree: true })
+  },
+  
+  updated() {
+    this.scrollToBottom()
+  },
+  
+  scrollToBottom() {
+    // Smooth scroll to bottom
+    this.el.scrollTo({
+      top: this.el.scrollHeight,
+      behavior: 'smooth'
+    })
+  },
+  
+  destroyed() {
+    if (this.observer) {
+      this.observer.disconnect()
+    }
+  }
+}
+
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 let liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,

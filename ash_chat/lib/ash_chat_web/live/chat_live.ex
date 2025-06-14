@@ -1103,7 +1103,14 @@ defmodule AshChatWeb.ChatLive do
   end
   
   def handle_info({:agent_thinking, agent_id, thinking_msg}, socket) do
-    agents_thinking = Map.put(socket.assigns.agents_thinking, agent_id, thinking_msg)
+    # Support both string and map formats
+    thinking_data = case thinking_msg do
+      msg when is_binary(msg) -> msg
+      data when is_map(data) -> data
+      _ -> "Processing..."
+    end
+    
+    agents_thinking = Map.put(socket.assigns.agents_thinking, agent_id, thinking_data)
     {:noreply, assign(socket, :agents_thinking, agents_thinking)}
   end
   
@@ -1748,7 +1755,7 @@ defmodule AshChatWeb.ChatLive do
 
         <%= if @room do %>
           <!-- Messages Area -->
-          <div class="flex-1 overflow-y-auto p-4 space-y-2">
+          <div class="flex-1 overflow-y-auto p-4 space-y-2" id="messages-container" phx-hook="MessageScroll">
             <%= for message <- @messages do %>
               <%= if message.role == :system do %>
                 <!-- System message -->
@@ -1833,25 +1840,60 @@ defmodule AshChatWeb.ChatLive do
               <% end %>
             <% end %>
 
-            <%= for {_agent_id, thinking_msg} <- @agents_thinking do %>
-              <!-- Thinking indicator Slack-style -->
-              <div class="flex items-start gap-3 px-2 py-1">
+            <%= for {agent_id, thinking_data} <- @agents_thinking do %>
+              <!-- Enhanced thinking indicator -->
+              <div class="flex items-start gap-3 px-2 py-1 group">
                 <div class="flex-shrink-0">
-                  <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-md flex items-center justify-center text-white text-xs animate-pulse">
+                  <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-md flex items-center justify-center text-white text-xs relative overflow-hidden">
+                    <!-- Scanning animation -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 -translate-x-full animate-scan"></div>
                     AI
                   </div>
                 </div>
                 <div class="flex-1">
-                  <div class="flex items-center gap-2">
-                    <div class="flex space-x-1">
-                      <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0s"></div>
-                      <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                      <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                  <div class="flex flex-col gap-1">
+                    <!-- Status line -->
+                    <div class="flex items-center gap-2">
+                      <!-- Activity indicator -->
+                      <div class="flex items-center gap-1">
+                        <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-xs text-gray-600 font-medium">
+                          <%= if is_map(thinking_data) do %>
+                            <%= thinking_data.agent_name || "Agent" %>
+                          <% else %>
+                            <%= extract_agent_name(thinking_data) %>
+                          <% end %>
+                        </span>
+                      </div>
+                      <span class="text-xs text-gray-500 italic">
+                        <%= if is_map(thinking_data) && thinking_data[:status] do %>
+                          <%= thinking_data.status %>
+                        <% else %>
+                          <%= thinking_data %>
+                        <% end %>
+                      </span>
                     </div>
-                    <span class="text-sm text-gray-500 italic"><%= thinking_msg %></span>
+                    
+                    <!-- Optional streaming preview -->
+                    <%= if is_map(thinking_data) && thinking_data[:preview] do %>
+                      <div class="bg-gray-50 rounded px-2 py-1 text-xs text-gray-600 font-mono max-w-md">
+                        <%= thinking_data.preview %><span class="animate-pulse">▌</span>
+                      </div>
+                    <% end %>
                   </div>
                 </div>
               </div>
+              
+              <style>
+                @keyframes scan {
+                  to {
+                    transform: translateX(200%);
+                  }
+                }
+                .animate-scan {
+                  animation: scan 2s linear infinite;
+                }
+              </style>
             <% end %>
           </div>
 
@@ -2717,5 +2759,14 @@ defmodule AshChatWeb.ChatLive do
       true -> message.content # Use full content as type for other system messages
     end
   end
+  
+  defp extract_agent_name(thinking_msg) when is_binary(thinking_msg) do
+    # Extract agent name from thinking message like "Maya is thinking..."
+    case Regex.run(~r/^(\w+)\s+is/, thinking_msg) do
+      [_, name] -> name
+      _ -> "Agent"
+    end
+  end
+  defp extract_agent_name(_), do: "Agent"
 end
 

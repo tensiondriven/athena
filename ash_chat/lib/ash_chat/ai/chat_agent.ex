@@ -214,7 +214,7 @@ defmodule AshChat.AI.ChatAgent do
       {:error, "Unexpected error: #{Exception.message(error)}"}
   end
 
-  defp process_with_llm(agent, messages, room_id, agent_card \\ nil) do
+  defp process_with_llm(agent, messages, room_id, agent_card) do
     require Logger
     
     case LLMChain.run(agent, messages) do
