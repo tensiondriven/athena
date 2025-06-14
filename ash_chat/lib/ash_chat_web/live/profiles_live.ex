@@ -293,7 +293,12 @@ defmodule AshChatWeb.ProfilesLive do
   end
 
   defp load_personas do
-    AshChat.Resources.Persona.read!()
+    personas = AshChat.Resources.Persona.read!()
+    IO.puts("Loading personas: #{length(personas)}")
+    Enum.each(personas, fn p -> 
+      IO.puts("  - #{p.name} (#{p.provider})")
+    end)
+    personas
   end
 
   defp load_system_prompts do

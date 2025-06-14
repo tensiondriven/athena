@@ -9,6 +9,7 @@ defmodule AshChat.Domain do
     resource AshChat.Resources.Persona
     resource AshChat.Resources.SystemPrompt
     resource AshChat.Resources.AgentCard
+    resource AshChat.Resources.Companion  # New unified companion resource
     resource AshChat.Resources.User
     resource AshChat.Resources.RoomMembership
     resource AshChat.Resources.AgentMembership

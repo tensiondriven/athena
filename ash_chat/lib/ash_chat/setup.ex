@@ -31,19 +31,35 @@ defmodule AshChat.Setup do
     # 1. Create user
     jonathan = User.create!(seed_data["user"])
 
-    # 2. Create profile (auto-detect OpenRouter vs Ollama)
-    use_openrouter = Application.get_env(:ash_chat, :use_openrouter, false)
+    # 2. Create all three provider profiles
     openrouter_key = Application.get_env(:langchain, :openrouter_key)
-
-    profile_config = if use_openrouter && openrouter_key do
-      seed_data["profiles"]["openrouter"]
-      |> Map.put("api_key", openrouter_key)
-    else
+    
+    # Create Ollama profile
+    ollama_profile = Persona.create!(
       seed_data["profiles"]["ollama"]
       |> Map.put("url", expand_env_vars(seed_data["profiles"]["ollama"]["url"]))
+      |> Map.put("is_default", true)  # Make Ollama the default
+    )
+    
+    # Create OpenRouter profile
+    openrouter_profile = if openrouter_key do
+      Persona.create!(
+        seed_data["profiles"]["openrouter"]
+        |> Map.put("api_key", openrouter_key)
+        |> Map.put("is_default", false)
+      )
+    else
+      nil
     end
-
-    profile = Persona.create!(profile_config)
+    
+    # Create Claude profile
+    claude_profile = Persona.create!(
+      seed_data["profiles"]["claude"]
+      |> Map.put("is_default", false)
+    )
+    
+    # Use Ollama as the default profile for the demo agent
+    profile = ollama_profile
 
     # 3. Create system prompt
     system_prompt_config = seed_data["system_prompt"]
@@ -75,11 +91,15 @@ defmodule AshChat.Setup do
       auto_respond: seed_data["memberships"]["agent_auto_respond"]
     })
 
-    _backend_info = if profile.provider == "openrouter" do
-      "OpenRouter (Cloud)"
-    else
-      "Ollama HTTP"
-    end
+    # Get all profiles for summary
+    all_profiles = [
+      {"Ollama", ollama_profile},
+      {"OpenRouter", openrouter_profile},
+      {"Claude", claude_profile}
+    ]
+    |> Enum.filter(fn {_, p} -> p != nil end)
+    |> Enum.map(fn {name, p} -> "  - #{name}: #{p.model}" end)
+    |> Enum.join("\n")
 
     %{
       profile: profile,
@@ -91,9 +111,12 @@ defmodule AshChat.Setup do
       Clean minimal data created!
 
       👤 User: #{jonathan.display_name}
-      🔧 Profile: #{profile.name} (#{profile.provider})
+      
+      🔧 Available Profiles:
+      #{all_profiles}
+      
       📝 System Prompt: #{system_prompt.name}
-      🤖 Agent: #{agent_card.name}
+      🤖 Agent: #{agent_card.name} (using #{profile.name})
       🏠 Room: #{room.title}
 
       Ready to use! Visit /chat to start chatting.
@@ -162,6 +185,14 @@ defmodule AshChat.Setup do
               "url" => "http://10.1.2.200:11434",
               "model" => "qwen2.5:latest",
               "is_default" => true
+            },
+            "claude" => %{
+              "name" => "Claude (Oneshot)",
+              "persona_type" => "Role",
+              "provider" => "claude_oneshot",
+              "url" => "",
+              "model" => "claude-3-sonnet-20240229",
+              "is_default" => false
             }
           },
           "system_prompt" => %{
