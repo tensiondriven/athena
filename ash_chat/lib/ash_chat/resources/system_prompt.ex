@@ -40,6 +40,16 @@ defmodule AshChat.Resources.SystemPrompt do
       description "Whether this prompt is available for use"
     end
 
+    attribute :version, :string do
+      public? true
+      description "Version identifier for this prompt (e.g., '1.0', '1.1', '2.0-beta')"
+    end
+
+    attribute :version_notes, :string do
+      public? true
+      description "Notes about what changed in this version"
+    end
+
     timestamps()
   end
 
@@ -54,6 +64,19 @@ defmodule AshChat.Resources.SystemPrompt do
       public? true
       description "Agent cards using this system prompt"
     end
+
+    # Track the original prompt this was derived from
+    belongs_to :parent_prompt, __MODULE__ do
+      public? true
+      description "The original prompt this version was derived from"
+    end
+
+    # Track all versions derived from this prompt
+    has_many :versions, __MODULE__ do
+      public? true
+      destination_attribute :parent_prompt_id
+      description "All versions derived from this prompt"
+    end
   end
 
   validations do
@@ -66,11 +89,11 @@ defmodule AshChat.Resources.SystemPrompt do
     defaults [:read, :destroy]
 
     create :create do
-      accept [:name, :content, :description, :persona_id, :is_active]
+      accept [:name, :content, :description, :persona_id, :is_active, :version, :version_notes, :parent_prompt_id]
     end
     
     update :update do
-      accept [:name, :content, :description, :persona_id, :is_active]
+      accept [:name, :content, :description, :persona_id, :is_active, :version, :version_notes]
     end
     
     read :active do

@@ -107,7 +107,9 @@ defmodule AshChatWeb.ProfilesLive do
       "content" => system_prompt.content,
       "description" => system_prompt.description || "",
       "persona_id" => system_prompt.persona_id,
-      "is_active" => system_prompt.is_active
+      "is_active" => system_prompt.is_active,
+      "version" => system_prompt.version || "",
+      "version_notes" => system_prompt.version_notes || ""
     }
     
     {:noreply, 
@@ -160,6 +162,40 @@ defmodule AshChatWeb.ProfilesLive do
   end
 
   @impl true
+  def handle_event("duplicate_system_prompt", %{"id" => id}, socket) do
+    system_prompt = Enum.find(socket.assigns.system_prompts, &(&1.id == id))
+    
+    # Calculate next version
+    original_version = system_prompt.version || "1.0"
+    next_version = calculate_next_version(original_version)
+    
+    # If this prompt has a parent, use that as the parent. Otherwise, this prompt becomes the parent.
+    parent_id = system_prompt.parent_prompt_id || system_prompt.id
+    
+    duplicate_params = %{
+      "name" => system_prompt.name,  # Keep the same name
+      "content" => system_prompt.content,
+      "description" => system_prompt.description,
+      "persona_id" => system_prompt.persona_id,
+      "is_active" => false,  # Set duplicate as inactive by default
+      "version" => next_version,
+      "version_notes" => "Duplicated from version #{original_version}",
+      "parent_prompt_id" => parent_id
+    }
+    
+    case AshChat.Resources.SystemPrompt.create(duplicate_params) do
+      {:ok, _new_prompt} ->
+        {:noreply,
+         socket
+         |> assign(system_prompts: load_system_prompts())
+         |> put_flash(:info, "Created version #{next_version} of #{system_prompt.name}")}
+      
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, "Failed to duplicate agent persona")}
+    end
+  end
+
+  @impl true
   def handle_event("cancel_form", _params, socket) do
     {:noreply, 
      socket
@@ -178,5 +214,24 @@ defmodule AshChatWeb.ProfilesLive do
   defp load_system_prompts do
     AshChat.Resources.SystemPrompt.read!()
     |> Ash.load!([:persona])
+  end
+
+  defp calculate_next_version(current_version) do
+    # Simple version incrementing logic
+    case String.split(current_version, ".") do
+      [major, minor] ->
+        case Integer.parse(minor) do
+          {minor_int, _} -> "#{major}.#{minor_int + 1}"
+          _ -> "#{current_version}.1"
+        end
+      [major] ->
+        case Integer.parse(major) do
+          {major_int, _} -> "#{major_int + 1}"
+          _ -> "#{current_version}.1"
+        end
+      _ ->
+        # For complex versions like "2.0-beta", just append .1
+        "#{current_version}.1"
+    end
   end
 end
