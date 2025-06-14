@@ -1384,10 +1384,10 @@ defmodule AshChatWeb.ChatLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="flex flex-col h-full bg-white">
+    <div class="flex flex-col h-screen bg-white">
       <.nav_menu current_page={:chat} />
       
-      <div class="flex flex-1 bg-white">
+      <div class="flex flex-1 bg-white overflow-hidden">
       <!-- Sidebar -->
       <div class={[
         "bg-white border-r border-gray-200 transition-all duration-300 flex flex-col",
@@ -1602,7 +1602,7 @@ defmodule AshChatWeb.ChatLive do
       <% end %>
       
       <!-- Main Content Area -->
-      <div class="flex-1 flex flex-col">
+      <div class="flex-1 flex flex-col min-h-0">
         <!-- Navigation Tabs -->
         <div class="bg-white border-b border-gray-200">
           <div class="flex space-x-1 px-4">
@@ -1914,7 +1914,7 @@ defmodule AshChatWeb.ChatLive do
       <!-- Message Details Sidebar -->
       <%= if @show_message_details && @selected_message do %>
         <div class={[
-          "w-96 bg-white border-l border-gray-200 flex flex-col transition-all duration-200 ease-in-out overflow-hidden",
+          "w-96 bg-white border-l border-gray-200 flex flex-col transition-all duration-200 ease-in-out",
           if(@show_message_details && @selected_message, do: "translate-x-0", else: "translate-x-full")
         ]}
         style={if(@show_message_details && @selected_message, do: "", else: "width: 0")}>
