@@ -789,6 +789,10 @@ defmodule AshChatWeb.ChatLive do
           if agent_memberships == [] do
             {:noreply, put_error_flash(socket, "No agents in room to respond")}
           else
+            # Check if any agents are already thinking/responding
+            if map_size(socket.assigns.agents_thinking) > 0 do
+              {:noreply, put_flash(socket, :warning, "Agents are already responding. Please wait for them to finish.")}
+            else
             # Start thinking states for all agents
             for membership <- agent_memberships do
               agent_card = case Ash.get(AshChat.Resources.AgentCard, membership.agent_card_id) do
@@ -845,6 +849,7 @@ defmodule AshChatWeb.ChatLive do
             end)
             
             {:noreply, put_flash(socket, :info, "Retriggering agents to consider responding...")}
+            end
           end
           
         _ ->
@@ -863,9 +868,13 @@ defmodule AshChatWeb.ChatLive do
           # Get the specific agent membership
           case AshChat.Resources.AgentMembership.for_agent_and_room(%{agent_card_id: agent_card_id, room_id: socket.assigns.room.id}) do
             {:ok, [membership | _]} when membership.auto_respond ->
-              # Get agent card
-              case Ash.get(AshChat.Resources.AgentCard, agent_card_id) do
-                {:ok, agent_card} ->
+              # Check if this specific agent is already thinking/responding
+              if Map.has_key?(socket.assigns.agents_thinking, agent_card_id) do
+                {:noreply, put_flash(socket, :warning, "This agent is already responding. Please wait for it to finish.")}
+              else
+                # Get agent card
+                case Ash.get(AshChat.Resources.AgentCard, agent_card_id) do
+                  {:ok, agent_card} ->
                   # Start thinking state for this agent
                   thinking_msg = generate_thinking_message(agent_card.name)
                   Phoenix.PubSub.broadcast(
@@ -896,6 +905,7 @@ defmodule AshChatWeb.ChatLive do
                   
                 {:error, _} ->
                   {:noreply, put_error_flash(socket, "Agent not found")}
+                end
               end
               
             {:ok, [_membership | _]} ->
@@ -2553,11 +2563,11 @@ defmodule AshChatWeb.ChatLive do
       _ -> 
         # Try to get name from agent_card_id
         case message.agent_card_id do
-          nil -> "Assistant"  # Generic fallback only if no agent associated
+          nil -> "Unknown Agent"
           agent_card_id ->
             case Ash.get(AshChat.Resources.AgentCard, agent_card_id) do
               {:ok, agent_card} -> agent_card.name
-              _ -> "Assistant"
+              _ -> "Unknown Agent"
             end
         end
     end

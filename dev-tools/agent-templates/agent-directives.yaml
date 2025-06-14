@@ -1,0 +1,166 @@
+# Agent Directive System
+# Defines different modes of operation for work packet processing
+
+directives:
+  analyze:
+    name: "analyze"
+    description: "Analyze the problem and return structured assessment"
+    confidence_threshold: 60
+    max_duration: 30
+    output_format:
+      status: "ANALYZED"
+      understanding: "What the agent understood about the problem"
+      complexity: "Simple|Medium|Complex|Too Complex"
+      estimated_duration: "Time estimate in seconds"
+      confidence: "Confidence percentage in understanding"
+      missing_info: "List of missing information or unclear requirements"
+      risks: "Potential risks or side effects identified"
+      dependencies: "External dependencies discovered"
+    
+  plan:
+    name: "plan" 
+    description: "Create detailed execution plan without executing"
+    confidence_threshold: 80
+    max_duration: 60
+    output_format:
+      status: "PLANNED"
+      execution_steps: "Ordered list of specific actions to take"
+      estimated_duration: "Total time estimate for execution"
+      confidence: "Confidence in the plan"
+      success_probability: "Estimated probability of successful execution"
+      required_files: "Files that need to be read/modified"
+      verification_steps: "How to verify each step completed correctly"
+      rollback_plan: "How to undo changes if something goes wrong"
+      
+  critique:
+    name: "critique"
+    description: "Critique an existing plan or approach"
+    confidence_threshold: 70
+    max_duration: 45
+    input_required: ["plan_to_critique"]
+    output_format:
+      status: "CRITIQUED"
+      overall_assessment: "Good|Needs Work|Problematic|Dangerous"
+      strengths: "What's good about the plan"
+      weaknesses: "Potential issues or problems"
+      missing_steps: "Steps that should be added"
+      risk_assessment: "Potential risks and their severity"
+      suggestions: "Specific improvements to make"
+      confidence: "Confidence in the critique"
+      
+  simulate:
+    name: "simulate"
+    description: "Mentally simulate execution and predict outcomes"
+    confidence_threshold: 75
+    max_duration: 90
+    output_format:
+      status: "SIMULATED"
+      predicted_outcome: "Success|Partial Success|Failure"
+      success_probability: "Percentage likelihood of success"
+      failure_modes: "Ways this could fail and their likelihood"
+      side_effects: "Predicted side effects or consequences"
+      confidence: "Confidence in the simulation"
+      execution_trace: "Step-by-step simulation of what would happen"
+      
+  estimate:
+    name: "estimate"
+    description: "Provide time and effort estimates"
+    confidence_threshold: 65
+    max_duration: 20
+    output_format:
+      status: "ESTIMATED"
+      time_estimate: "Expected duration in seconds"
+      confidence_range: "Min and max time estimates"
+      effort_level: "Low|Medium|High|Extreme"
+      complexity_factors: "What makes this complex or simple"
+      confidence: "Confidence in the estimates"
+      assumptions: "Key assumptions made in estimation"
+      
+  execute:
+    name: "execute"
+    description: "Actually perform the work"
+    confidence_threshold: 90
+    max_duration: 120
+    output_format:
+      status: "COMPLETED|FAILED"
+      summary: "What was accomplished or what failed"
+      files_modified: "List of files changed"
+      verification: "How to verify the work"
+      duration: "Actual time taken"
+      confidence: "Confidence that work was done correctly"
+      follow_up: "Any additional work discovered"
+      
+  validate:
+    name: "validate"
+    description: "Check if completed work meets requirements"
+    confidence_threshold: 85
+    max_duration: 60
+    input_required: ["work_to_validate", "success_criteria"]
+    output_format:
+      status: "VALID|INVALID|PARTIAL"
+      criteria_met: "Which success criteria were satisfied"
+      criteria_failed: "Which success criteria were not met"
+      quality_assessment: "Overall quality of the work"
+      issues_found: "Specific problems identified"
+      confidence: "Confidence in the validation"
+      recommendations: "Suggested fixes or improvements"
+
+# Directive selection rules
+selection_rules:
+  # Auto-select directive based on confidence and context
+  auto_select:
+    - if: "confidence < 70"
+      then: "analyze"
+      reason: "Need better understanding before proceeding"
+      
+    - if: "confidence >= 70 && confidence < 85 && no_plan_provided"
+      then: "plan"
+      reason: "Confident enough to plan but not execute"
+      
+    - if: "confidence >= 85 && duration_estimate > 90"
+      then: "simulate"
+      reason: "High confidence but complex - simulate first"
+      
+    - if: "confidence >= 90 && duration_estimate <= 90"
+      then: "execute" 
+      reason: "High confidence and reasonable scope - execute"
+      
+    - if: "plan_provided && confidence >= 70"
+      then: "critique"
+      reason: "Can critique the provided plan"
+
+# Directive chaining - how directives can flow into each other
+chains:
+  analysis_to_planning:
+    from: "analyze"
+    to: "plan"
+    condition: "confidence >= 80 && complexity != 'Too Complex'"
+    
+  planning_to_simulation:
+    from: "plan"
+    to: "simulate"
+    condition: "success_probability >= 70"
+    
+  simulation_to_execution:
+    from: "simulate"
+    to: "execute"
+    condition: "predicted_outcome == 'Success' && success_probability >= 85"
+    
+  execution_to_validation:
+    from: "execute"
+    to: "validate"
+    condition: "status == 'COMPLETED'"
+
+# Error handling
+error_handling:
+  confidence_too_low:
+    message: "Confidence ({confidence}%) below threshold ({threshold}%) for directive '{directive}'"
+    suggested_directive: "analyze"
+    
+  duration_too_long:
+    message: "Estimated duration ({duration}s) exceeds limit ({limit}s) for directive '{directive}'"
+    suggested_directive: "plan"
+    
+  missing_input:
+    message: "Directive '{directive}' requires input: {missing_inputs}"
+    suggested_directive: "analyze"

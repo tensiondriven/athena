@@ -1,0 +1,45 @@
+# Claude Spawner Safety Configuration
+# Prevents runaway agent spawning and resource exhaustion
+
+safety_limits:
+  # Maximum depth of nested agent spawning (prevents infinite recursion)
+  max_spawn_depth: 2
+  
+  # Maximum concurrent spawned instances 
+  max_concurrent_spawns: 3
+  
+  # Maximum time-to-live for any spawned instance (minutes)
+  max_ttl_minutes: 10
+  
+  # Maximum "rounds" or iterations before blocking
+  max_rounds: 5
+  
+  # Hard timeout for individual work packets (seconds)
+  work_packet_timeout: 120
+
+# Environment variable overrides (use these to customize at runtime)
+env_overrides:
+  CLAUDE_MAX_SPAWN_DEPTH: "max_spawn_depth"
+  CLAUDE_MAX_CONCURRENT: "max_concurrent_spawns" 
+  CLAUDE_MAX_TTL_MINUTES: "max_ttl_minutes"
+  CLAUDE_MAX_ROUNDS: "max_rounds"
+
+# Emergency brake - if these environment variables are set, disable spawning entirely
+emergency_brake:
+  - CLAUDE_NO_SPAWN
+  - CLAUDE_EMERGENCY_STOP
+
+# Monitoring and alerts
+monitoring:
+  log_all_spawns: true
+  alert_on_depth_limit: true
+  alert_on_concurrent_limit: true
+  alert_on_timeout: true
+
+# Safety messages
+messages:
+  depth_limit: "Maximum spawn depth ({depth}) reached. Consider breaking work into smaller, independent packets."
+  concurrent_limit: "Too many concurrent spawns ({current}/{max}). Wait for existing spawns to complete."
+  ttl_expired: "Spawn {spawn_id} exceeded maximum lifetime ({ttl} minutes). This suggests the work packet was too complex."
+  rounds_limit: "Maximum rounds ({rounds}) reached. This suggests an iterative refinement loop that should be restructured."
+  emergency_brake: "Agent spawning disabled via emergency brake: {brake_var}"

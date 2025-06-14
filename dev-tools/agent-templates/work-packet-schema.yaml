@@ -1,0 +1,163 @@
+# Work Packet Schema Definition
+# Defines the structure for decomposing complex tasks into executable units
+
+work_packet:
+  id: 
+    type: string
+    description: "Unique identifier (e.g., wp-auth-validation-001)"
+    required: true
+  
+  title:
+    type: string
+    description: "Concise, specific description of the work"
+    required: true
+    max_length: 100
+  
+  description:
+    type: string
+    description: "Detailed explanation of what needs to be done"
+    required: true
+  
+  parent_task:
+    type: string
+    description: "ID or description of the larger task this contributes to"
+    required: false
+  
+  dependencies:
+    type: array
+    description: "Other work packets that must complete before this one"
+    items:
+      type: string
+    required: false
+  
+  context:
+    files:
+      required:
+        type: array
+        description: "Files that must be read/modified for this work"
+        items:
+          path: string
+          purpose: string
+          sections: 
+            type: array
+            items: string
+            description: "Specific functions/sections to focus on"
+      
+      reference:
+        type: array
+        description: "Additional files for context (read-only)"
+        items:
+          path: string
+          relevance: string
+    
+    environment:
+      working_directory: string
+      git_branch: string
+      test_command: string
+      build_command: string
+  
+  success_criteria:
+    type: array
+    description: "Specific, verifiable conditions for completion"
+    items:
+      description: string
+      verification_method: string
+    required: true
+  
+  constraints:
+    time_limit:
+      type: integer
+      description: "Maximum execution time in seconds"
+      default: 120
+      maximum: 120
+    
+    scope:
+      type: string
+      description: "Boundaries of what this work packet should/shouldn't touch"
+      required: true
+    
+    side_effects:
+      type: array
+      description: "Known or potential side effects of this work"
+      items:
+        effect: string
+        impact: string
+        mitigation: string
+  
+  confidence_check:
+    required_confidence: 
+      type: integer
+      minimum: 90
+      description: "Minimum confidence percentage required to proceed"
+    
+    clarity_questions:
+      type: array
+      description: "Questions the agent should be able to answer confidently"
+      items: string
+
+examples:
+  simple_fix:
+    id: "wp-nav-css-alignment-001"
+    title: "Fix navigation menu alignment on mobile"
+    description: "The navigation menu items are not properly aligned on mobile screens < 768px. Center the items and ensure proper spacing."
+    context:
+      files:
+        required:
+          - path: "src/components/Navigation.css"
+            purpose: "Contains the mobile navigation styles"
+            sections: ["@media (max-width: 768px)", ".nav-menu"]
+        reference:
+          - path: "src/components/Navigation.jsx"
+            relevance: "Shows the HTML structure being styled"
+    success_criteria:
+      - description: "Navigation items are centered on mobile"
+        verification_method: "Visual inspection at 375px viewport width"
+      - description: "Equal spacing between navigation items"
+        verification_method: "CSS spacing values are consistent"
+    constraints:
+      time_limit: 60
+      scope: "Only modify CSS for mobile navigation, do not change HTML structure"
+      side_effects: []
+    confidence_check:
+      required_confidence: 95
+      clarity_questions:
+        - "What specific CSS properties need to be modified?"
+        - "What viewport width defines 'mobile' for this fix?"
+        - "How should the navigation items be aligned?"
+
+  validation_task:
+    id: "wp-auth-input-validation-001"
+    title: "Add input validation to user registration email field"
+    description: "Add client-side email validation to the registration form. Should validate format and check for common typos in domains."
+    context:
+      files:
+        required:
+          - path: "src/components/auth/RegisterForm.jsx"
+            purpose: "Contains the registration form component"
+            sections: ["email input field", "validation functions"]
+          - path: "src/utils/validation.js"
+            purpose: "Existing validation utilities to extend"
+        reference:
+          - path: "src/components/auth/LoginForm.jsx"
+            relevance: "Example of existing validation patterns"
+    success_criteria:
+      - description: "Email format validation prevents submission of invalid emails"
+        verification_method: "Test with invalid formats (no @, invalid domain, etc.)"
+      - description: "Common domain typo suggestions (e.g., gmail.co → gmail.com)"
+        verification_method: "Test with common typos and verify suggestions appear"
+      - description: "Validation errors display clearly to user"
+        verification_method: "Error messages appear in red below the input field"
+    constraints:
+      time_limit: 120
+      scope: "Only modify email validation, do not change other form fields or styling"
+      side_effects:
+        - effect: "May slow down form submission slightly"
+          impact: "minimal"
+          mitigation: "Validation runs on client-side only"
+    confidence_check:
+      required_confidence: 90
+      clarity_questions:
+        - "What constitutes a valid email format?"
+        - "Which domain typos should be caught?"
+        - "Where should validation error messages appear?"
+        - "Should validation run on blur, on change, or on submit?"

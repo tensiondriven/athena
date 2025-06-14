@@ -23,6 +23,18 @@
         "NEO4J_PASSWORD": "athena-knowledge"
       },
       "description": "Neo4j Cypher query execution for knowledge graph"
+    },
+    "claude-code": {
+      "command": "node",
+      "args": ["/Users/j/Code/athena/dev-tools/claude-code-mcp/dist/index.js"],
+      "env": {},
+      "description": "Claude Code capabilities - enhanced file operations, search, and code review"
+    },
+    "claude-spawner": {
+      "command": "python3",
+      "args": ["/Users/j/Code/athena/dev-tools/claude-spawner-mcp.py"],
+      "env": {},
+      "description": "Spawn Claude instances with -p flag for multi-agent problem solving"
     }
   }
 }
