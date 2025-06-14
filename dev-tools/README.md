@@ -2,6 +2,43 @@
 
 Development and testing utilities for the Athena project.
 
+## Quick Start
+
+```bash
+# Check what's installed
+./setup-dependencies.sh status
+
+# Install all external dependencies  
+./setup-dependencies.sh
+```
+
+## External Dependencies
+
+All external dependencies are managed in the `vendor/` directory and are **not** committed to source control. Use the setup script to install them.
+
+### Current Dependencies:
+
+- **claude-code-mcp** - Enhanced file operations, search, and code review capabilities
+  - Source: https://github.com/auchenberg/claude-code-mcp
+  - Installed to: `vendor/claude-code-mcp/`
+
+## MCP Servers
+
+Model Context Protocol servers for extending Claude capabilities:
+
+### Built-in Servers:
+- `claude-spawner-mcp.py` - Multi-agent orchestration with safety controls
+- `agent-templates/` - YAML templates for agent directives and work packets
+
+### External Servers:
+- `claude-code` - Enhanced file operations (installed via setup script)
+- `neo4j-cypher` - Knowledge graph queries
+- `neo4j-memory` - Persistent memory storage
+
+## Configuration
+
+MCP server configuration is in `mcp_settings.json`. External dependencies use paths relative to the `vendor/` directory.
+
 ## Tools
 
 ### OpenCode Integration

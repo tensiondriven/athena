@@ -26,7 +26,7 @@
     },
     "claude-code": {
       "command": "node",
-      "args": ["/Users/j/Code/athena/dev-tools/claude-code-mcp/dist/index.js"],
+      "args": ["/Users/j/Code/athena/dev-tools/vendor/claude-code-mcp/dist/index.js"],
       "env": {},
       "description": "Claude Code capabilities - enhanced file operations, search, and code review"
     },

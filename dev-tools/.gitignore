@@ -1,0 +1,12 @@
+# External dependencies - use setup-dependencies.sh to install
+vendor/
+
+# Node modules from any npm projects
+node_modules/
+
+# Build artifacts
+dist/
+build/
+
+# Logs
+*.log
