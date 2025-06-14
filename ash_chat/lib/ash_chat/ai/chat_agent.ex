@@ -690,7 +690,7 @@ defmodule AshChat.AI.ChatAgent do
             end
         end
       profile_id ->
-        case Persona.get(profile_id) do
+        case Persona.get_by_id(profile_id) do
           {:ok, profile} -> profile
           _ -> get_profile_for_agent_card(%{agent_card | default_persona_id: nil})
         end

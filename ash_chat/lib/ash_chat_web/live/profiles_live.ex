@@ -2,6 +2,7 @@ defmodule AshChatWeb.ProfilesLive do
   use AshChatWeb, :live_view
   
   alias AshChat.CharacterCard
+  alias AshChat.Resources.Persona
 
   @impl true
   def mount(_params, _session, socket) do
@@ -9,16 +10,13 @@ defmodule AshChatWeb.ProfilesLive do
      socket
      |> assign(
        personas: load_personas(),
-       system_prompts: load_system_prompts(),
-       agent_cards: load_agent_cards(),
        show_persona_form: false,
-       show_system_prompt_form: false,
        show_import_modal: false,
        editing_persona: nil,
-       editing_system_prompt: nil,
        persona_form: to_form(%{}, as: :persona),
-       system_prompt_form: to_form(%{}, as: :system_prompt),
-       drag_over: false
+       drag_over: false,
+       filter_type: nil,
+       filter_tag: nil
      )
      |> allow_upload(:quick_import,
        accept: ~w(.json .png),
@@ -35,20 +33,24 @@ defmodule AshChatWeb.ProfilesLive do
      |> assign(
        show_persona_form: true,
        editing_persona: nil,
-       persona_form: to_form(%{}, as: :persona)
+       persona_form: to_form(%{
+         "persona_type" => "assistant",
+         "provider" => "ollama",
+         "temperature" => "0.7",
+         "max_tokens" => "500",
+         "context_format" => "consolidated"
+       }, as: :persona)
      )}
   end
 
   @impl true
   def handle_event("edit_persona", %{"id" => id}, socket) do
     persona = Enum.find(socket.assigns.personas, &(&1.id == id))
-    form_data = %{
-      "name" => persona.name,
-      "provider" => persona.provider,
-      "url" => persona.url || "",
-      "model" => persona.model || "",
-      "is_default" => persona.is_default
-    }
+    form_data = Map.from_struct(persona)
+    |> Map.drop([:__meta__, :__struct__, :id, :created_at, :updated_at, :inserted_at])
+    |> Map.new(fn {k, v} -> 
+      {to_string(k), format_form_value(v)}
+    end)
     
     {:noreply, 
      socket
@@ -61,10 +63,13 @@ defmodule AshChatWeb.ProfilesLive do
 
   @impl true
   def handle_event("save_persona", %{"persona" => persona_params}, socket) do
+    # Convert string keys to atoms and handle nested maps
+    params = atomize_params(persona_params)
+    
     result = if socket.assigns.editing_persona do
-      AshChat.Resources.Persona.update(socket.assigns.editing_persona, persona_params)
+      Persona.update(socket.assigns.editing_persona, params)
     else
-      AshChat.Resources.Persona.create(persona_params)
+      Persona.create(params)
     end
 
     case result do
@@ -87,7 +92,7 @@ defmodule AshChatWeb.ProfilesLive do
   def handle_event("delete_persona", %{"id" => id}, socket) do
     persona = Enum.find(socket.assigns.personas, &(&1.id == id))
     
-    case AshChat.Resources.Persona.destroy(persona) do
+    case Persona.destroy(persona) do
       :ok ->
         {:noreply,
          socket
@@ -100,110 +105,39 @@ defmodule AshChatWeb.ProfilesLive do
   end
 
   @impl true
-  def handle_event("new_system_prompt", _params, socket) do
-    {:noreply, 
-     socket
-     |> assign(
-       show_system_prompt_form: true,
-       editing_system_prompt: nil,
-       system_prompt_form: to_form(%{}, as: :system_prompt)
-     )}
-  end
-
-  @impl true
-  def handle_event("edit_system_prompt", %{"id" => id}, socket) do
-    system_prompt = Enum.find(socket.assigns.system_prompts, &(&1.id == id))
-    form_data = %{
-      "name" => system_prompt.name,
-      "content" => system_prompt.content,
-      "description" => system_prompt.description || "",
-      "persona_id" => system_prompt.persona_id,
-      "is_active" => system_prompt.is_active,
-      "version" => system_prompt.version || "",
-      "version_notes" => system_prompt.version_notes || ""
-    }
-    
-    {:noreply, 
-     socket
-     |> assign(
-       show_system_prompt_form: true,
-       editing_system_prompt: system_prompt,
-       system_prompt_form: to_form(form_data, as: :system_prompt)
-     )}
-  end
-
-  @impl true
-  def handle_event("save_system_prompt", %{"system_prompt" => system_prompt_params}, socket) do
-    result = if socket.assigns.editing_system_prompt do
-      AshChat.Resources.SystemPrompt.update(socket.assigns.editing_system_prompt, system_prompt_params)
-    else
-      AshChat.Resources.SystemPrompt.create(system_prompt_params)
-    end
-
-    case result do
-      {:ok, _system_prompt} ->
-        {:noreply,
-         socket
-         |> assign(
-           system_prompts: load_system_prompts(),
-           show_system_prompt_form: false,
-           editing_system_prompt: nil
-         )
-         |> put_flash(:info, "System prompt saved successfully")}
-      
-      {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, "Failed to save system prompt")}
-    end
-  end
-
-  @impl true
-  def handle_event("delete_system_prompt", %{"id" => id}, socket) do
-    system_prompt = Enum.find(socket.assigns.system_prompts, &(&1.id == id))
-    
-    case AshChat.Resources.SystemPrompt.destroy(system_prompt) do
-      :ok ->
-        {:noreply,
-         socket
-         |> assign(system_prompts: load_system_prompts())
-         |> put_flash(:info, "System prompt deleted successfully")}
-      
-      {:error, _reason} ->
-        {:noreply, put_flash(socket, :error, "Failed to delete system prompt")}
-    end
-  end
-
-  @impl true
-  def handle_event("duplicate_system_prompt", %{"id" => id}, socket) do
-    system_prompt = Enum.find(socket.assigns.system_prompts, &(&1.id == id))
+  def handle_event("duplicate_persona", %{"id" => id}, socket) do
+    persona = Enum.find(socket.assigns.personas, &(&1.id == id))
     
     # Calculate next version
-    original_version = system_prompt.version || "1.0"
-    next_version = calculate_next_version(original_version)
+    next_version = (persona.version || 1) + 1
     
-    # If this prompt has a parent, use that as the parent. Otherwise, this prompt becomes the parent.
-    parent_id = system_prompt.parent_prompt_id || system_prompt.id
+    duplicate_params = Map.from_struct(persona)
+    |> Map.drop([:__meta__, :__struct__, :id, :created_at, :updated_at])
+    |> Map.put(:version, next_version)
+    |> Map.put(:name, "#{persona.name} (v#{next_version})")
     
-    duplicate_params = %{
-      "name" => system_prompt.name,  # Keep the same name
-      "content" => system_prompt.content,
-      "description" => system_prompt.description,
-      "persona_id" => system_prompt.persona_id,
-      "is_active" => false,  # Set duplicate as inactive by default
-      "version" => next_version,
-      "version_notes" => "Duplicated from version #{original_version}",
-      "parent_prompt_id" => parent_id
-    }
-    
-    case AshChat.Resources.SystemPrompt.create(duplicate_params) do
-      {:ok, _new_prompt} ->
+    case Persona.create(duplicate_params) do
+      {:ok, _new_persona} ->
         {:noreply,
          socket
-         |> assign(system_prompts: load_system_prompts())
-         |> put_flash(:info, "Created version #{next_version} of #{system_prompt.name}")}
+         |> assign(personas: load_personas())
+         |> put_flash(:info, "Created version #{next_version} of #{persona.name}")}
       
       {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, "Failed to duplicate agent persona")}
+        {:noreply, put_flash(socket, :error, "Failed to duplicate persona")}
     end
+  end
+
+  @impl true
+  def handle_event("filter_by_type", %{"type" => type}, socket) do
+    filter = if type == "all", do: nil, else: String.to_atom(type)
+    {:noreply, assign(socket, filter_type: filter)}
+  end
+
+  @impl true
+  def handle_event("filter_by_tag", %{"tag" => tag}, socket) do
+    filter = if tag == "all", do: nil, else: tag
+    {:noreply, assign(socket, filter_tag: filter)}
   end
 
   @impl true
@@ -212,9 +146,7 @@ defmodule AshChatWeb.ProfilesLive do
      socket
      |> assign(
        show_persona_form: false,
-       show_system_prompt_form: false,
-       editing_persona: nil,
-       editing_system_prompt: nil
+       editing_persona: nil
      )}
   end
   
@@ -240,7 +172,6 @@ defmodule AshChatWeb.ProfilesLive do
   
   @impl true
   def handle_event("validate-quick-import", _params, socket) do
-    # Handle file validation during drag & drop
     {:noreply, 
      socket
      |> assign(drag_over: false)
@@ -248,15 +179,65 @@ defmodule AshChatWeb.ProfilesLive do
   end
   
   @impl true
-  def handle_info({:character_imported, agent_card}, socket) do
+  def handle_info({:character_imported, persona}, socket) do
     {:noreply,
      socket
      |> assign(
-       agent_cards: load_agent_cards(),
-       system_prompts: load_system_prompts(),
+       personas: load_personas(),
        show_import_modal: false
      )
-     |> put_flash(:info, "Successfully imported #{agent_card.name}!")}
+     |> put_flash(:info, "Successfully imported #{persona.name}!")}
+  end
+  
+  def filtered_personas(personas, type_filter, tag_filter) do
+    personas
+    |> then(fn ps ->
+      if type_filter do
+        Enum.filter(ps, &(&1.persona_type == type_filter))
+      else
+        ps
+      end
+    end)
+    |> then(fn ps ->
+      if tag_filter do
+        Enum.filter(ps, &(tag_filter in (&1.tags || [])))
+      else
+        ps
+      end
+    end)
+  end
+  
+  def all_tags(personas) do
+    personas
+    |> Enum.flat_map(&(&1.tags || []))
+    |> Enum.uniq()
+    |> Enum.sort()
+  end
+  
+  def persona_type_label(type) do
+    case type do
+      :assistant -> "AI Assistant"
+      :expert -> "Expert"
+      :friend -> "Friend"
+      :employee -> "Employee"
+      :character -> "Character"
+      :visitor -> "Visitor"
+      :guest -> "Guest"
+      _ -> to_string(type)
+    end
+  end
+  
+  def persona_type_color(type) do
+    case type do
+      :assistant -> "blue"
+      :expert -> "purple"
+      :friend -> "green"
+      :employee -> "orange"
+      :character -> "pink"
+      :visitor -> "gray"
+      :guest -> "yellow"
+      _ -> "gray"
+    end
   end
   
   defp handle_quick_import(socket) do
@@ -271,9 +252,9 @@ defmodule AshChatWeb.ProfilesLive do
       end
       
       case result do
-        {:ok, agent_card} ->
-          send(self(), {:character_imported, agent_card})
-          {:ok, agent_card}
+        {:ok, persona} ->
+          send(self(), {:character_imported, persona})
+          {:ok, persona}
           
         {:error, reason} ->
           {:postpone, reason}
@@ -287,46 +268,48 @@ defmodule AshChatWeb.ProfilesLive do
     alias AshChat.PngMetadata
     
     with {:ok, character_data} <- PngMetadata.extract_character_data(png_binary),
-         {:ok, agent_card} <- CharacterCard.import_character_data(character_data) do
-      {:ok, agent_card}
+         {:ok, persona} <- CharacterCard.import_character_data(character_data) do
+      {:ok, persona}
     end
   end
 
   defp load_personas do
-    personas = AshChat.Resources.Persona.read!()
-    IO.puts("Loading personas: #{length(personas)}")
-    Enum.each(personas, fn p -> 
-      IO.puts("  - #{p.name} (#{p.provider})")
-    end)
-    personas
-  end
-
-  defp load_system_prompts do
-    AshChat.Resources.SystemPrompt.read!()
-    |> Ash.load!([:persona])
+    Persona.read!()
+    |> Enum.sort_by(&{&1.persona_type, &1.name})
   end
   
-  defp load_agent_cards do
-    AshChat.Resources.AgentCard.read!()
-    |> Ash.load!([:system_prompt])
-  end
-
-  defp calculate_next_version(current_version) do
-    # Simple version incrementing logic
-    case String.split(current_version, ".") do
-      [major, minor] ->
-        case Integer.parse(minor) do
-          {minor_int, _} -> "#{major}.#{minor_int + 1}"
-          _ -> "#{current_version}.1"
-        end
-      [major] ->
-        case Integer.parse(major) do
-          {major_int, _} -> "#{major_int + 1}"
-          _ -> "#{current_version}.1"
-        end
-      _ ->
-        # For complex versions like "2.0-beta", just append .1
-        "#{current_version}.1"
+  defp format_form_value(nil), do: ""
+  defp format_form_value(v) when is_map(v), do: Jason.encode!(v)
+  defp format_form_value(v) when is_list(v) do
+    case v do
+      [] -> ""
+      [h | _] when is_atom(h) -> v |> Enum.map(&to_string/1) |> Enum.join(", ")
+      _ -> Enum.join(v, ", ")
     end
   end
+  defp format_form_value(v) when is_atom(v), do: to_string(v)
+  defp format_form_value(v), do: to_string(v)
+
+  defp atomize_params(params) when is_map(params) do
+    params
+    |> Enum.map(fn {k, v} ->
+      key = if is_binary(k), do: String.to_atom(k), else: k
+      value = case {k, v} do
+        {_, v} when is_map(v) -> atomize_params(v)
+        {"tags", tags} when is_binary(tags) -> 
+          tags |> String.split(",") |> Enum.map(&String.trim/1) |> Enum.filter(&(&1 != ""))
+        {"capabilities", caps} when is_binary(caps) ->
+          caps |> String.split(",") |> Enum.map(&String.trim/1) |> Enum.map(&String.to_atom/1)
+        {"temperature", temp} when is_binary(temp) -> String.to_float(temp)
+        {"max_tokens", tokens} when is_binary(tokens) -> String.to_integer(tokens)
+        {"context_window", window} when is_binary(window) -> String.to_integer(window)
+        {"auto_respond", "true"} -> true
+        {"auto_respond", "false"} -> false
+        _ -> v
+      end
+      {key, value}
+    end)
+    |> Enum.into(%{})
+  end
+  defp atomize_params(params), do: params
 end

@@ -172,3 +172,22 @@
 - Use small LLM to classify incoming requests as simple/complex
 - Route simple requests to cheap models, complex to expensive ones
 - Learn from failures when cheap model can't handle it
+
+### Performance Profiling Analysis
+- Profile Claude Code to understand where time is spent during inference
+- Profile Athena application for performance bottlenecks
+- Key questions to answer:
+  - How much time waiting for API calls vs token generation?
+  - Where are the latency hotspots in the request pipeline?
+  - What's the breakdown between:
+    - Network I/O (API requests)
+    - Token generation/streaming
+    - Tool execution overhead
+    - Context assembly/formatting
+    - Message processing/routing
+- Tools to consider:
+  - Elixir's :observer for OTP process monitoring
+  - Telemetry metrics for Phoenix/LiveView
+  - Custom timing instrumentation around LLM calls
+  - Chrome DevTools for frontend performance
+- Could help optimize response times and identify scaling issues

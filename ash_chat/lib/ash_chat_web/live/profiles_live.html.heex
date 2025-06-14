@@ -1,5 +1,4 @@
-<div class="flex flex-col h-screen bg-white relative"
-     phx-drop-target={@uploads.quick_import.ref}>
+<div class="flex flex-col h-screen bg-white" phx-drop-target={@uploads.quick_import.ref}>
   <.nav_menu current_page={:settings} />
   
   <!-- Drag & Drop Overlay -->
@@ -22,334 +21,204 @@
     <.live_file_input upload={@uploads.quick_import} />
   </form>
   
-  <div class="flex flex-1 bg-white overflow-hidden">
-    <!-- Sidebar -->
-    <div class="w-64 bg-white border-r border-gray-200 flex flex-col">
-    <!-- Sidebar Header -->
-    <div class="border-b border-gray-200 px-3 py-4">
-      <h2 class="text-sm font-semibold text-gray-800">Configuration</h2>
-    </div>
-    
-    <!-- Navigation Menu -->
-    <div class="flex-1 overflow-y-auto p-3">
-      <!-- Model Profiles Section -->
-      <div class="mb-4">
-        <div class="flex items-center justify-between mb-2">
-          <h3 class="text-xs font-medium text-gray-700 uppercase tracking-wide">Model Profiles (<%= length(@personas) %>)</h3>
-          <button
-            phx-click="new_persona"
-            class="p-1 hover:bg-gray-100 rounded-sm transition-colors"
-            title="New Persona"
-          >
-            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-          </button>
-        </div>
-        
-        <div class="space-y-1">
-          <%= for persona <- @personas do %>
-            <div class="p-2 rounded-md hover:bg-gray-50 transition-colors group">
-              <div class="flex justify-between items-start">
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-1">
-                    <span class="text-sm font-medium text-gray-700 truncate"><%= persona.name %></span>
-                    <%= if persona.is_default do %>
-                      <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Default
-                      </span>
-                    <% end %>
-                  </div>
-                  <p class="text-xs text-gray-500"><%= persona.provider %></p>
-                  <%= if persona.model do %>
-                    <p class="text-xs text-blue-600 truncate">Model: <%= persona.model %></p>
-                  <% end %>
-                </div>
-                <div class="opacity-0 group-hover:opacity-100 flex gap-1 ml-2">
-                  <button
-                    phx-click="edit_persona"
-                    phx-value-id={persona.id}
-                    class="p-1 hover:bg-gray-200 rounded-sm transition-all"
-                    title="Edit persona"
-                  >
-                    <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                  </button>
-                  <button
-                    phx-click="delete_persona"
-                    phx-value-id={persona.id}
-                    data-confirm="Are you sure?"
-                    class="p-1 hover:bg-red-100 rounded-sm transition-all"
-                    title="Delete persona"
-                  >
-                    <svg class="w-3 h-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-          <% end %>
-          
-          <%= if @personas == [] do %>
-            <div class="p-3 text-center">
-              <div class="mb-2">
-                <svg class="w-8 h-8 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
-                </svg>
-              </div>
-              <p class="text-xs text-gray-500 mb-2">No personas yet</p>
-              <button
-                phx-click="new_persona"
-                class="text-xs text-blue-600 hover:text-blue-800"
-              >
-                Create first persona
-              </button>
-            </div>
-          <% end %>
+  <!-- Main Content -->
+  <div class="flex-1 overflow-hidden bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full flex flex-col">
+      <!-- Header -->
+      <div class="mb-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1 class="text-3xl font-bold text-gray-900">Personas</h1>
+            <p class="text-sm text-gray-600 mt-1">Configure AI personas with unique personalities and behaviors</p>
+          </div>
+          <div class="flex gap-3">
+            <button
+              phx-click="show_import"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+              </svg>
+              Import
+            </button>
+            <button
+              phx-click="new_persona"
+              class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              New Persona
+            </button>
+          </div>
         </div>
       </div>
       
-      <!-- Agent Personas Section -->
-      <div>
-        <div class="flex items-center justify-between mb-2">
-          <h3 class="text-xs font-medium text-gray-700 uppercase tracking-wide">Agent Personas</h3>
-          <button
-            phx-click="new_system_prompt"
-            class="p-1 hover:bg-gray-100 rounded-sm transition-colors"
-            title="New System Prompt"
-          >
-            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-          </button>
-        </div>
-        
-        <div class="space-y-1">
-          <%= for system_prompt <- @system_prompts do %>
-            <div class="p-2 rounded-md hover:bg-gray-50 transition-colors group">
-              <div class="flex justify-between items-start">
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-1">
-                    <span class="text-sm font-medium text-gray-700 truncate"><%= system_prompt.name %></span>
-                    <%= if system_prompt.version do %>
-                      <span class="text-xs text-blue-500">v<%= system_prompt.version %></span>
-                    <% end %>
-                    <%= unless system_prompt.is_active do %>
-                      <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        Inactive
-                      </span>
-                    <% end %>
-                  </div>
-                  <p class="text-xs text-blue-600 truncate">
-                    Backend: <%= system_prompt.persona.name %>
-                  </p>
-                  <%= if system_prompt.description do %>
-                    <p class="text-xs text-gray-500 truncate"><%= system_prompt.description %></p>
-                  <% end %>
-                </div>
-                <div class="opacity-0 group-hover:opacity-100 flex gap-1 ml-2">
-                  <button
-                    phx-click="edit_system_prompt"
-                    phx-value-id={system_prompt.id}
-                    class="p-1 hover:bg-gray-200 rounded-sm transition-all"
-                    title="Edit prompt"
-                  >
-                    <svg class="w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                    </svg>
-                  </button>
-                  <button
-                    phx-click="delete_system_prompt"
-                    phx-value-id={system_prompt.id}
-                    data-confirm="Are you sure?"
-                    class="p-1 hover:bg-red-100 rounded-sm transition-all"
-                    title="Delete prompt"
-                  >
-                    <svg class="w-3 h-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
+      <!-- Filters -->
+      <%= if length(@personas) > 0 do %>
+        <div class="mb-6 flex gap-4 flex-wrap">
+          <!-- Type Filter -->
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-gray-700">Type:</span>
+            <div class="inline-flex rounded-lg border border-gray-300 bg-white">
+              <button
+                phx-click="filter_by_type"
+                phx-value-type="all"
+                class={"px-3 py-1 text-sm font-medium rounded-l-lg transition-colors #{if @filter_type == nil, do: "bg-blue-50 text-blue-700", else: "text-gray-700 hover:bg-gray-50"}"}
+              >
+                All
+              </button>
+              <%= for type <- [:assistant, :expert, :friend, :employee, :character] do %>
+                <button
+                  phx-click="filter_by_type"
+                  phx-value-type={type}
+                  class={"px-3 py-1 text-sm font-medium border-l transition-colors #{if @filter_type == type, do: "bg-blue-50 text-blue-700", else: "text-gray-700 hover:bg-gray-50"}"}
+                >
+                  <%= persona_type_label(type) %>
+                </button>
+              <% end %>
             </div>
-          <% end %>
+          </div>
           
-          <%= if @system_prompts == [] do %>
-            <div class="p-3 text-center">
-              <div class="mb-2">
-                <svg class="w-8 h-8 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-              </div>
-              <p class="text-xs text-gray-500 mb-2">No prompts yet</p>
-              <button
-                phx-click="new_system_prompt"
-                class="text-xs text-blue-600 hover:text-blue-800"
+          <!-- Tag Filter -->
+          <%= if length(all_tags(@personas)) > 0 do %>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium text-gray-700">Tag:</span>
+              <select
+                phx-change="filter_by_tag"
+                name="tag"
+                class="rounded-lg border-gray-300 text-sm"
               >
-                Create first prompt
-              </button>
+                <option value="all">All tags</option>
+                <%= for tag <- all_tags(@personas) do %>
+                  <option value={tag} selected={@filter_tag == tag}><%= tag %></option>
+                <% end %>
+              </select>
             </div>
           <% end %>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Main Content Area -->
-  <div class="flex-1 flex flex-col">
-    <!-- Header -->
-    <div class="bg-white border-b border-gray-200 px-6 py-4">
-      <div>
-        <h1 class="text-xl font-semibold text-gray-900">Model Profiles & Agent Personas</h1>
-        <p class="text-sm text-gray-600 mt-1">Configure AI model connections and define agent personalities.</p>
-      </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="flex-1 overflow-y-auto p-6">
-      <!-- Agent Personas List -->
-      <div class="max-w-5xl mx-auto">
-        <!-- Header -->
-        <div class="mb-6">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-2xl font-semibold text-gray-900">Agent Personas</h2>
-              <p class="text-sm text-gray-600 mt-1">Define unique personalities and behaviors for your AI agents</p>
-            </div>
-            <div class="flex gap-2">
-              <button
-                phx-click="show_import"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+      <% end %>
+      
+      <!-- Personas Grid -->
+      <div class="flex-1 overflow-y-auto">
+        <%= if @personas == [] do %>
+          <!-- Empty State -->
+          <div class="flex items-center justify-center h-full">
+            <div class="text-center max-w-md">
+              <div class="mb-4">
+                <svg class="w-20 h-20 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                 </svg>
-                Import Character
-              </button>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900 mb-2">No Personas Yet</h3>
+              <p class="text-gray-600 mb-6">
+                Create your first persona to define how AI agents behave and interact.
+              </p>
               <button
-                phx-click="new_system_prompt"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+                phx-click="new_persona"
+                class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
-                New Persona
+                Create Your First Persona
               </button>
             </div>
           </div>
-        </div>
-        
-        <!-- Personas Grid -->
-        <%= if @system_prompts == [] do %>
-          <!-- Empty State -->
-          <div class="text-center py-12 px-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-            <div class="mb-4">
-              <svg class="w-16 h-16 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-              </svg>
-            </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">No Agent Personas Yet</h3>
-            <p class="text-gray-500 mb-6 max-w-md mx-auto">
-              Create your first agent persona to define how your AI agents should behave and interact in conversations.
-            </p>
-            <button
-              phx-click="new_system_prompt"
-              class="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-              </svg>
-              Create Your First Persona
-            </button>
-          </div>
         <% else %>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <%= for persona <- @system_prompts do %>
-              <div class="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow group">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <%= for persona <- filtered_personas(@personas, @filter_type, @filter_tag) do %>
+              <div class="bg-white rounded-lg border border-gray-200 p-5 hover:shadow-md transition-shadow">
                 <!-- Header -->
-                <div class="flex items-start justify-between mb-4">
-                  <div class="flex-1">
-                    <div class="flex items-center gap-2">
-                      <h3 class="text-lg font-semibold text-gray-900"><%= persona.name %></h3>
-                      <%= if persona.version do %>
-                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                          v<%= persona.version %>
-                        </span>
+                <div class="flex items-start justify-between mb-3">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                      <%= if persona.avatar_url do %>
+                        <img src={persona.avatar_url} alt={persona.name} class="w-10 h-10 rounded-full" />
+                      <% else %>
+                        <span class="text-lg font-medium text-gray-600"><%= String.first(persona.name) %></span>
                       <% end %>
                     </div>
-                    <%= if persona.description do %>
-                      <p class="text-sm text-gray-600 mt-1"><%= persona.description %></p>
-                    <% end %>
-                    <%= if persona.version_notes do %>
-                      <p class="text-xs text-gray-500 mt-1 italic"><%= persona.version_notes %></p>
-                    <% end %>
+                    <div>
+                      <h3 class="font-semibold text-gray-900"><%= persona.name %></h3>
+                      <div class="flex items-center gap-2 mt-1">
+                        <span class={"inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-#{persona_type_color(persona.persona_type)}-100 text-#{persona_type_color(persona.persona_type)}-800"}>
+                          <%= persona_type_label(persona.persona_type) %>
+                        </span>
+                        <%= if persona.version && persona.version > 1 do %>
+                          <span class="text-xs text-gray-500">v<%= persona.version %></span>
+                        <% end %>
+                      </div>
+                    </div>
                   </div>
-                  <!-- Status Badge -->
-                  <%= if persona.is_active do %>
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Active
-                    </span>
-                  <% else %>
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      Inactive
+                </div>
+                
+                <!-- Description -->
+                <%= if persona.description do %>
+                  <p class="text-sm text-gray-600 mb-3"><%= persona.description %></p>
+                <% end %>
+                
+                <!-- Provider Info -->
+                <div class="flex items-center gap-4 text-xs text-gray-500 mb-3">
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                    </svg>
+                    <%= persona.provider %>
+                  </span>
+                  <%= if persona.model do %>
+                    <span class="flex items-center gap-1">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                      </svg>
+                      <%= persona.model %>
                     </span>
                   <% end %>
                 </div>
                 
-                <!-- Model Profile -->
-                <div class="mb-4">
-                  <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Model Profile</span>
-                  <p class="text-sm text-gray-900 mt-1">
-                    <%= if persona.persona do %>
-                      <%= persona.persona.name %> 
-                      <span class="text-gray-500">(<%= persona.persona.model %>)</span>
-                    <% else %>
-                      <span class="text-gray-400">No profile assigned</span>
+                <!-- Tags -->
+                <%= if persona.tags && length(persona.tags) > 0 do %>
+                  <div class="flex flex-wrap gap-1 mb-3">
+                    <%= for tag <- Enum.take(persona.tags, 3) do %>
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
+                        <%= tag %>
+                      </span>
                     <% end %>
-                  </p>
-                </div>
-                
-                <!-- Prompt Preview -->
-                <div class="mb-4">
-                  <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Prompt Preview</span>
-                  <div class="mt-1 p-3 bg-gray-50 rounded-md">
-                    <p class="text-sm text-gray-700 line-clamp-3">
-                      <%= String.slice(persona.content || "", 0, 150) %><%= if String.length(persona.content || "") > 150, do: "..." %>
-                    </p>
+                    <%= if length(persona.tags) > 3 do %>
+                      <span class="text-xs text-gray-500">+<%= length(persona.tags) - 3 %></span>
+                    <% end %>
                   </div>
-                </div>
+                <% end %>
                 
                 <!-- Actions -->
-                <div class="flex items-center gap-2 pt-4 border-t border-gray-100">
+                <div class="flex items-center gap-2 pt-3 border-t">
                   <button
-                    phx-click="edit_system_prompt"
+                    phx-click="edit_persona"
                     phx-value-id={persona.id}
-                    class="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    class="flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-white border border-gray-300 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                   >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                     </svg>
                     Edit
                   </button>
                   
                   <button
-                    phx-click="duplicate_system_prompt"
+                    phx-click="duplicate_persona"
                     phx-value-id={persona.id}
-                    class="flex-1 inline-flex items-center justify-center gap-1 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    class="flex-1 inline-flex items-center justify-center gap-1 px-3 py-1.5 bg-white border border-gray-300 rounded-md text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                   >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                     </svg>
                     Duplicate
                   </button>
                   
                   <button
-                    phx-click="delete_system_prompt"
+                    phx-click="delete_persona"
                     phx-value-id={persona.id}
                     data-confirm="Are you sure you want to delete this persona?"
-                    class="inline-flex items-center justify-center px-3 py-2 bg-white border border-red-300 rounded-md text-sm font-medium text-red-700 hover:bg-red-50 transition-colors"
+                    class="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -362,75 +231,230 @@
         <% end %>
       </div>
     </div>
-
+  </div>
+  
   <!-- Persona Form Modal -->
   <%= if @show_persona_form do %>
-    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <h3 class="text-lg font-medium text-gray-900 mb-4">
           <%= if @editing_persona, do: "Edit Persona", else: "New Persona" %>
         </h3>
         
         <.form for={@persona_form} phx-submit="save_persona" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+              <input
+                type="text"
+                name="persona[name]"
+                value={@persona_form.data["name"] || ""}
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="e.g., Maya"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+              <select
+                name="persona[persona_type]"
+                required
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="assistant" selected={@persona_form.data["persona_type"] == "assistant"}>AI Assistant</option>
+                <option value="expert" selected={@persona_form.data["persona_type"] == "expert"}>Expert</option>
+                <option value="friend" selected={@persona_form.data["persona_type"] == "friend"}>Friend</option>
+                <option value="employee" selected={@persona_form.data["persona_type"] == "employee"}>Employee</option>
+                <option value="character" selected={@persona_form.data["persona_type"] == "character"}>Character</option>
+                <option value="visitor" selected={@persona_form.data["persona_type"] == "visitor"}>Visitor</option>
+                <option value="guest" selected={@persona_form.data["persona_type"] == "guest"}>Guest</option>
+              </select>
+            </div>
+          </div>
+          
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <input
               type="text"
-              name="persona[name]"
-              value={@persona_form.data["name"] || ""}
-              required
+              name="persona[description]"
+              value={@persona_form.data["description"] || ""}
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., Local Ollama"
+              placeholder="Brief description of this persona"
             />
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Provider</label>
-            <select
-              name="persona[provider]"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">Select provider...</option>
-              <option value="ollama" selected={@persona_form.data["provider"] == "ollama"}>Ollama</option>
-              <option value="openai" selected={@persona_form.data["provider"] == "openai"}>OpenAI</option>
-              <option value="anthropic" selected={@persona_form.data["provider"] == "anthropic"}>Anthropic</option>
-            </select>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">URL (optional)</label>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Avatar URL</label>
             <input
               type="url"
-              name="persona[url]"
-              value={@persona_form.data["url"] || ""}
+              name="persona[avatar_url]"
+              value={@persona_form.data["avatar_url"] || ""}
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., http://10.1.2.200:11434"
+              placeholder="https://api.dicebear.com/7.x/avataaars/svg?seed=Name"
             />
           </div>
           
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Model (optional)</label>
-            <input
-              type="text"
-              name="persona[model]"
-              value={@persona_form.data["model"] || ""}
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="e.g., qwen2.5:latest"
-            />
+          <div class="border-t pt-4">
+            <h4 class="font-medium text-gray-900 mb-3">Backend Configuration</h4>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Provider *</label>
+                <select
+                  name="persona[provider]"
+                  required
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="ollama" selected={@persona_form.data["provider"] == "ollama"}>Ollama</option>
+                  <option value="openrouter" selected={@persona_form.data["provider"] == "openrouter"}>OpenRouter</option>
+                  <option value="claude_oneshot" selected={@persona_form.data["provider"] == "claude_oneshot"}>Claude (One-shot)</option>
+                  <option value="claude_session" selected={@persona_form.data["provider"] == "claude_session"}>Claude (Session)</option>
+                </select>
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                <input
+                  type="text"
+                  name="persona[model]"
+                  value={@persona_form.data["model"] || ""}
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., qwen2.5:latest"
+                />
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Endpoint URL</label>
+                <input
+                  type="url"
+                  name="persona[endpoint]"
+                  value={@persona_form.data["endpoint"] || ""}
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., http://10.1.2.200:11434"
+                />
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
+                <input
+                  type="password"
+                  name="persona[api_key]"
+                  value={@persona_form.data["api_key"] || ""}
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Optional API key"
+                />
+              </div>
+            </div>
           </div>
           
-          <div class="flex items-center">
-            <input
-              type="checkbox"
-              name="persona[is_default]"
-              checked={@persona_form.data["is_default"] || false}
-              class="mr-2"
-            />
-            <label class="text-sm text-gray-700">Set as default persona</label>
+          <div class="border-t pt-4">
+            <h4 class="font-medium text-gray-900 mb-3">Personality</h4>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">System Prompt *</label>
+              <textarea
+                name="persona[system_prompt]"
+                required
+                rows="4"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="You are a helpful AI assistant..."
+              ><%= @persona_form.data["system_prompt"] || "" %></textarea>
+            </div>
+            
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Personality Notes</label>
+              <textarea
+                name="persona[personality_notes]"
+                rows="2"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Additional personality traits and backstory..."
+              ><%= @persona_form.data["personality_notes"] || "" %></textarea>
+            </div>
           </div>
           
-          <div class="flex justify-end space-x-3 pt-4">
+          <div class="border-t pt-4">
+            <h4 class="font-medium text-gray-900 mb-3">Generation Settings</h4>
+            
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Temperature</label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="2"
+                  name="persona[temperature]"
+                  value={@persona_form.data["temperature"] || "0.7"}
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Max Tokens</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="4000"
+                  name="persona[max_tokens]"
+                  value={@persona_form.data["max_tokens"] || "500"}
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Context Format</label>
+                <select
+                  name="persona[context_format]"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="consolidated" selected={@persona_form.data["context_format"] == "consolidated"}>Consolidated</option>
+                  <option value="message_per_message" selected={@persona_form.data["context_format"] == "message_per_message"}>Message per Message</option>
+                  <option value="claude_style" selected={@persona_form.data["context_format"] == "claude_style"}>Claude Style</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div class="border-t pt-4">
+            <h4 class="font-medium text-gray-900 mb-3">Metadata</h4>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+              <input
+                type="text"
+                name="persona[tags]"
+                value={@persona_form.data["tags"] || ""}
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="friendly, technical, casual (comma-separated)"
+              />
+            </div>
+            
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Capabilities</label>
+              <input
+                type="text"
+                name="persona[capabilities]"
+                value={@persona_form.data["capabilities"] || ""}
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="memory, emotion_recognition, code_analysis (comma-separated)"
+              />
+            </div>
+            
+            <div class="mt-4 flex items-center">
+              <input
+                type="checkbox"
+                name="persona[auto_respond]"
+                checked={@persona_form.data["auto_respond"] != "false"}
+                class="mr-2"
+              />
+              <label class="text-sm text-gray-700">Auto-respond in chat rooms</label>
+            </div>
+          </div>
+          
+          <div class="flex justify-end space-x-3 pt-4 border-t">
             <button
               type="button"
               phx-click="cancel_form"
@@ -442,131 +466,13 @@
               type="submit"
               class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
-              Save Persona
+              <%= if @editing_persona, do: "Save Changes", else: "Create Persona" %>
             </button>
           </div>
         </.form>
       </div>
     </div>
   <% end %>
-
-  <!-- System Prompt Form Modal -->
-  <%= if @show_system_prompt_form do %>
-    <div class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl">
-        <h3 class="text-lg font-medium text-gray-900 mb-4">
-          <%= if @editing_system_prompt, do: "Edit System Prompt", else: "New System Prompt" %>
-        </h3>
-        
-        <.form for={@system_prompt_form} phx-submit="save_system_prompt" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
-            <input
-              type="text"
-              name="system_prompt[name]"
-              value={@system_prompt_form.data["name"] || ""}
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="e.g., Helpful Assistant"
-            />
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Description (optional)</label>
-            <input
-              type="text"
-              name="system_prompt[description]"
-              value={@system_prompt_form.data["description"] || ""}
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="Brief description of this prompt's purpose"
-            />
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Backend Persona</label>
-            <select
-              name="system_prompt[persona_id]"
-              required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="">Select backend...</option>
-              <%= for persona <- @personas do %>
-                <option 
-                  value={persona.id} 
-                  selected={@system_prompt_form.data["persona_id"] == persona.id}
-                >
-                  <%= persona.name %> (<%= persona.provider %>)
-                </option>
-              <% end %>
-            </select>
-          </div>
-          
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">System Prompt Content</label>
-            <textarea
-              name="system_prompt[content]"
-              required
-              rows="8"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-              placeholder="You are a helpful AI assistant..."
-            ><%= @system_prompt_form.data["content"] || "" %></textarea>
-          </div>
-          
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Version (optional)</label>
-              <input
-                type="text"
-                name="system_prompt[version]"
-                value={@system_prompt_form.data["version"] || ""}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="1.0"
-              />
-            </div>
-            
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Version Notes (optional)</label>
-              <input
-                type="text"
-                name="system_prompt[version_notes]"
-                value={@system_prompt_form.data["version_notes"] || ""}
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                placeholder="What changed in this version"
-              />
-            </div>
-          </div>
-          
-          <div class="flex items-center">
-            <input
-              type="checkbox"
-              name="system_prompt[is_active]"
-              checked={@system_prompt_form.data["is_active"] != false}
-              class="mr-2"
-            />
-            <label class="text-sm text-gray-700">Active (available for use)</label>
-          </div>
-          
-          <div class="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              phx-click="cancel_form"
-              class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-            >
-              Save Prompt
-            </button>
-          </div>
-        </.form>
-      </div>
-    </div>
-  <% end %>
-  </div>
-</div>
 </div>
 
 <!-- Import Character Modal -->

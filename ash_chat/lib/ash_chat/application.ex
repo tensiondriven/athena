@@ -38,7 +38,7 @@ defmodule AshChat.Application do
           # Check if we need to initialize demo data
           if Enum.empty?(AshChat.Resources.Room.read!()) do
             IO.puts("Initializing demo data...")
-            AshChat.Setup.reset_demo_data()
+            AshChat.SetupV2.reset_demo_data()
           else
             IO.puts("Demo data already exists, skipping initialization")
           end
