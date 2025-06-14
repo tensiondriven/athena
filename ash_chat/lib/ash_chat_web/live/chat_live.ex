@@ -1369,7 +1369,7 @@ defmodule AshChatWeb.ChatLive do
           <!-- Profiles Button -->
           <div>
             <a 
-              href={~p"/profiles"}
+              href={~p"/settings"}
               class="w-full flex items-center gap-2 px-2 py-1.5 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
             >
               <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1774,7 +1774,7 @@ defmodule AshChatWeb.ChatLive do
               <% end %>
             <% end %>
 
-            <%= for {agent_id, thinking_data} <- @agents_thinking do %>
+            <%= for {_agent_id, thinking_data} <- @agents_thinking do %>
               <!-- Typing indicator - looks like a real message -->
               <div class="group flex items-start gap-3 hover:bg-gray-50 px-2 py-1 rounded">
                 <!-- Avatar -->
