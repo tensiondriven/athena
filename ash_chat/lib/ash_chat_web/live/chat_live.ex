@@ -161,7 +161,7 @@ defmodule AshChatWeb.ChatLive do
       String.trim(content) == "" ->
         {:noreply, socket}
       true ->
-        # Send user message first (synchronously so it appears immediately)
+        # Send user message - the MessageEventProcessor will handle agent responses
         ChatAgent.send_text_message(
           socket.assigns.room.id,
           content,
@@ -173,88 +173,12 @@ defmodule AshChatWeb.ChatLive do
         |> assign(:current_message, "")
         |> update_messages()
         
-        # Re-enabled AI response system with multi-agent support
-        Task.start(fn ->
-          # Get agent memberships first to know who might respond
-          agent_memberships = case AshChat.Resources.AgentMembership.auto_responders_for_room(%{room_id: socket.assigns.room.id}) do
-            {:ok, memberships} -> memberships
-            _ -> []
-          end
-          
-          # Broadcast that agents are starting to think
-          for membership <- agent_memberships do
-            case Ash.get(AshChat.Resources.AgentCard, membership.agent_card_id) do
-              {:ok, agent_card} ->
-                thinking_msg = case agent_card.name do
-                  "Sam" -> "Sam is noodling..."
-                  "Maya" -> "Maya is pondering..."
-                  "Creative Writer" -> "Creative Writer is crafting words..."
-                  "Research Assistant" -> "Research Assistant is analyzing..."
-                  "Coding Mentor" -> "Coding Mentor is debugging thoughts..."
-                  _ -> "#{agent_card.name} is thinking..."
-                end
-                
-                Phoenix.PubSub.broadcast(
-                  AshChat.PubSub,
-                  "room:#{socket.assigns.room.id}",
-                  {:agent_thinking, agent_card.id, thinking_msg}
-                )
-              _ -> nil
-            end
-          end
-          
-          # Get the created message for agent processing
-          user_message = case Message.for_room(%{room_id: socket.assigns.room.id}) do
-            {:ok, messages} -> List.last(messages)
-            _ -> nil
-          end
-          
-          if user_message do
-            # Process agent responses using the new selective system
-            agent_responses = AgentConversation.process_agent_responses(
-              socket.assigns.room.id,
-              user_message,
-              [user_id: socket.assigns.current_user.id]
-            )
-            
-            # Send agent responses with delays
-            for response <- agent_responses do
-              if response.delay_ms > 0 do
-                Process.sleep(response.delay_ms)
-              end
-              
-              # Clear thinking state for this agent
-              Phoenix.PubSub.broadcast(
-                AshChat.PubSub,
-                "room:#{socket.assigns.room.id}",
-                {:agent_done_thinking, response.agent_card.id}
-              )
-              
-              # Message is already created by process_agent_responses
-              Logger.info("Agent #{response.agent_card.name} responded")
-            end
-            
-            # Clear thinking states for agents that didn't respond
-            responding_agent_ids = MapSet.new(agent_responses, & &1.agent_card.id)
-            for membership <- agent_memberships do
-              if !MapSet.member?(responding_agent_ids, membership.agent_card_id) do
-                Phoenix.PubSub.broadcast(
-                  AshChat.PubSub,
-                  "room:#{socket.assigns.room.id}",
-                  {:agent_done_thinking, membership.agent_card_id}
-                )
-              end
-            end
-          end
-          
-          # Clear the processing state
-          Phoenix.PubSub.broadcast(
-            AshChat.PubSub,
-            "room:#{socket.assigns.room.id}",
-            {:message_processed}
-          )
-        end)
-
+        # The MessageEventProcessor will automatically:
+        # 1. Generate events
+        # 2. Broadcast to room subscribers
+        # 3. Trigger agent responses via RoomConversationWorker
+        # The thinking states are handled by RoomConversationWorker
+        
         {:noreply, socket}
     end
   end
