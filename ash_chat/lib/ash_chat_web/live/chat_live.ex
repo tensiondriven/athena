@@ -63,7 +63,7 @@ defmodule AshChatWeb.ChatLive do
         # Subscribe to room updates for agent-to-agent conversations
         Phoenix.PubSub.subscribe(AshChat.PubSub, "room:#{room_id}")
         
-        messages = ChatAgent.get_room_messages(room_id)
+        messages = ChatAgent.get_room_messages(room_id) |> filter_duplicate_system_messages()
         
         # Check if current user is a member of this room
         is_member = if socket.assigns.current_user do
@@ -1162,7 +1162,7 @@ defmodule AshChatWeb.ChatLive do
     if socket.assigns.room == nil do
       assign(socket, :messages, [])
     else
-      messages = ChatAgent.get_room_messages(socket.assigns.room.id)
+      messages = ChatAgent.get_room_messages(socket.assigns.room.id) |> filter_duplicate_system_messages()
       assign(socket, :messages, messages)
     end
   end
@@ -2686,6 +2686,36 @@ defmodule AshChatWeb.ChatLive do
     ]
     
     Enum.random(messages)
+  end
+
+  defp filter_duplicate_system_messages(messages) do
+    # Group system messages by their content pattern (e.g., "X joined the room")
+    # Keep only the most recent of each type
+    
+    {system_messages, other_messages} = Enum.split_with(messages, &(&1.role == :system))
+    
+    # Extract message type from content
+    grouped_system = system_messages
+    |> Enum.group_by(&extract_system_message_type/1)
+    |> Enum.map(fn {_type, msgs} ->
+      # Keep only the most recent message of each type
+      Enum.max_by(msgs, & &1.created_at, DateTime)
+    end)
+    
+    # Combine filtered system messages with other messages and sort by created_at
+    (grouped_system ++ other_messages)
+    |> Enum.sort_by(& &1.created_at, DateTime)
+  end
+  
+  defp extract_system_message_type(message) do
+    cond do
+      String.contains?(message.content, "joined the room") -> :user_join
+      String.contains?(message.content, "left the room") -> :user_leave
+      String.contains?(message.content, "was added") -> :user_added
+      String.contains?(message.content, "was removed") -> :user_removed
+      String.contains?(message.content, "typing") -> :typing
+      true -> message.content # Use full content as type for other system messages
+    end
   end
 end
 
