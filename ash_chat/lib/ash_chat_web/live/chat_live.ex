@@ -1971,7 +1971,7 @@ defmodule AshChatWeb.ChatLive do
             <!-- Message Content -->
             <div>
               <h3 class="text-sm font-medium text-gray-700 mb-2">Content</h3>
-              <div class="bg-gray-50 rounded-md p-3 max-h-60 overflow-y-auto">
+              <div class="bg-gray-50 rounded-md p-3">
                 <pre class="text-xs text-gray-800 whitespace-pre-wrap"><%= @selected_message.content %></pre>
               </div>
             </div>
@@ -1980,7 +1980,7 @@ defmodule AshChatWeb.ChatLive do
             <%= if @selected_message.metadata && map_size(@selected_message.metadata) > 0 do %>
               <div>
                 <h3 class="text-sm font-medium text-gray-700 mb-2">Metadata</h3>
-                <div class="bg-gray-50 rounded-md p-3 max-h-60 overflow-y-auto">
+                <div class="bg-gray-50 rounded-md p-3">
                   <pre class="text-xs text-gray-800 whitespace-pre-wrap"><%= Jason.encode!(@selected_message.metadata, pretty: true) %></pre>
                 </div>
               </div>
@@ -2035,8 +2035,8 @@ defmodule AshChatWeb.ChatLive do
                 <!-- Messages Sent -->
                 <div class="mb-2">
                   <h4 class="text-xs font-medium text-gray-600 mb-1">Messages Sent (<%= length(payload["messages"] || []) %> total):</h4>
-                  <div class="bg-gray-50 rounded-md p-2 max-h-60 overflow-y-auto space-y-2">
-                    <%= for {msg, idx} <- Enum.with_index(payload["messages"] || []) do %>
+                  <div class="bg-gray-50 rounded-md p-2 space-y-2">
+                    <%= for {msg, _idx} <- Enum.with_index(payload["messages"] || []) do %>
                       <div class="border-l-2 border-gray-300 pl-2">
                         <div class="text-xs font-medium text-gray-600 uppercase"><%= msg["role"] %></div>
                         <div class="text-xs text-gray-800 whitespace-pre-wrap"><%= 
@@ -2054,7 +2054,7 @@ defmodule AshChatWeb.ChatLive do
                 <!-- Full JSON (collapsible) -->
                 <details class="mt-2">
                   <summary class="text-xs text-gray-500 cursor-pointer hover:text-gray-700">Show Full JSON</summary>
-                  <div class="mt-2 bg-gray-50 rounded-md p-3 max-h-60 overflow-y-auto">
+                  <div class="mt-2 bg-gray-50 rounded-md p-3">
                     <pre class="text-xs text-gray-800 whitespace-pre-wrap"><%= Jason.encode!(@selected_message.metadata["request_payload"], pretty: true) %></pre>
                   </div>
                 </details>
