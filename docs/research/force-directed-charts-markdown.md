@@ -149,11 +149,11 @@ const network = new vis.Network(container, data, options);
 
 ### GitHub Pages / Jekyll
 1. Add to `_includes/force-graph.html`
-2. Include in posts: `{% include force-graph.html %}`
+2. Include in posts: `{{ "{% include force-graph.html " }}%}`
 
 ### Hugo  
 1. Create shortcode: `layouts/shortcodes/forcegraph.html`
-2. Use in content: `{{< forcegraph >}}`
+2. Use in content: `{{ "{{< forcegraph " }}>}}`
 
 ### Plain Markdown
 Just paste the HTML/Script blocks directly!
