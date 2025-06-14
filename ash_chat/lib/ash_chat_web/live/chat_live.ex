@@ -1841,59 +1841,37 @@ defmodule AshChatWeb.ChatLive do
             <% end %>
 
             <%= for {agent_id, thinking_data} <- @agents_thinking do %>
-              <!-- Enhanced thinking indicator -->
-              <div class="flex items-start gap-3 px-2 py-1 group">
+              <!-- Typing indicator - looks like a real message -->
+              <div class="group flex items-start gap-3 hover:bg-gray-50 px-2 py-1 rounded">
+                <!-- Avatar -->
                 <div class="flex-shrink-0">
-                  <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-md flex items-center justify-center text-white text-xs relative overflow-hidden">
-                    <!-- Scanning animation -->
-                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30 -translate-x-full animate-scan"></div>
+                  <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-md flex items-center justify-center text-white text-xs">
                     AI
                   </div>
                 </div>
-                <div class="flex-1">
-                  <div class="flex flex-col gap-1">
-                    <!-- Status line -->
-                    <div class="flex items-center gap-2">
-                      <!-- Activity indicator -->
-                      <div class="flex items-center gap-1">
-                        <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-xs text-gray-600 font-medium">
-                          <%= if is_map(thinking_data) do %>
-                            <%= thinking_data.agent_name || "Agent" %>
-                          <% else %>
-                            <%= extract_agent_name(thinking_data) %>
-                          <% end %>
-                        </span>
-                      </div>
-                      <span class="text-xs text-gray-500 italic">
-                        <%= if is_map(thinking_data) && thinking_data[:status] do %>
-                          <%= thinking_data.status %>
-                        <% else %>
-                          <%= thinking_data %>
-                        <% end %>
-                      </span>
-                    </div>
-                    
-                    <!-- Optional streaming preview -->
-                    <%= if is_map(thinking_data) && thinking_data[:preview] do %>
-                      <div class="bg-gray-50 rounded px-2 py-1 text-xs text-gray-600 font-mono max-w-md">
-                        <%= thinking_data.preview %><span class="animate-pulse">▌</span>
-                      </div>
-                    <% end %>
+                
+                <!-- Message content -->
+                <div class="flex-1 min-w-0">
+                  <!-- Name and timestamp -->
+                  <div class="flex items-baseline gap-2">
+                    <span class="font-semibold text-sm text-gray-900">
+                      <%= if is_map(thinking_data) do %>
+                        <%= thinking_data.agent_name || extract_agent_name(thinking_data) %>
+                      <% else %>
+                        <%= extract_agent_name(thinking_data) %>
+                      <% end %>
+                    </span>
+                    <span class="text-xs text-gray-500">
+                      <%= format_message_time(DateTime.utc_now()) %>
+                    </span>
+                  </div>
+                  
+                  <!-- Message text -->
+                  <div class="text-sm text-gray-500 italic mt-0.5">
+                    typing
                   </div>
                 </div>
               </div>
-              
-              <style>
-                @keyframes scan {
-                  to {
-                    transform: translateX(200%);
-                  }
-                }
-                .animate-scan {
-                  animation: scan 2s linear infinite;
-                }
-              </style>
             <% end %>
           </div>
 
