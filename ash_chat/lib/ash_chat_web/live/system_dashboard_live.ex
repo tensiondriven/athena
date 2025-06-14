@@ -299,13 +299,16 @@ defmodule AshChatWeb.SystemDashboardLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="p-6 space-y-6">
-      <div class="flex justify-between items-center">
-        <h1 class="text-3xl font-bold text-gray-900">System Dashboard</h1>
-        <div class="text-sm text-gray-500">
-          Last updated: <%= Calendar.strftime(@timestamp, "%H:%M:%S UTC") %>
+    <div class="flex flex-col h-full bg-white">
+      <.nav_menu current_page={:system} />
+      
+      <div class="flex-1 overflow-y-auto p-6 space-y-6">
+        <div class="flex justify-between items-center">
+          <h1 class="text-3xl font-bold text-gray-900">System Dashboard</h1>
+          <div class="text-sm text-gray-500">
+            Last updated: <%= Calendar.strftime(@timestamp, "%H:%M:%S UTC") %>
+          </div>
         </div>
-      </div>
 
       <!-- Key Issue Alert -->
       <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -517,6 +520,7 @@ defmodule AshChatWeb.SystemDashboardLive do
             <p class="text-sm text-gray-500">Activate semantic search</p>
           </button>
         </div>
+      </div>
       </div>
     </div>
     """

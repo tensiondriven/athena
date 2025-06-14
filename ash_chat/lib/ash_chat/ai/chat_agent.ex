@@ -90,12 +90,13 @@ defmodule AshChat.AI.ChatAgent do
     # Validate user has membership in room
     validate_room_membership!(room_id, user_id)
     
-    Message.create_text_message!(%{
+    {:ok, message} = Message.create_text_message(%{
       room_id: room_id,
       content: content,
       role: role,
       user_id: user_id
     })
+    message
   end
 
   def send_image_message(room_id, content, image_url, user_id, role \\ :user) do
@@ -103,13 +104,14 @@ defmodule AshChat.AI.ChatAgent do
     validate_room_membership!(room_id, user_id)
     
     # For now, we'll store the image URL. Later we can add image processing
-    Message.create_image_message!(%{
+    {:ok, message} = Message.create_image_message(%{
       room_id: room_id,
       content: content,
       image_url: image_url,
       role: role,
       user_id: user_id
     })
+    message
   end
 
   def get_room_messages(room_id) do
@@ -171,7 +173,7 @@ defmodule AshChat.AI.ChatAgent do
          {:ok, agent_card} <- get_agent_card_for_room(room) do
       
       # Store user message first
-      _user_message = Message.create_text_message!(%{
+      {:ok, _user_message} = Message.create_text_message(%{
         room_id: room_id,
         content: user_message_content,
         role: :user,
@@ -218,7 +220,7 @@ defmodule AshChat.AI.ChatAgent do
     case LLMChain.run(agent, messages) do
       {:ok, %LLMChain{last_message: %{content: content}}} when is_binary(content) ->
         # Store AI response with agent metadata
-        ai_message = Message.create_text_message!(%{
+        {:ok, ai_message} = Message.create_text_message(%{
           room_id: room_id,
           content: content,
           role: :assistant,
@@ -319,7 +321,8 @@ defmodule AshChat.AI.ChatAgent do
           
           # Store both user and assistant messages  
           # Note: User message handled by caller, only store assistant response
-          agent_message = Message.create_text_message!(%{
+          # Create message using the non-bang version to ensure hooks run
+          {:ok, _agent_message} = Message.create_text_message(%{
             room_id: room.id,
             content: assistant_response.content,
             role: :assistant,
@@ -359,7 +362,8 @@ defmodule AshChat.AI.ChatAgent do
                 "agent_card_id" => agent_card.id
               })
               
-              agent_message = Message.create_text_message!(%{
+              # Create message using the non-bang version to ensure hooks run
+              {:ok, _agent_message} = Message.create_text_message(%{
                 room_id: room.id,
                 content: assistant_response.content,
                 role: :assistant,
@@ -444,7 +448,7 @@ defmodule AshChat.AI.ChatAgent do
         {:ok, %LLMChain{last_message: %{content: content}}} when is_binary(content) ->
           Logger.info("Successfully extracted content from Ollama: #{content}")
           # Create AI response message
-          ai_message = Message.create_text_message!(%{
+          {:ok, ai_message} = Message.create_text_message(%{
             room_id: room_id,
             content: content,
             role: :assistant
@@ -552,7 +556,7 @@ defmodule AshChat.AI.ChatAgent do
           end
           
           # Create AI response message (AI assistant doesn't need user_id validation)
-          ai_message = Message.create_text_message!(%{
+          {:ok, ai_message} = Message.create_text_message(%{
             room_id: room_id,
             content: content,
             role: :assistant

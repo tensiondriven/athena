@@ -673,4 +673,65 @@ defmodule AshChatWeb.CoreComponents do
   def translate_errors(errors, field) when is_list(errors) do
     for {^field, {msg, opts}} <- errors, do: translate_error({msg, opts})
   end
+
+  @doc """
+  Renders the main navigation menu.
+  
+  ## Examples
+  
+      <.nav_menu current_page={:chat} />
+  """
+  attr :current_page, :atom, required: true
+
+  def nav_menu(assigns) do
+    ~H"""
+    <div class="flex items-center gap-4 px-4 py-3 bg-white border-b border-gray-200">
+      <.nav_link href="/chat" active={@current_page == :chat}>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+        </svg>
+        Chat
+      </.nav_link>
+      
+      <.nav_link href="/events" active={@current_page == :events}>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+        Events
+      </.nav_link>
+      
+      <.nav_link href="/system" active={@current_page == :system}>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        </svg>
+        Settings
+      </.nav_link>
+    </div>
+    """
+  end
+
+  @doc """
+  Renders a navigation link.
+  """
+  attr :href, :string, required: true
+  attr :active, :boolean, default: false
+  slot :inner_block, required: true
+
+  def nav_link(assigns) do
+    ~H"""
+    <a 
+      href={@href}
+      class={[
+        "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+        if(@active, 
+          do: "bg-gray-100 text-gray-900", 
+          else: "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+        )
+      ]}
+    >
+      <%= render_slot(@inner_block) %>
+    </a>
+    """
+  end
 end

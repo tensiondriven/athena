@@ -71,6 +71,16 @@ npm-debug.log
 /data/*
 !/data/.gitkeep
 
+# Ignore vendor directories
+vendor/
+docs/vendor/
+**/vendor/
+
+# Ignore Python virtual environments
+venv/
+.venv/
+**/venv/
+
 # Ignore DS_Store
 .DS_Store
 

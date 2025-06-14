@@ -1384,7 +1384,10 @@ defmodule AshChatWeb.ChatLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="flex h-full bg-white">
+    <div class="flex flex-col h-full bg-white">
+      <.nav_menu current_page={:chat} />
+      
+      <div class="flex flex-1 bg-white">
       <!-- Sidebar -->
       <div class={[
         "bg-white border-r border-gray-200 transition-all duration-300 flex flex-col",
@@ -2559,6 +2562,7 @@ defmodule AshChatWeb.ChatLive do
         </div>
       </div>
     <% end %>
+    </div>
     """
   end
   
