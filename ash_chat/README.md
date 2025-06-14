@@ -4,7 +4,20 @@ Real-time event monitoring and inspection for the Athena ecosystem, built with P
 
 ## Quick Start
 
-**Using the service script (recommended):**
+**Using the server.sh script (recommended):**
+```bash
+# From ash_chat directory
+./server.sh start     # Start the Phoenix server
+./server.sh stop      # Stop the Phoenix server
+./server.sh restart   # Restart the Phoenix server
+./server.sh status    # Check if server is running
+./server.sh logs      # Tail the server logs
+./server.sh errors    # Show error log
+./server.sh reset-db  # Reset the SQLite database
+./server.sh demo      # Run demo setup with test data
+```
+
+**Alternative service script (from dev-tools):**
 ```bash
 # From dev-tools directory
 ./ashchat-service.sh start    # Start the server
@@ -13,7 +26,7 @@ Real-time event monitoring and inspection for the Athena ecosystem, built with P
 ./ashchat-service.sh stop     # Stop the server
 ```
 
-**Manual start:**
+**Manual start (not recommended):**
 ```bash
 cd /path/to/ash_chat
 mix deps.get

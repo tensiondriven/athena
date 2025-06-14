@@ -1,5 +1,18 @@
 # Ash AI Cheatsheet
 
+## Quick Start - Server Management
+
+**Always use server.sh script:**
+```bash
+./server.sh start     # Start Phoenix server
+./server.sh stop      # Stop server
+./server.sh restart   # Restart server
+./server.sh status    # Check status
+./server.sh logs      # View logs
+./server.sh errors    # Check errors
+./server.sh demo      # Setup demo data
+```
+
 ## Core Ash AI Concepts
 
 ### Resources & Actions
