@@ -1,5 +1,26 @@
-<div class="flex flex-col h-screen bg-white">
+<div class="flex flex-col h-screen bg-white relative"
+     phx-drop-target={@uploads.quick_import.ref}>
   <.nav_menu current_page={:settings} />
+  
+  <!-- Drag & Drop Overlay -->
+  <%= if @drag_over do %>
+    <div class="absolute inset-0 bg-blue-500 bg-opacity-20 z-50 flex items-center justify-center"
+         phx-dragenter="drag-enter"
+         phx-dragleave="drag-leave">
+      <div class="bg-white rounded-lg shadow-xl p-8 text-center">
+        <svg class="w-16 h-16 text-blue-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+        </svg>
+        <h3 class="text-xl font-medium text-gray-900 mb-2">Drop character file here</h3>
+        <p class="text-gray-500">JSON or PNG character cards</p>
+      </div>
+    </div>
+  <% end %>
+  
+  <!-- Hidden file input for drag & drop -->
+  <form id="quick-import-form" phx-change="validate-quick-import" class="hidden">
+    <.live_file_input upload={@uploads.quick_import} />
+  </form>
   
   <div class="flex flex-1 bg-white overflow-hidden">
     <!-- Sidebar -->
@@ -197,15 +218,26 @@
               <h2 class="text-2xl font-semibold text-gray-900">Agent Personas</h2>
               <p class="text-sm text-gray-600 mt-1">Define unique personalities and behaviors for your AI agents</p>
             </div>
-            <button
-              phx-click="new_system_prompt"
-              class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-              </svg>
-              New Persona
-            </button>
+            <div class="flex gap-2">
+              <button
+                phx-click="show_import"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                Import Character
+              </button>
+              <button
+                phx-click="new_system_prompt"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                New Persona
+              </button>
+            </div>
           </div>
         </div>
         
@@ -533,5 +565,21 @@
       </div>
     </div>
   <% end %>
+  </div>
 </div>
 </div>
+
+<!-- Import Character Modal -->
+<%= if @show_import_modal do %>
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="p-6">
+        <.live_component
+          module={AshChatWeb.CharacterImportComponent}
+          id="character-import"
+          return_to={~p"/settings"}
+        />
+      </div>
+    </div>
+  </div>
+<% end %>

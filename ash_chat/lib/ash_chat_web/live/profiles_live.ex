@@ -1,5 +1,7 @@
 defmodule AshChatWeb.ProfilesLive do
   use AshChatWeb, :live_view
+  
+  alias AshChat.CharacterCard
 
   @impl true
   def mount(_params, _session, socket) do
@@ -8,12 +10,21 @@ defmodule AshChatWeb.ProfilesLive do
      |> assign(
        personas: load_personas(),
        system_prompts: load_system_prompts(),
+       agent_cards: load_agent_cards(),
        show_persona_form: false,
        show_system_prompt_form: false,
+       show_import_modal: false,
        editing_persona: nil,
        editing_system_prompt: nil,
        persona_form: to_form(%{}, as: :persona),
-       system_prompt_form: to_form(%{}, as: :system_prompt)
+       system_prompt_form: to_form(%{}, as: :system_prompt),
+       drag_over: false
+     )
+     |> allow_upload(:quick_import,
+       accept: ~w(.json .png),
+       max_entries: 1,
+       max_file_size: 10_000_000,
+       auto_upload: true
      )}
   end
 
@@ -206,6 +217,80 @@ defmodule AshChatWeb.ProfilesLive do
        editing_system_prompt: nil
      )}
   end
+  
+  @impl true
+  def handle_event("show_import", _params, socket) do
+    {:noreply, assign(socket, show_import_modal: true)}
+  end
+  
+  @impl true
+  def handle_event("hide_import", _params, socket) do
+    {:noreply, assign(socket, show_import_modal: false)}
+  end
+  
+  @impl true
+  def handle_event("drag-enter", _params, socket) do
+    {:noreply, assign(socket, drag_over: true)}
+  end
+  
+  @impl true
+  def handle_event("drag-leave", _params, socket) do
+    {:noreply, assign(socket, drag_over: false)}
+  end
+  
+  @impl true
+  def handle_event("validate-quick-import", _params, socket) do
+    # Handle file validation during drag & drop
+    {:noreply, 
+     socket
+     |> assign(drag_over: false)
+     |> handle_quick_import()}
+  end
+  
+  @impl true
+  def handle_info({:character_imported, agent_card}, socket) do
+    {:noreply,
+     socket
+     |> assign(
+       agent_cards: load_agent_cards(),
+       system_prompts: load_system_prompts(),
+       show_import_modal: false
+     )
+     |> put_flash(:info, "Successfully imported #{agent_card.name}!")}
+  end
+  
+  defp handle_quick_import(socket) do
+    consume_uploaded_entries(socket, :quick_import, fn %{path: path}, entry ->
+      content = File.read!(path)
+      
+      result = case entry.client_type do
+        "image/png" ->
+          import_from_png(content)
+        _ ->
+          CharacterCard.import_json(content)
+      end
+      
+      case result do
+        {:ok, agent_card} ->
+          send(self(), {:character_imported, agent_card})
+          {:ok, agent_card}
+          
+        {:error, reason} ->
+          {:postpone, reason}
+      end
+    end)
+    
+    socket
+  end
+  
+  defp import_from_png(png_binary) do
+    alias AshChat.PngMetadata
+    
+    with {:ok, character_data} <- PngMetadata.extract_character_data(png_binary),
+         {:ok, agent_card} <- CharacterCard.import_character_data(character_data) do
+      {:ok, agent_card}
+    end
+  end
 
   defp load_personas do
     AshChat.Resources.Persona.read!()
@@ -214,6 +299,11 @@ defmodule AshChatWeb.ProfilesLive do
   defp load_system_prompts do
     AshChat.Resources.SystemPrompt.read!()
     |> Ash.load!([:persona])
+  end
+  
+  defp load_agent_cards do
+    AshChat.Resources.AgentCard.read!()
+    |> Ash.load!([:system_prompt])
   end
 
   defp calculate_next_version(current_version) do
