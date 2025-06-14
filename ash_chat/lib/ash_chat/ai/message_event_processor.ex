@@ -37,8 +37,11 @@ defmodule AshChat.AI.MessageEventProcessor do
   # Callbacks
   
   def handle_cast({:process_message, message}, state) do
+    Logger.debug("MessageEventProcessor received message: #{message.id} (role: #{message.role})")
+    
     # Skip if we're already processing this message (avoid loops)
     if MapSet.member?(state.processing, message.id) do
+      Logger.debug("Skipping already processing message: #{message.id}")
       {:noreply, state}
     else
       # Telemetry start
@@ -58,10 +61,12 @@ defmodule AshChat.AI.MessageEventProcessor do
       
       # 3. Trigger agent responses if this was a user or agent message
       state = if message.role in [:user, :assistant] do
+        Logger.debug("Message is from #{message.role}, triggering agent responses")
         new_state = ensure_room_worker(message.room_id, state)
         send_to_room_worker(message.room_id, {:process_message, message})
         new_state
       else
+        Logger.debug("Message is from #{message.role}, not triggering agent responses")
         state
       end
       
@@ -139,19 +144,23 @@ defmodule AshChat.AI.MessageEventProcessor do
   defp ensure_room_worker(room_id, state) do
     case Map.get(state.room_workers, room_id) do
       nil ->
+        Logger.debug("Starting new room worker for room #{room_id}")
         # Start a new worker for this room using the supervisor
         case AshChat.AI.RoomConversationSupervisor.start_room_worker(room_id) do
           {:ok, pid} ->
+            Logger.debug("Started room worker #{inspect(pid)} for room #{room_id}")
             Process.monitor(pid)
             put_in(state.room_workers[room_id], pid)
           {:error, {:already_started, pid}} ->
+            Logger.debug("Room worker already exists #{inspect(pid)} for room #{room_id}")
             # Worker already exists, just track it
             put_in(state.room_workers[room_id], pid)
           {:error, reason} ->
             Logger.error("Failed to start room worker for #{room_id}: #{inspect(reason)}")
             state
         end
-      _pid ->
+      pid ->
+        Logger.debug("Room worker already tracked #{inspect(pid)} for room #{room_id}")
         state
     end
   end

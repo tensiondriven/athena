@@ -15,21 +15,40 @@ defmodule AshChat.AI.AgentConversation do
   - Agent's decision-making
   """
   def should_agent_respond?(agent_card, message, room_id) do
-    # Don't respond to assistant or system messages (basic loop prevention)
-    if message.role in [:assistant, :system] do
+    # Don't respond to system messages
+    if message.role == :system do
       false
     else
-      # Get recent conversation context
-      recent_messages = get_recent_messages(room_id, 5)
-      
-      # Check for conversation loops
-      if detecting_loop?(recent_messages, agent_card.id) do
-        Logger.info("Loop detected for agent #{agent_card.name}, skipping response")
-        false
+      # For assistant messages, only respond if it's from a different agent
+      if message.role == :assistant do
+        # Check if this message is from a different agent
+        message_agent_id = get_in(message.metadata || %{}, ["agent_id"]) || get_in(message.metadata || %{}, [:agent_id])
+        
+        if message_agent_id == agent_card.id do
+          # Don't respond to our own messages
+          false
+        else
+          # This is from another agent, check for loops and decide
+          check_and_respond(agent_card, message, room_id)
+        end
       else
-        # Let the agent decide if it should respond
-        agent_wants_to_respond?(agent_card, message, recent_messages)
+        # User message, check normally
+        check_and_respond(agent_card, message, room_id)
       end
+    end
+  end
+  
+  defp check_and_respond(agent_card, message, room_id) do
+    # Get recent conversation context
+    recent_messages = get_recent_messages(room_id, 5)
+    
+    # Check for conversation loops
+    if detecting_loop?(recent_messages, agent_card.id) do
+      Logger.info("Loop detected for agent #{agent_card.name}, skipping response")
+      false
+    else
+      # Let the agent decide if it should respond
+      agent_wants_to_respond?(agent_card, message, recent_messages)
     end
   end
   
@@ -78,20 +97,28 @@ defmodule AshChat.AI.AgentConversation do
   Returns list of agent responses to be sent
   """
   def process_agent_responses(room_id, trigger_message, opts \\ []) do
+    Logger.debug("AgentConversation.process_agent_responses for room #{room_id}")
+    
     # Get all auto-responding agents for this room
     case AgentMembership.auto_responders_for_room(%{room_id: room_id}) do
       {:ok, agent_memberships} ->
+        Logger.debug("Found #{length(agent_memberships)} auto-responding agents")
+        
         # Process each agent in parallel
         tasks = for agent_membership <- agent_memberships do
           Task.async(fn ->
             case Ash.get(AgentCard, agent_membership.agent_card_id) do
               {:ok, agent_card} ->
+                Logger.debug("Checking if #{agent_card.name} should respond")
                 if should_agent_respond?(agent_card, trigger_message, room_id) do
+                  Logger.debug("#{agent_card.name} will respond")
                   generate_agent_response(agent_card, room_id, trigger_message, opts)
                 else
+                  Logger.debug("#{agent_card.name} will not respond")
                   nil
                 end
-              {:error, _} ->
+              {:error, error} ->
+                Logger.error("Failed to get agent card: #{inspect(error)}")
                 nil
             end
           end)

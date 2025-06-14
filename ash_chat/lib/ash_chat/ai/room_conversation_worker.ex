@@ -36,6 +36,7 @@ defmodule AshChat.AI.RoomConversationWorker do
   # Message handling
   
   def handle_info({:process_message, message}, state) do
+    Logger.debug("RoomWorker #{state.room_id} received message #{message.id}")
     state = %{state | last_activity: System.monotonic_time(:millisecond)}
     
     # Queue the message
@@ -43,9 +44,11 @@ defmodule AshChat.AI.RoomConversationWorker do
     
     # Start processing if not already processing
     if not state.processing do
+      Logger.debug("RoomWorker #{state.room_id} starting processing")
       send(self(), :process_next_message)
       %{state | processing: true}
     else
+      Logger.debug("RoomWorker #{state.room_id} already processing, queued message")
       state
     end
     |> then(&{:noreply, &1})
@@ -87,9 +90,13 @@ defmodule AshChat.AI.RoomConversationWorker do
   end
   
   defp process_message_internal(message, state) do
+    Logger.debug("RoomWorker processing message #{message.id} in room #{state.room_id}")
+    
     # Get auto-responding agents in the room
     case AgentMembership.auto_responders_for_room(%{room_id: state.room_id}) do
       {:ok, agent_memberships} when agent_memberships != [] ->
+        Logger.debug("Found #{length(agent_memberships)} auto-responding agents")
+        
         # Broadcast thinking states
         for membership <- agent_memberships do
           with {:ok, agent_card} <- Ash.get(AshChat.Resources.AgentCard, membership.agent_card_id) do
@@ -107,11 +114,14 @@ defmodule AshChat.AI.RoomConversationWorker do
         
         # Process agent responses asynchronously
         Task.start(fn ->
+          Logger.debug("Starting agent response processing for room #{state.room_id}")
           agent_responses = AgentConversation.process_agent_responses(
             state.room_id,
             message,
             []
           )
+          
+          Logger.debug("Got #{length(agent_responses)} agent responses")
           
           # Send responses with delays
           for response <- agent_responses do
