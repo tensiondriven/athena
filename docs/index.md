@@ -28,8 +28,12 @@ The system follows a domain-driven design:
 
 ## Blog
 
+### Technical Breakthroughs
 - [Error Watchdog Breakthrough](blog/2025-06-09-error-watchdog-breakthrough.md)
 - [Multi-Agent Channel Architecture](blog/2025-06-10-multi-agent-channel-breakthrough.md)
+
+### AI Development Insights
+- [Scared of the Blank](blog/2025-06-11-scared-of-the-blank.md) - On AI's tendency to over-produce and the value of exploration
 
 ## Documentation
 
