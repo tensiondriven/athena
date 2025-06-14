@@ -141,4 +141,6 @@ __pycache__/
 
 # Temporary system directories
 system/ash-ai/~/
-EOF < /dev/null
+EOF < /dev/null# Aider temporary files
+.aider.chat.history.md
+.aider*
